@@ -168,7 +168,7 @@ export const PROMPTS: PromptStepData[] = [
         note: "初期版",
         createdAt: "2026-08-02",
         content:
-          "ニュース見出しと要約だけを材料に、転載ではない独自解説（600〜1000字）をMarkdownで書いてください。\n\n見出し: {{title}}\n出典: {{source_name}}\n要約: {{summary}}\nテーマ: {{topics}}\n\n金額・重量・単価・割合・断定的な工期日数は書かない。外部URLは書かない。",
+          "見出しと要約だけを材料に、## わかりやすく解説 / ## 実務で確認できそうなこと / ## 実際の内容 の3部でMarkdown出力。\n\n見出し: {{title}}\n出典: {{source_name}}\n要約: {{summary}}\nテーマ: {{topics}}\n\n金額・重量・単価・割合・断定的な工期日数は書かない。外部URLは書かない。",
       },
     ],
   },

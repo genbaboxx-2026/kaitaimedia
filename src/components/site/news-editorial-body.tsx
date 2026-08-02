@@ -4,6 +4,27 @@ import type { ContentBlock } from "@/lib/types";
 
 const INLINE = /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\))/g;
 
+const SECTION_STYLE: Record<
+  string,
+  { eyebrow: string; title: string; accent: string }
+> = {
+  わかりやすく解説: {
+    eyebrow: "POINT 1",
+    title: "わかりやすく解説",
+    accent: "text-navy-700",
+  },
+  実務で確認できそうなこと: {
+    eyebrow: "POINT 2",
+    title: "実務で確認できそうなこと",
+    accent: "text-navy-700",
+  },
+  実際の内容: {
+    eyebrow: "POINT 3",
+    title: "実際の内容",
+    accent: "text-navy-700",
+  },
+};
+
 function renderInline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   let last = 0;
@@ -45,7 +66,7 @@ function Block({ block }: { block: ContentBlock }) {
       );
     case "heading3":
       return (
-        <h3 className="mt-6 text-[17px] font-bold text-ink">{block.text}</h3>
+        <h3 className="mt-4 text-[16px] font-bold text-ink">{block.text}</h3>
       );
     case "callout":
       return (
@@ -72,21 +93,39 @@ function Block({ block }: { block: ContentBlock }) {
   }
 }
 
-/** ニュース自社解説（Markdown）を表示。既定見出し「本文」は出さない */
+/** ニュース自社解説（3部構成Markdown）を表示 */
 export function NewsEditorialBody({ markdown }: { markdown: string }) {
   const sections = markdownToSections(markdown);
   return (
-    <div className="space-y-4">
-      {sections.map((section) => (
-        <section key={section.id} className="space-y-4">
-          {section.heading !== "本文" ? (
-            <h2 className="text-[18px] font-bold text-ink">{section.heading}</h2>
-          ) : null}
-          {section.blocks.map((block, i) => (
-            <Block key={i} block={block} />
-          ))}
-        </section>
-      ))}
+    <div className="space-y-8">
+      {sections.map((section) => {
+        const style = SECTION_STYLE[section.heading];
+        const title = style?.title ?? section.heading;
+        const showHeading = section.heading !== "本文";
+        return (
+          <section key={section.id} className="space-y-3">
+            {showHeading ? (
+              <header>
+                {style ? (
+                  <p className="text-[11px] font-bold tracking-[0.08em] text-slate-400">
+                    {style.eyebrow}
+                  </p>
+                ) : null}
+                <h2
+                  className={`mt-0.5 text-[20px] font-black tracking-tight ${style?.accent ?? "text-ink"}`}
+                >
+                  {title}
+                </h2>
+              </header>
+            ) : null}
+            <div className="space-y-3">
+              {section.blocks.map((block, i) => (
+                <Block key={i} block={block} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }

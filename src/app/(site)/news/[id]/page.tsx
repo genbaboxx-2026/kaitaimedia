@@ -155,26 +155,21 @@ export default async function NewsDetailPage({
       <div className="mt-6 space-y-8 px-4 md:px-0">
         {item.editorialBody ? (
           <section>
-            <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-              <h2 className="text-[22px] font-black tracking-tight text-ink">
-                わかりやすく解説！
-              </h2>
-              <p className="pb-0.5 text-[12px] font-medium text-slate-400">
-                解体ナレッジ編集部
-              </p>
-            </div>
-            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
-              元記事の転載ではなく、実務者向けにポイントを整理した独自の解説です。
+            <p className="text-[12px] font-bold tracking-wide text-slate-400">
+              解体ナレッジ編集部
             </p>
-            <div className="mt-4">
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
+              転載ではなく、見出しと公開情報をもとにした独自の整理です。
+            </p>
+            <div className="mt-5">
               <NewsEditorialBody markdown={item.editorialBody} />
             </div>
           </section>
         ) : (
           <section>
             <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
-              <h2 className="text-[22px] font-black tracking-tight text-ink">
-                わかりやすく解説！
+              <h2 className="text-[20px] font-black tracking-tight text-ink">
+                わかりやすく解説
               </h2>
               <p className="pb-0.5 text-[12px] font-medium text-slate-400">
                 解体ナレッジ編集部
@@ -183,28 +178,9 @@ export default async function NewsDetailPage({
             <p className="mt-2 text-[16px] leading-8 text-slate-700">
               {briefing.lead}
             </p>
-            <ul className="mt-4 space-y-2.5">
-              {briefing.points.map((p) => (
-                <li
-                  key={p}
-                  className="flex gap-2.5 text-[15px] leading-7 text-slate-700"
-                >
-                  <span
-                    className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navy-600"
-                    aria-hidden
-                  />
-                  <span>{p}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {item.editorialBody && briefing.points.length > 0 ? (
-          <section>
-            <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
-              実務の確認ポイント
-            </h2>
+            <h3 className="mt-6 text-[20px] font-black tracking-tight text-ink">
+              実務で確認できそうなこと
+            </h3>
             <ul className="mt-3 space-y-2.5">
               {briefing.points.map((p) => (
                 <li
@@ -220,7 +196,7 @@ export default async function NewsDetailPage({
               ))}
             </ul>
           </section>
-        ) : null}
+        )}
 
         <section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
           <p className="text-[13px] leading-relaxed text-slate-500">
