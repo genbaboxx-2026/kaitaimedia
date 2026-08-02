@@ -40,16 +40,9 @@ export async function buildThresholds(
     loadMasterLabels("number_exclusion"),
   ]);
 
-  // プレミアム生成時は長文レンジ（premium_*）で文字数を判定する
-  const premium = getBool(settings, "premium_enabled", false);
-
   return {
-    minChar: premium
-      ? getNumber(settings, "premium_min_char_count", 9000)
-      : getNumber(settings, "min_char_count", 3000),
-    maxChar: premium
-      ? getNumber(settings, "premium_max_char_count", 11000)
-      : getNumber(settings, "max_char_count", 4000),
+    minChar: getNumber(settings, "min_char_count", 3500),
+    maxChar: getNumber(settings, "max_char_count", 5000),
     seoTitleMax: getNumber(settings, "seo_title_max_length", 32),
     metaDescMax: getNumber(settings, "meta_description_max_length", 120),
     titleSim: getNumber(settings, "title_similarity_threshold", 0.9),

@@ -88,6 +88,22 @@ export interface AiImageOptions {
   quality?: "low" | "medium" | "high";
   /** 画像ごとに構図を変えて重複を避けるためのヒント */
   variantHint?: string;
+  /** 記事ごとに変える絵柄（イラスト／写真風など） */
+  style?: string;
+}
+
+// 記事ごとにランダムで選ぶ絵柄（毎回テイストが変わるように）
+export const IMAGE_STYLES: string[] = [
+  "refined modern flat vector illustration, crisp clean edges, generous negative space, editorial tone",
+  "realistic editorial photograph, natural soft lighting, shallow depth of field, documentary feel",
+  "isometric 3D illustration, soft shadows, clean geometric shapes",
+  "hand-drawn line illustration with limited flat color accents, sketchbook feel",
+  "modern paper-cut / layered collage style with subtle paper texture",
+  "cinematic semi-realistic 3D render, dramatic lighting, matte finish",
+];
+
+export function pickImageStyle(): string {
+  return IMAGE_STYLES[Math.floor(Math.random() * IMAGE_STYLES.length)];
 }
 
 export async function generateAiEyecatchPng(
@@ -99,16 +115,17 @@ export async function generateAiEyecatchPng(
   if (!key) return null;
 
   const quality = opts?.quality ?? "high";
+  const style = opts?.style ?? IMAGE_STYLES[0];
   const prompt = [
-    "High-quality editorial illustration for a Japanese B2B media about the building demolition industry.",
-    `Category: ${categoryName}. This specific figure represents: ${subject}.`,
+    "High-quality cover/figure image for a Japanese B2B media about the building demolition industry.",
+    `Category: ${categoryName}. This specific image represents: ${subject}.`,
     opts?.variantHint
       ? `Composition for THIS image (make it clearly different from other figures in the article): ${opts.variantHint}.`
       : "",
-    "Style: refined modern flat vector illustration, crisp clean edges, balanced composition, generous negative space, calm and professional, newspaper/editorial tone.",
-    "Palette: deep navy (#1e293b) and slate grays with a single vivid red accent (#dc2626).",
-    "Depict the concept concretely with distinct, non-repeating objects relevant to the specific figure above.",
-    "STRICT: no text, no words, no letters, no numbers, no logos, no watermark. Not photorealistic. No human faces.",
+    `Art style: ${style}.`,
+    "Overall palette leans deep navy and slate grays with a single red accent; balanced, professional editorial look.",
+    "Depict the concept concretely with distinct, non-repeating subjects relevant to the specific image above.",
+    "STRICT: no text, no words, no letters, no numbers, no logos, no watermark. Avoid identifiable real people or brand marks.",
   ]
     .filter(Boolean)
     .join(" ");

@@ -9,6 +9,7 @@ import { restInsert, restRpc, restSelect, restUpdate } from "@/lib/supabase/rest
 import {
   generateEyecatchPng,
   generateAiEyecatchPng,
+  pickImageStyle,
   uploadEyecatch,
 } from "@/lib/image/eyecatch";
 import { notifySlack } from "@/lib/notify/slack";
@@ -118,12 +119,9 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
   // 品質チェック不合格でも下書きとして保存する（生成コストを無駄にしない）。既定ON。
   const keepFailed = getBool(settings, "keep_failed_as_draft", true);
   const bodyMaxTokens = premium ? 32000 : 12000;
-  const bodyMinChars = premium
-    ? getNumber(settings, "premium_min_char_count", 9000)
-    : getNumber(settings, "min_char_count", 3000);
-  const bodyMaxChars = premium
-    ? getNumber(settings, "premium_max_char_count", 11000)
-    : getNumber(settings, "max_char_count", 4000);
+  // 文字数は管理画面と同じ設定を使う（プレミアムも共通化）
+  const bodyMinChars = getNumber(settings, "min_char_count", 3500);
+  const bodyMaxChars = getNumber(settings, "max_char_count", 5000);
 
   // 月間コスト上限チェック（超過で自動停止）。0 は無効。
   // 注: estimated_cost は USD 概算。上限の単位運用は着手時に確定する（要件13）。
@@ -216,23 +214,11 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       category: categoryName,
       article_type: theme.article_type,
       target_keyword: theme.target_keyword ?? "",
-      heading_count: String(
-        premium
-          ? getNumber(settings, "premium_heading_count", 7)
-          : getNumber(settings, "heading_count", 5),
-      ),
+      heading_count: String(getNumber(settings, "heading_count", 5)),
       writing_style: getString(settings, "writing_style", "desu_masu"),
       expertise_level: expertiseLevel,
-      min_char_count: String(
-        premium
-          ? getNumber(settings, "premium_min_char_count", 9000)
-          : getNumber(settings, "min_char_count", 3000),
-      ),
-      max_char_count: String(
-        premium
-          ? getNumber(settings, "premium_max_char_count", 11000)
-          : getNumber(settings, "max_char_count", 4000),
-      ),
+      min_char_count: String(bodyMinChars),
+      max_char_count: String(bodyMaxChars),
       ng_expressions: ngStr,
       recommended_expressions: recommendedList.join("、"),
       faq_section: getBool(settings, "faq_enabled", true)
@@ -281,9 +267,12 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
     // アイキャッチ生成：AI画像（gpt-image-1）を優先し、そのトークン/コストも同じ記事に合算。
     // AIが使えない（キー未設定・課金停止など）ときは satori のSVGにフォールバック。
     const slug = slugify(categorySlug);
+    // 記事ごとに絵柄をランダムに選ぶ（サムネと本文中図版で統一）
+    const artStyle = pickImageStyle();
     let png: Buffer | null = null;
     const aiImage = await generateAiEyecatchPng(theme.title, categoryName, {
       quality: imageQuality,
+      style: artStyle,
       variantHint:
         "記事全体を象徴するヒーロー表紙構図。主役モチーフを大きく中央に配置し、他の図版と重複しない独自の絵にする",
     });
@@ -429,6 +418,7 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
         const p = picks[k];
         const img = await generateAiEyecatchPng(p.text, categoryName, {
           quality: imageQuality,
+          style: artStyle,
           variantHint: figHints[k % figHints.length],
         });
         if (!img) continue;

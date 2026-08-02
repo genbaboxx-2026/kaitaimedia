@@ -113,7 +113,7 @@ body {
   }
 }
 .article-body p {
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.15rem;
 }
 .article-body ul,
 .article-body ol {
@@ -140,6 +140,24 @@ body {
 }
 .article-body em {
   font-style: italic;
+}
+/* 重要文のマーカー（リジョブ風のピンクの下線ハイライト） */
+.article-body mark {
+  background: linear-gradient(transparent 62%, #fbcfe8 62%);
+  color: inherit;
+  font-weight: 700;
+  padding: 0 0.08em;
+}
+/* 重要ポイントのコールアウトボックス */
+.article-body .article-callout {
+  margin: 1.4rem 0;
+  padding: 0.95rem 1.15rem;
+  border-left: 4px solid var(--color-navy-700);
+  background: #eef2f7;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  color: #334155;
+  line-height: 1.8;
 }
 .article-body blockquote {
   margin: 1rem 0;

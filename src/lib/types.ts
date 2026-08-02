@@ -13,7 +13,8 @@ export type ContentBlock =
   | { type: "paragraph"; text: string }
   | { type: "heading3"; text: string }
   | { type: "list"; ordered?: boolean; items: string[] }
-  | { type: "image"; url: string; alt: string };
+  | { type: "image"; url: string; alt: string }
+  | { type: "callout"; text: string };
 
 export interface ArticleSection {
   /** 目次アンカー用のID */

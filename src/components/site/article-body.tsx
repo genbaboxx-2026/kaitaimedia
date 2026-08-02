@@ -1,27 +1,63 @@
+import type { ReactNode } from "react";
 import type { ArticleSection, ContentBlock } from "@/lib/types";
+
+// 段落内のインライン装飾を描画：**太字** / ==マーカー== / [リンク](url)
+const INLINE = /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\))/g;
+
+function renderInline(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  INLINE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = INLINE.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    const tok = m[0];
+    if (tok.startsWith("**")) {
+      nodes.push(<strong key={key++}>{tok.slice(2, -2)}</strong>);
+    } else if (tok.startsWith("==")) {
+      nodes.push(<mark key={key++}>{tok.slice(2, -2)}</mark>);
+    } else {
+      const mm = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);
+      if (mm) {
+        nodes.push(
+          <a key={key++} href={mm[2]} target="_blank" rel="noopener noreferrer">
+            {mm[1]}
+          </a>,
+        );
+      } else {
+        nodes.push(tok);
+      }
+    }
+    last = m.index + tok.length;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
 
 function Block({ block }: { block: ContentBlock }) {
   switch (block.type) {
     case "paragraph":
-      return <p>{block.text}</p>;
+      return <p>{renderInline(block.text)}</p>;
     case "heading3":
       return <h3>{block.text}</h3>;
+    case "callout":
+      return <div className="article-callout">{renderInline(block.text)}</div>;
     case "list":
       return block.ordered ? (
         <ol>
           {block.items.map((it, i) => (
-            <li key={i}>{it}</li>
+            <li key={i}>{renderInline(it)}</li>
           ))}
         </ol>
       ) : (
         <ul>
           {block.items.map((it, i) => (
-            <li key={i}>{it}</li>
+            <li key={i}>{renderInline(it)}</li>
           ))}
         </ul>
       );
     case "image":
-      // 本文中のAI生成図版（外部Storageの動的URLのため next/image ではなく img を使用）
       return (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -36,8 +72,6 @@ function Block({ block }: { block: ContentBlock }) {
   }
 }
 
-// タスク3のダミーは構造化ブロックでレンダリングする。
-// タスク4で Supabase の Markdown 本文をレンダリングする実装に置き換える。
 export function ArticleBody({ sections }: { sections: ArticleSection[] }) {
   return (
     <div className="article-body">
