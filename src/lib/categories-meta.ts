@@ -49,6 +49,9 @@ export const CATEGORY_META: Record<string, CategoryMeta> = {
   machinery: { accent: "#f59e0b", from: "#fbbf24", to: "#d97706", icon: "machinery" },
   neighbor: { accent: "#ec4899", from: "#f472b6", to: "#db2777", icon: "neighbor" },
   management: { accent: "#a855f7", from: "#c084fc", to: "#9333ea", icon: "management" },
+  hr: { accent: "#d946ef", from: "#e879f9", to: "#c026d3", icon: "labor" },
+  field: { accent: "#0891b2", from: "#22d3ee", to: "#0e7490", icon: "safety" },
+  industry: { accent: "#e11d48", from: "#fb7185", to: "#be123c", icon: "news" },
 };
 
 export function getCategoryMeta(slug: string): CategoryMeta {

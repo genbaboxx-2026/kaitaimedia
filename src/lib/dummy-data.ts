@@ -21,6 +21,9 @@ export const CATEGORIES: Category[] = [
   { slug: "machinery", name: "重機・工法", description: "重機・アタッチメント・解体工法の選定" },
   { slug: "neighbor", name: "近隣対応", description: "近隣説明・苦情対応・トラブル防止" },
   { slug: "management", name: "経営・集客", description: "解体会社の経営・集客・人材" },
+  { slug: "hr", name: "人事・採用", description: "解体会社の採用・育成・定着・人事制度" },
+  { slug: "field", name: "現場管理", description: "現場の段取り・品質・工程・職長マネジメント" },
+  { slug: "industry", name: "業界研究", description: "他業種比較・スタートアップ視点・海外事例で見る解体業界" },
 ];
 
 export const DEFAULT_CTA: Cta = {

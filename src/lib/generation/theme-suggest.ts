@@ -51,14 +51,39 @@ export async function suggestThemes(
   try {
     const { callJson } = await import("@/lib/ai/client");
     const { loadSettings, getModel } = await import("@/lib/ai/settings");
+    const { restSelect } = await import("@/lib/supabase/rest");
     const settings = await loadSettings();
     const slugs = CATEGORIES.map((cat) => `${cat.slug}(${cat.name})`).join("、");
+
+    // 既存の記事タイトル＋既存テーマを取得し、重複しない切り口だけを出させる
+    const [articleRows, themeRows] = await Promise.all([
+      restSelect<{ title: string }>("articles?select=title", 0),
+      restSelect<{ title: string }>("themes?select=title", 0),
+    ]);
+    const existing = [
+      ...(articleRows ?? []).map((r) => r.title),
+      ...(themeRows ?? []).map((r) => r.title),
+    ].filter(Boolean);
+    const existingBlock =
+      existing.length > 0
+        ? `既に存在する記事・テーマ（これらと内容が重複・類似するものは絶対に出さない）：\n- ${existing.join("\n- ")}\n`
+        : "";
+
     const prompt =
       `あなたは解体業界の専門メディアの編集者です。SEOを意識した記事テーマ案を${c}件、JSON配列だけで出力してください。\n` +
       `各要素は {"title","categorySlug","targetKeyword","articleType","priority"}。\n` +
       `articleType は A/B/C（A=手順, B=計算テンプレ, C=一次情報）。priority は high/medium/low。\n` +
       `categorySlug は次から選ぶ：${slugs}。\n` +
       `金額・単価・割合などの数値を主題にしないこと。実務者に役立つ具体的なお題にすること。\n` +
+      `\n【編集方針】解体会社の経営・スタートアップ視点で役立つ幅広いテーマを、カテゴリーが偏らないよう分散させる。\n` +
+      `- 人事・採用（hr）：採用/育成/定着/評価/若手が辞めない仕組み など\n` +
+      `- 現場管理（field）：段取り/職長マネジメント/品質/安全と生産性の両立 など\n` +
+      `- 近隣対応（neighbor）：クレーム予防/説明のコツ/信頼構築 など\n` +
+      `- 業界研究（industry）：他業種比較の切り口（IT企業/ファストリテイリングなどの大手/海外の解体会社との比較）、` +
+      `スタートアップが解体業を始めるとき最初にやること、ホワイトカラーから見たブルーカラーの価値 など、視点の面白いもの\n` +
+      `- 見積もり/原価/工期/産廃/法改正/補助金/重機・工法/安全 も適宜バランス良く\n` +
+      `同じカテゴリーに集中させず、上記ジャンルを広くカバーすること。\n` +
+      existingBlock +
       (instruction ? `追加の方針：${instruction}\n` : "") +
       `出力はJSON配列のみ。`;
     const { data } = await callJson<ThemeSuggestion[]>({

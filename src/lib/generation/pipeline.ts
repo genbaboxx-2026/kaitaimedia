@@ -115,6 +115,8 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
     | "low"
     | "medium"
     | "high";
+  // 品質チェック不合格でも下書きとして保存する（生成コストを無駄にしない）。既定ON。
+  const keepFailed = getBool(settings, "keep_failed_as_draft", true);
   const bodyMaxTokens = premium ? 32000 : 12000;
   const bodyMinChars = premium
     ? getNumber(settings, "premium_min_char_count", 9000)
@@ -366,8 +368,9 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       lastResults = report.results;
     }
 
-    // 10. 不合格は「完全に破棄」：記事は保存せず、生成履歴にログだけ残す
-    if (!report.passed) {
+    // 10. 不合格の扱い
+    // keepFailed=false のときだけ「完全に破棄」（記事を保存せずログのみ）。
+    if (!report.passed && !keepFailed) {
       await restUpdate(`generation_logs?id=eq.${logId}`, {
         prompt_structure: promptStructure,
         prompt_body: bodyPrompt,
@@ -383,7 +386,6 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
         estimated_cost: cost,
         finished_at: new Date().toISOString(),
       });
-      // テーマは生成済みにして次へ（同じテーマの無限リトライを防ぐ）
       await restUpdate(`themes?id=eq.${theme.id}`, {
         status: "generated",
         generated_at: new Date().toISOString(),
@@ -397,9 +399,9 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       };
     }
 
-    // ここから下は合格時のみ
-    // プレミアム：本文中の図版を生成して挿入（各H2見出しの直後に配置）。コストは合算。
-    if (inBodyImageCount > 0) {
+    // 合格 or「不合格でも下書き保存」。不合格は必ず下書き（自動公開しない）＋不合格バッジ付き。
+    // プレミアム：本文中の図版を生成して挿入（合格時のみ。不合格の下書きには画像コストをかけない）。
+    if (inBodyImageCount > 0 && report.passed) {
       const headingRe = /^##\s+(.+)$/gm;
       const headings: { text: string; index: number }[] = [];
       let hm: RegExpExecArray | null;
@@ -441,8 +443,14 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       }
     }
 
-    const articleStatus = autoPublish ? "published" : "draft";
-    const logStatus = autoPublish ? "published" : "draft";
+    // 不合格の記事は必ず下書き（自動公開しない）。合格＋自動公開ONのときだけ公開。
+    const articleStatus =
+      report.passed && autoPublish ? "published" : "draft";
+    const logStatus = report.passed
+      ? autoPublish
+        ? "published"
+        : "draft"
+      : "failed";
     const publishedAt = articleStatus === "published" ? new Date().toISOString() : null;
 
     // 記事を保存
@@ -521,7 +529,9 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       draft_final: body,
       revision_count: revision,
       status: logStatus,
-      error_message: null,
+      error_message: report.passed
+        ? null
+        : `品質チェック不合格（下書き保存）：${report.failedItems.join("、")}`,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
       estimated_cost: cost,
@@ -535,13 +545,22 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       generated_at: new Date().toISOString(),
     });
 
-    // 通知（合格時のみここに到達）
+    // 通知
+    const label = !report.passed
+      ? "下書き（要確認）"
+      : articleStatus === "published"
+        ? "公開"
+        : "下書き";
     await notifySlack(
-      `記事生成：${articleStatus === "published" ? "公開" : "下書き"}「${theme.title}」（修正${revision}回）`,
+      `記事生成：${label}「${theme.title}」（修正${revision}回）${
+        report.passed ? "" : `／不合格項目：${report.failedItems.join("、")}`
+      }`,
     );
     return {
-      status: articleStatus,
-      message: `「${theme.title}」を${articleStatus === "published" ? "公開" : "下書き保存"}しました`,
+      status: report.passed ? articleStatus : "failed",
+      message: `「${theme.title}」を${
+        !report.passed ? "下書き保存（品質チェック不合格・要確認）" : articleStatus === "published" ? "公開" : "下書き保存"
+      }しました`,
       articleId,
       slug,
     };
