@@ -24,7 +24,7 @@ function sleep(ms: number): Promise<void> {
 
 export function isUsableNewsImageUrl(url: string): boolean {
   const u = url.toLowerCase();
-  if (!/^https?:\/\//i.test(url)) return false;
+  if (!/^https?:\/\//i.test(url) && !u.startsWith("//")) return false;
   if (u.includes("favicon")) return false;
   if (u.includes("wp-includes")) return false;
   if (u.includes("1x1") || u.includes("pixel")) return false;
@@ -32,13 +32,125 @@ export function isUsableNewsImageUrl(url: string): boolean {
   if (u.includes("icon-lock")) return false;
   if (u.includes("/icon-") || u.includes("/icons/")) return false;
   if (u.includes("logo.") || u.includes("/logo/")) return false;
+  if (u.includes("ogp_noimage") || u.includes("noimage") || u.includes("no_image"))
+    return false;
   if (u.includes("/common/images/") && !u.includes("/news/thumb")) return false;
   if (u.includes("/common/sfw/")) return false;
   if (u.endsWith(".svg")) return false;
   if (url.includes(GOOGLE_NEWS_DEFAULT_IMAGE)) return false;
+  if (u.includes("gnews/logo")) return false;
   // 極小サムネ（64m など2桁）を除外。150m以上は許可
   if (/\/\d{1,2}m\//i.test(u)) return false;
   return true;
+}
+
+function absolutizeUrl(maybe: string, base?: string): string {
+  if (maybe.startsWith("//")) return `https:${maybe}`;
+  if (/^https?:\/\//i.test(maybe)) return maybe;
+  if (base) {
+    try {
+      return new URL(maybe, base).toString();
+    } catch {
+      return maybe;
+    }
+  }
+  return maybe;
+}
+
+export function isGoogleNewsArticleUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return (
+      (u.hostname === "news.google.com" || u.hostname.endsWith(".google.com")) &&
+      /\/articles\//i.test(u.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Googleニュースの暗号化URLを出版社の元記事URLに解決する。
+ * ページ内 signature/timestamp → batchexecute(Fbv4je)
+ */
+export async function resolveGoogleNewsPublisherUrl(
+  googleUrl: string,
+  timeoutMs = 15000,
+): Promise<string | null> {
+  if (!isGoogleNewsArticleUrl(googleUrl)) return null;
+
+  const articleId = decodeURIComponent(
+    googleUrl.match(/\/articles\/([^/?#]+)/i)?.[1] ?? "",
+  );
+  if (!articleId) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const pageUrl = `https://news.google.com/articles/${articleId}?hl=ja&gl=JP&ceid=JP:ja`;
+    const pageRes = await fetch(pageUrl, {
+      headers: {
+        "User-Agent": UA,
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
+      },
+      redirect: "follow",
+      signal: controller.signal,
+    });
+    if (!pageRes.ok) return null;
+    const html = await pageRes.text();
+    const signature = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
+    const timestamp = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
+    if (!signature || !timestamp) return null;
+
+    const rpcArg = JSON.stringify([
+      "garturlreq",
+      [
+        ["X", "X", ["X", "X"], null, null, 1, 1, "US:en", null, 1, null, null, null, null, null, 0, 1],
+        "X",
+        "X",
+        1,
+        [1, 1, 1],
+        1,
+        1,
+        null,
+        0,
+        0,
+        null,
+        0,
+      ],
+      articleId,
+      Number(timestamp),
+      signature,
+    ]);
+    const body =
+      "f.req=" +
+      encodeURIComponent(JSON.stringify([[["Fbv4je", rpcArg]]]));
+
+    const batchRes = await fetch(
+      "https://news.google.com/_/DotsSplashUi/data/batchexecute?rpcids=Fbv4je",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "User-Agent": UA,
+        },
+        body,
+        signal: controller.signal,
+      },
+    );
+    if (!batchRes.ok) return null;
+    const text = await batchRes.text();
+    const m =
+      text.match(/garturlres","(https?:\\?\/\\?\/[^"]+)"/) ??
+      text.match(/garturlres","(https?:\/\/[^"]+)"/);
+    if (!m?.[1]) return null;
+    return m[1].replace(/\\\//g, "/");
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /** Markdown中の画像から記事サムネらしいものを選ぶ */
@@ -128,7 +240,10 @@ export async function fetchOgImage(
     const buf = await res.arrayBuffer();
     const slice = buf.byteLength > 600_000 ? buf.slice(0, 600_000) : buf;
     const html = new TextDecoder("utf-8").decode(slice);
-    return extractOgImage(html);
+    const og = extractOgImage(html);
+    if (!og) return null;
+    const abs = absolutizeUrl(og, res.url);
+    return isUsableNewsImageUrl(abs) ? abs : null;
   } catch {
     return null;
   } finally {
@@ -187,14 +302,27 @@ export async function resolveNewsImageUrl(
   url: string,
   options?: { preferJina?: boolean },
 ): Promise<string | null> {
+  // Googleニュースは必ず出版社URLに展開してから画像を取る
+  let target = url;
+  if (isGoogleNewsArticleUrl(url)) {
+    const publisher = await resolveGoogleNewsPublisherUrl(url);
+    if (!publisher) return null;
+    target = publisher;
+    const og = await fetchOgImage(target);
+    if (og) return og;
+    const viaJina = await fetchImageViaJina(target);
+    if (viaJina) return viaJina;
+    return null;
+  }
+
   if (!options?.preferJina) {
-    const og = await fetchOgImage(url);
+    const og = await fetchOgImage(target);
     if (og) return og;
   }
-  const viaJina = await fetchImageViaJina(url);
+  const viaJina = await fetchImageViaJina(target);
   if (viaJina) return viaJina;
   if (options?.preferJina) {
-    return fetchOgImage(url);
+    return fetchOgImage(target);
   }
   return null;
 }

@@ -121,11 +121,10 @@ async function collectFromSource(source: NewsSource): Promise<{
 
   console.log(`[${source.id}] フィルタ後 ${draft.length}件`);
 
-  // Googleニュースはリダイレクトが多く Jina 優先。他ソースは OGP 優先。
-  const preferJina = source.id === "google_news";
+  // Googleニュースは resolveNewsImageUrl 内で出版社URLへ展開してから OGP 取得する
   const filled = await fillMissingImages(draft, {
-    concurrency: preferJina ? 2 : 5,
-    preferJina,
+    concurrency: source.id === "google_news" ? 2 : 5,
+    preferJina: false,
     onProgress: (done, total, ok) => {
       console.log(`[${source.id}] 画像 ${done}/${total}（取得成功 ${ok}）`);
     },

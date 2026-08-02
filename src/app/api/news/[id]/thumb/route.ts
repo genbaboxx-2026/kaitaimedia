@@ -3,7 +3,7 @@ import { isUsableNewsImageUrl, resolveNewsImageUrl } from "@/lib/news/og-image";
 import { restSelect, restUpdate } from "@/lib/supabase/rest";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 interface NewsThumbRow {
   id: string;
@@ -39,15 +39,23 @@ export async function GET(
   }
 
   try {
-    const preferJina = /news\.google\.com/i.test(row.url);
-    const imageUrl = await resolveNewsImageUrl(row.url, { preferJina });
+    const imageUrl = await resolveNewsImageUrl(row.url, {
+      preferJina: /news\.google\.com/i.test(row.url),
+    });
     if (!imageUrl || !isUsableNewsImageUrl(imageUrl)) {
       return new NextResponse(null, { status: 404 });
     }
     await restUpdate(`news_items?id=eq.${encodeURIComponent(row.id)}`, {
       image_url: imageUrl,
     });
-    return NextResponse.redirect(imageUrl, 302);
+    // 外部画像への直接リダイレクトは referrer / hotlink で失敗しやすいので
+    // 小さな HTML ではなく 302 のまま返し、img 側は no-referrer で読む
+    return NextResponse.redirect(imageUrl, {
+      status: 302,
+      headers: {
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
   } catch (e) {
     console.error("[news/thumb]", e instanceof Error ? e.message : e);
     return new NextResponse(null, { status: 404 });
