@@ -11,22 +11,27 @@ export default async function AdminAppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // middleware に加えてサーバー側でも認証を確認（多層防御）
+  // middleware で getUser 済み。ここでは Cookie のセッションを読むだけ（Auth API 再リクエストしない）
   const supabase = await createSupabaseServerClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session?.user) {
     redirect("/admin/login");
   }
+
+  const email = session.user.email ?? "";
 
   return (
     <div className="flex min-h-screen bg-white md:bg-slate-100">
       {/* サイドバー（デスクトップ） */}
       <aside className="hidden w-60 shrink-0 flex-col bg-navy-800 md:flex">
         <div className="flex h-16 items-center px-5">
-          <Link href="/admin" className="font-serif text-base font-bold text-white">
+          <Link
+            href="/admin"
+            className="font-serif text-base font-bold text-white"
+          >
             解体メディア管理
           </Link>
         </div>
@@ -43,7 +48,7 @@ export default async function AdminAppLayout({
         {/* デスクトップヘッダー */}
         <header className="hidden h-16 items-center justify-between border-b border-slate-200 bg-white px-6 md:flex">
           <div className="ml-auto flex items-center gap-4">
-            <span className="text-sm text-slate-500">{user.email}</span>
+            <span className="text-sm text-slate-500">{email}</span>
             <SignOutButton />
           </div>
         </header>

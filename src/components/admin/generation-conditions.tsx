@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { PromptManager } from "@/components/admin/prompt-manager";
 import { GenerationPolicy } from "@/components/admin/generation-policy";
@@ -12,43 +11,53 @@ import type { Theme } from "@/lib/admin-data";
 type SubTab = "policy" | "settings" | "prompts";
 
 interface GenerationConditionsProps {
+  initialTab?: SubTab;
   initialPrompts?: ActivePrompt[];
   initialSettings?: GenerationSettings;
   initialThemes?: Theme[];
 }
 
 const SUBTABS: { key: SubTab; label: string; hint: string }[] = [
-  { key: "policy", label: "生成方針", hint: "何を書くか（AIが毎回自動でテーマを決定・方針だけ指定）" },
-  { key: "settings", label: "生成設定", hint: "文字数・文体・自動公開・モデルなど" },
-  { key: "prompts", label: "プロンプト", hint: "AIへの指示文（構成/本文/SEO/修正/AI判定）" },
+  {
+    key: "policy",
+    label: "生成方針",
+    hint: "何を書くか（AIが毎回自動でテーマを決定・方針だけ指定）",
+  },
+  {
+    key: "settings",
+    label: "生成設定",
+    hint: "文字数・文体・自動公開・モデルなど",
+  },
+  {
+    key: "prompts",
+    label: "プロンプト",
+    hint: "AIへの指示文（構成/本文/SEO/修正/AI判定）",
+  },
 ];
 
-export function GenerationConditions(props: GenerationConditionsProps) {
-  return (
-    <Suspense fallback={null}>
-      <GenerationConditionsInner {...props} />
-    </Suspense>
-  );
+function isSubTab(v: string | undefined | null): v is SubTab {
+  return SUBTABS.some((t) => t.key === v);
 }
 
-function GenerationConditionsInner({
+export function GenerationConditions({
+  initialTab = "policy",
   initialPrompts,
   initialSettings,
   initialThemes,
 }: GenerationConditionsProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const params = useSearchParams();
+  const [tab, setTab] = useState<SubTab>(
+    isSubTab(initialTab) ? initialTab : "policy",
+  );
 
-  const raw = params.get("tab");
-  const tab: SubTab = SUBTABS.some((t) => t.key === raw)
-    ? (raw as SubTab)
-    : "policy";
-  const active = SUBTABS.find((t) => t.key === tab)!;
-
-  function setTab(key: SubTab) {
-    router.replace(`${pathname}?tab=${key}`, { scroll: false });
+  function changeTab(key: SubTab) {
+    setTab(key);
+    // Next router を使わない＝RSC / データ再取得が走らない
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", key);
+    window.history.replaceState(null, "", url.pathname + url.search);
   }
+
+  const active = SUBTABS.find((t) => t.key === tab)!;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -59,7 +68,6 @@ function GenerationConditionsInner({
         AIが記事を「何を・どう書くか」の条件をまとめて管理します。
       </p>
 
-      {/* モバイル：NewsPicks風アンダーラインタブ */}
       <div className="mt-3 -mx-4 border-b border-slate-200 md:hidden">
         <div className="flex overflow-x-auto px-2 scrollbar-none">
           {SUBTABS.map((t) => {
@@ -67,7 +75,8 @@ function GenerationConditionsInner({
             return (
               <button
                 key={t.key}
-                onClick={() => setTab(t.key)}
+                type="button"
+                onClick={() => changeTab(t.key)}
                 className={`relative shrink-0 px-3.5 py-3 text-[14px] whitespace-nowrap ${
                   isActive
                     ? "font-bold text-ink"
@@ -88,14 +97,14 @@ function GenerationConditionsInner({
       </div>
       <p className="mt-2 text-xs text-slate-400 md:hidden">{active.hint}</p>
 
-      {/* デスクトップ：ピルタブ */}
       <div className="mt-4 hidden flex-wrap gap-2 border-b border-slate-200 pb-3 md:flex">
         {SUBTABS.map((t) => {
           const isActive = t.key === tab;
           return (
             <button
               key={t.key}
-              onClick={() => setTab(t.key)}
+              type="button"
+              onClick={() => changeTab(t.key)}
               className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
                 isActive
                   ? "bg-navy-700 text-white"
