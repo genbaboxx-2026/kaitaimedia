@@ -119,8 +119,6 @@ export async function callGrokXSearch(
       },
     ],
     tools: [xSearchTool],
-    // 検索ヒットのURLを取りこぼしにくくする
-    include: ["x_search_call_output"],
   };
 
   let lastError: Error | null = null;
