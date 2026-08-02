@@ -14,6 +14,7 @@ export function ArticleCard({ article }: { article: Article }) {
         <Eyecatch
           categorySlug={article.categorySlug}
           categoryName={categoryName}
+          imageUrl={article.imageUrl}
           className="aspect-[16/10]"
         />
       </Link>
