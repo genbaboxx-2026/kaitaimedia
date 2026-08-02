@@ -33,6 +33,7 @@ BAKUSOQ本番DBには絶対に流さないこと。MCP経由の `apply_migration
 | 17 | `migrations/20260802000011_news_editorial_perf.sql` | 解説生成のモデルID・件数調整 |
 | 18 | `migrations/20260802000012_sns_trends_enum.sql` | `sns_trends` prompt_step（単独先実行） |
 | 19 | `migrations/20260802000013_sns_trend_posts.sql` | SNSトレンド候補テーブル＋プロンプト |
+| 20 | `migrations/20260802000014_sns_trends_prompt_v2.sql` | SNS検索プロンプト緩和＋遡及日数 |
 | - | `seed.sql` | 初期データ（冪等） |
 
 ## ニュース定期取得（本番）

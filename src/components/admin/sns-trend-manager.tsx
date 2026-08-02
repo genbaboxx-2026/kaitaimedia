@@ -54,12 +54,16 @@ export function SnsTrendManager({
         upserted?: number;
         skipped?: number;
         model?: string;
+        preview?: string;
       };
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? `HTTP ${res.status}`);
       }
+      const base = `更新完了: 取得${data.fetched ?? 0}件 → 保存${data.upserted ?? 0}件（スキップ${data.skipped ?? 0}） / ${data.model ?? ""}`;
       setMessage(
-        `更新完了: 取得${data.fetched ?? 0}件 → 保存${data.upserted ?? 0}件（スキップ${data.skipped ?? 0}） / ${data.model ?? ""}`,
+        data.preview && (data.upserted ?? 0) === 0
+          ? `${base}\n\nGrok応答プレビュー:\n${data.preview}`
+          : base,
       );
       router.refresh();
     } catch (e) {

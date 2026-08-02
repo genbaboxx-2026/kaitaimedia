@@ -21,16 +21,22 @@ export interface GrokXSearchResult {
   model: string;
   inputTokens: number;
   outputTokens: number;
+  /** x_search / 注釈から拾ったURL */
+  citationUrls: string[];
 }
 
 interface ResponsesOutputContent {
   type?: string;
   text?: string;
+  annotations?: Array<{ type?: string; url?: string; title?: string }>;
 }
 
 interface ResponsesOutputItem {
   type?: string;
   content?: ResponsesOutputContent[];
+  /** x_search の生出力（include 指定時） */
+  result?: unknown;
+  outputs?: unknown;
 }
 
 interface ResponsesApiBody {
@@ -38,6 +44,7 @@ interface ResponsesApiBody {
   error?: { message?: string } | null;
   model?: string;
   output?: ResponsesOutputItem[];
+  citations?: Array<string | { url?: string }>;
   usage?: {
     input_tokens?: number;
     output_tokens?: number;
@@ -64,6 +71,31 @@ function extractOutputText(body: ResponsesApiBody): string {
   return parts.join("\n").trim();
 }
 
+function collectCitationUrls(body: ResponsesApiBody): string[] {
+  const urls = new Set<string>();
+
+  for (const c of body.citations ?? []) {
+    if (typeof c === "string") urls.add(c);
+    else if (c && typeof c.url === "string") urls.add(c.url);
+  }
+
+  for (const item of body.output ?? []) {
+    for (const block of item.content ?? []) {
+      for (const ann of block.annotations ?? []) {
+        if (typeof ann.url === "string") urls.add(ann.url);
+      }
+    }
+    // include=x_search_call_output 時の雑多な構造から URL を拾う
+    const blob = JSON.stringify(item);
+    const matches = blob.match(
+      /https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[^"'\\\s]+\/status\/\d+/gi,
+    );
+    for (const m of matches ?? []) urls.add(m.replace(/\\+$/, ""));
+  }
+
+  return [...urls];
+}
+
 /** x_search 付きで Grok を呼び、最終テキストを返す（最大3回リトライ） */
 export async function callGrokXSearch(
   opts: GrokXSearchOptions,
@@ -87,6 +119,8 @@ export async function callGrokXSearch(
       },
     ],
     tools: [xSearchTool],
+    // 検索ヒットのURLを取りこぼしにくくする
+    include: ["x_search_call_output"],
   };
 
   let lastError: Error | null = null;
@@ -112,15 +146,17 @@ export async function callGrokXSearch(
       }
 
       const text = extractOutputText(body);
-      if (!text) {
+      const citationUrls = collectCitationUrls(body);
+      if (!text && citationUrls.length === 0) {
         throw new Error("Grok応答にテキストがありませんでした");
       }
 
       return {
-        text,
+        text: text || "[]",
         model: body.model ?? model,
         inputTokens: body.usage?.input_tokens ?? 0,
         outputTokens: body.usage?.output_tokens ?? 0,
+        citationUrls,
       };
     } catch (e) {
       lastError = e instanceof Error ? e : new Error(String(e));
@@ -133,7 +169,7 @@ export async function callGrokXSearch(
   throw lastError ?? new Error("Grok API呼び出しに失敗しました");
 }
 
-/** Grok応答テキストからJSONをパース（失敗時は1回だけ厳守再生成は呼び出し側で） */
+/** Grok応答テキストからJSONをパース */
 export function parseGrokJson<T>(text: string): T {
   return parseJsonLoose<T>(text);
 }
