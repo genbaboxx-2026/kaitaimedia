@@ -96,11 +96,28 @@ export interface AiJsonResult<T> extends AiResult {
   data: T;
 }
 
-// JSON 期待の呼び出し。素の JSON.parse に失敗したら本文から最初の {...} / [...] を抽出して再試行する。
+// JSON 期待の呼び出し。パースに失敗したら「JSONのみ」を厳守させて1回だけ再生成する（トークン/コストは合算）。
 export async function callJson<T>(opts: AiCallOptions): Promise<AiJsonResult<T>> {
-  const result = await callText(opts);
-  const data = parseJsonLoose<T>(result.text);
-  return { ...result, data };
+  const first = await callText(opts);
+  try {
+    return { ...first, data: parseJsonLoose<T>(first.text) };
+  } catch {
+    const retry = await callText({
+      ...opts,
+      prompt:
+        opts.prompt +
+        "\n\n重要：有効なJSONのみを出力してください。前置き・説明・コードフェンス（```）は一切書かないこと。",
+    });
+    const data = parseJsonLoose<T>(retry.text);
+    return {
+      ...retry,
+      data,
+      inputTokens: first.inputTokens + retry.inputTokens,
+      outputTokens: first.outputTokens + retry.outputTokens,
+      webSearchCount: first.webSearchCount + retry.webSearchCount,
+      costUsd: first.costUsd + retry.costUsd,
+    };
+  }
 }
 
 export function parseJsonLoose<T>(text: string): T {

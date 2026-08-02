@@ -467,13 +467,10 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
     }
 
     // 不合格の記事は必ず下書き（自動公開しない）。合格＋自動公開ONのときだけ公開。
+    // 記事を保存できた時点で「失敗」ではないので、履歴のステータスは記事状態に合わせる（要確認は error_message で示す）。
     const articleStatus =
       report.passed && autoPublish ? "published" : "draft";
-    const logStatus = report.passed
-      ? autoPublish
-        ? "published"
-        : "draft"
-      : "failed";
+    const logStatus = articleStatus;
     const publishedAt = articleStatus === "published" ? new Date().toISOString() : null;
 
     // 記事を保存
