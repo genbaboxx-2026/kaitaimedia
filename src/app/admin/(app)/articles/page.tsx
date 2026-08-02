@@ -28,13 +28,13 @@ export default async function AdminArticlesPage() {
           </p>
         </div>
         <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
-          <GenerateArticleButton pendingThemes={pendingThemes ?? []} />
           <div className="text-right">
             <AutoPublishToggle initial={autoPublish} />
             <p className="mt-1 text-xs text-slate-400">
               ON＝品質チェック合格の記事を自動公開／OFF＝すべて確認待ち
             </p>
           </div>
+          <GenerateArticleButton pendingThemes={pendingThemes ?? []} />
         </div>
       </div>
       <div className="mt-5">
