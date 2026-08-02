@@ -1,11 +1,14 @@
 /** サムネイル取得（OGP → 必要なら Jina で本文から抽出）。無料・依存なし */
 
+import {
+  isGenericNewsImageUrl,
+  isUsableNewsImageUrl,
+} from "@/lib/news/image-url";
+
+export { isGenericNewsImageUrl, isUsableNewsImageUrl };
+
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-/** Googleニュースが返す汎用ロゴ（記事画像ではない） */
-const GOOGLE_NEWS_DEFAULT_IMAGE =
-  "J6_coFbogxhRI9iM864NL_liGXvsQp2AupsKei7z0cNNfDvGUmWUy20nuUhkREQyrpY4bEeIBuc";
 
 function decodeEntities(s: string): string {
   return s
@@ -20,28 +23,6 @@ function decodeEntities(s: string): string {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
-}
-
-export function isUsableNewsImageUrl(url: string): boolean {
-  const u = url.toLowerCase();
-  if (!/^https?:\/\//i.test(url) && !u.startsWith("//")) return false;
-  if (u.includes("favicon")) return false;
-  if (u.includes("wp-includes")) return false;
-  if (u.includes("1x1") || u.includes("pixel")) return false;
-  if (u.includes("gravatar.com")) return false;
-  if (u.includes("icon-lock")) return false;
-  if (u.includes("/icon-") || u.includes("/icons/")) return false;
-  if (u.includes("logo.") || u.includes("/logo/")) return false;
-  if (u.includes("ogp_noimage") || u.includes("noimage") || u.includes("no_image"))
-    return false;
-  if (u.includes("/common/images/") && !u.includes("/news/thumb")) return false;
-  if (u.includes("/common/sfw/")) return false;
-  if (u.endsWith(".svg")) return false;
-  if (url.includes(GOOGLE_NEWS_DEFAULT_IMAGE)) return false;
-  if (u.includes("gnews/logo")) return false;
-  // 極小サムネ（64m など2桁）を除外。150m以上は許可
-  if (/\/\d{1,2}m\//i.test(u)) return false;
-  return true;
 }
 
 function absolutizeUrl(maybe: string, base?: string): string {

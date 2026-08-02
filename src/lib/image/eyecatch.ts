@@ -13,7 +13,7 @@ export interface AiImageResult {
 }
 
 // アイキャッチ画像生成（satori で SVG → resvg で PNG）。要件定義書 第10章。
-// 日本語フォントが必要。EYECATCH_FONT_PATH か assets/fonts/NotoSansJP-Bold.ttf に配置する。
+// 日本語フォントが必要。EYECATCH_FONT_PATH か assets/fonts/NotoSansJP-Bold.{otf,ttf} に配置する。
 // フォントが無ければ null を返し、パイプラインはアイキャッチ無しとして扱う。
 
 let fontCache: Buffer | null = null;
@@ -22,15 +22,21 @@ let fontMissing = false;
 function loadFont(): Buffer | null {
   if (fontCache) return fontCache;
   if (fontMissing) return null;
-  const path =
-    process.env.EYECATCH_FONT_PATH || "assets/fonts/NotoSansJP-Bold.ttf";
-  try {
-    fontCache = readFileSync(path);
-    return fontCache;
-  } catch {
-    fontMissing = true;
-    return null;
+  const candidates = [
+    process.env.EYECATCH_FONT_PATH,
+    "assets/fonts/NotoSansJP-Bold.otf",
+    "assets/fonts/NotoSansJP-Bold.ttf",
+  ].filter((p): p is string => Boolean(p));
+  for (const path of candidates) {
+    try {
+      fontCache = readFileSync(path);
+      return fontCache;
+    } catch {
+      // try next
+    }
   }
+  fontMissing = true;
+  return null;
 }
 
 export async function generateEyecatchPng(

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import type { NewsItem } from "@/lib/types";
 import { formatRelativeJa } from "@/lib/format";
+import { isUsableNewsImageUrl } from "@/lib/news/image-url";
 
 const THUMB_TONES = [
   "from-[#1e3a5f] to-[#0f2744]",
@@ -26,7 +27,11 @@ function toneFor(seed: string): string {
 export function NewsListItem({ item }: { item: NewsItem }) {
   const tone = toneFor(`${item.sourceId}:${item.sourceName}`);
   const displaySource = item.sourceName.replace(/^Googleニュース\s*\/\s*/, "");
-  const src = item.imageUrl || `/api/news/${item.id}/thumb`;
+  // 汎用OGP（NHK共通アイキャッチ等）は無視して個別サムネAPIへ
+  const src =
+    item.imageUrl && isUsableNewsImageUrl(item.imageUrl)
+      ? item.imageUrl
+      : `/api/news/${item.id}/thumb`;
   const [failed, setFailed] = useState(false);
 
   return (

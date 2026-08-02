@@ -27,7 +27,7 @@ npm run dev
 | `OPENAI_API_KEY` | 埋め込み（第2層 類似度判定）。未設定なら第2層は自動スキップ |
 | `SLACK_WEBHOOK_URL` | 実行結果・警告の通知（任意） |
 | `NEXT_PUBLIC_SITE_URL` | 公開URL（OGP / sitemap / robots / 構造化データ） |
-| `EYECATCH_FONT_PATH` | アイキャッチ用フォントのパス（既定 `assets/fonts/NotoSansJP-Bold.ttf`） |
+| `EYECATCH_FONT_PATH` | アイキャッチ用フォントのパス（既定 `assets/fonts/NotoSansJP-Bold.otf`） |
 
 ### DB（Supabase）
 
