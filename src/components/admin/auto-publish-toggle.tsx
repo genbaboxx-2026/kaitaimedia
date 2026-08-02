@@ -26,8 +26,8 @@ export function AutoPublishToggle({ initial }: { initial: boolean }) {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-2">
-      <span className="text-sm text-slate-600">完全自動公開</span>
+    <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 md:gap-3 md:px-4 md:py-2">
+      <span className="text-xs text-slate-600 md:text-sm">完全自動公開</span>
       <button
         type="button"
         role="switch"

@@ -49,7 +49,6 @@ export function ArticleTable({
   function setStatus(id: string, status: AdminStatus) {
     const snapshot = rows;
     setErr(null);
-    // 楽観的更新
     setRows((prev) =>
       prev.map((a) =>
         a.id === id
@@ -68,7 +67,7 @@ export function ArticleTable({
           ? await publishArticleAction(id)
           : await unpublishArticleAction(id);
       if (!res.ok) {
-        setRows(snapshot); // 失敗したら元に戻す
+        setRows(snapshot);
         setErr(res.error ?? "更新に失敗しました");
       }
     });
@@ -111,6 +110,174 @@ export function ArticleTable({
     },
   ];
 
+  function ActionMenu({ a }: { a: AdminArticle }) {
+    return (
+      <div className="relative inline-block text-left">
+        <button
+          onClick={() => setMenuId(menuId === a.id ? null : a.id)}
+          aria-label="操作メニュー"
+          aria-haspopup="menu"
+          className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-base leading-none text-slate-600 hover:bg-slate-100"
+        >
+          ⋯
+        </button>
+        {menuId === a.id && (
+          <>
+            <button
+              aria-hidden
+              tabIndex={-1}
+              onClick={() => setMenuId(null)}
+              className="fixed inset-0 z-10 cursor-default"
+            />
+            <div
+              role="menu"
+              className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+            >
+              <Link
+                href={`/admin/articles/${a.id}`}
+                className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                onClick={() => setMenuId(null)}
+              >
+                編集
+              </Link>
+              <Link
+                href={`/articles/${a.slug}`}
+                target="_blank"
+                className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                onClick={() => setMenuId(null)}
+              >
+                プレビュー
+              </Link>
+              {a.status === "published" ? (
+                <button
+                  onClick={() => {
+                    setMenuId(null);
+                    setStatus(a.id, "unpublished");
+                  }}
+                  className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                >
+                  公開停止
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setMenuId(null);
+                    setStatus(a.id, "published");
+                  }}
+                  className="block w-full px-3 py-2 text-left text-sm font-semibold text-navy-700 hover:bg-slate-100"
+                >
+                  公開する
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setMenuId(null);
+                  remove(a.id);
+                }}
+                className="block w-full border-t border-slate-100 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+              >
+                削除
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  function renderMobileCard(a: AdminArticle) {
+    const passed = qualityPassedCount(a.quality);
+    const isOpen = expanded === a.id;
+    return (
+      <li key={a.id} className="border-b border-slate-100 last:border-b-0">
+        <div className="flex items-start gap-3 px-4 py-3.5">
+          <button
+            type="button"
+            onClick={() => setExpanded(isOpen ? null : a.id)}
+            className="min-w-0 flex-1 text-left active:opacity-70"
+          >
+            <div className="flex flex-wrap items-center gap-1.5">
+              <StatusBadge status={a.status} />
+              <span className="text-[11px] text-slate-400">{a.categoryName}</span>
+            </div>
+            <p className="mt-1.5 text-[15px] font-bold leading-snug text-ink">
+              {a.title}
+            </p>
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              品質 {passed}/3 · {a.charCount.toLocaleString()}字 ·{" "}
+              {formatJaDate(a.createdAt)}
+            </p>
+            {a.failedChecks.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {a.failedChecks.map((f) => (
+                  <span
+                    key={f}
+                    className="inline-flex items-center rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-700 ring-1 ring-red-200"
+                  >
+                    {f}
+                  </span>
+                ))}
+              </div>
+            )}
+          </button>
+          <ActionMenu a={a} />
+        </div>
+
+        {isOpen && (
+          <div className="space-y-3 bg-slate-50 px-4 py-3">
+            <div>
+              <p className="text-[11px] font-semibold text-slate-500">本文冒頭</p>
+              <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                {a.excerpt}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-slate-500">
+                品質チェック
+              </p>
+              <ul className="mt-1 space-y-1 text-sm">
+                <li className={a.quality.layer1 ? "text-emerald-700" : "text-red-700"}>
+                  第1層 機械判定：{a.quality.layer1 ? "合格" : "不合格"}
+                </li>
+                <li className={a.quality.layer2 ? "text-emerald-700" : "text-red-700"}>
+                  第2層 類似度：{a.quality.layer2 ? "合格" : "不合格"}
+                </li>
+                <li className={a.quality.layer3 ? "text-emerald-700" : "text-red-700"}>
+                  第3層 AI判定：{a.quality.layer3 ? "合格" : "不合格"}
+                </li>
+              </ul>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Link
+                href={`/admin/articles/${a.id}`}
+                className="flex-1 rounded-lg bg-navy-700 py-2.5 text-center text-sm font-bold text-white"
+              >
+                編集
+              </Link>
+              {a.status === "published" ? (
+                <button
+                  type="button"
+                  onClick={() => setStatus(a.id, "unpublished")}
+                  className="flex-1 rounded-lg border border-slate-300 py-2.5 text-sm font-bold text-slate-700"
+                >
+                  公開停止
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setStatus(a.id, "published")}
+                  className="flex-1 rounded-lg bg-brand-600 py-2.5 text-sm font-bold text-white"
+                >
+                  公開する
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </li>
+    );
+  }
+
   function renderRow(a: AdminArticle) {
     const passed = qualityPassedCount(a.quality);
     const isOpen = expanded === a.id;
@@ -140,9 +307,13 @@ export function ArticleTable({
               </div>
             )}
           </td>
-          <td className="px-4 py-2.5 align-top whitespace-nowrap text-slate-600">{a.categoryName}</td>
+          <td className="px-4 py-2.5 align-top whitespace-nowrap text-slate-600">
+            {a.categoryName}
+          </td>
           <td className="px-4 py-2.5 align-top">
-            <span className={passed === 3 ? "text-emerald-700" : "text-amber-700"}>
+            <span
+              className={passed === 3 ? "text-emerald-700" : "text-amber-700"}
+            >
               {passed}/3
             </span>
           </td>
@@ -153,68 +324,7 @@ export function ArticleTable({
             {formatJaDate(a.createdAt)}
           </td>
           <td className="px-4 py-2.5 align-top text-right">
-            <div className="relative inline-block text-left">
-              <button
-                onClick={() => setMenuId(menuId === a.id ? null : a.id)}
-                aria-label="操作メニュー"
-                aria-haspopup="menu"
-                className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-base leading-none text-slate-600 hover:bg-slate-100"
-              >
-                ⋯
-              </button>
-              {menuId === a.id && (
-                <>
-                  {/* 外側クリックで閉じる */}
-                  <button
-                    aria-hidden
-                    tabIndex={-1}
-                    onClick={() => setMenuId(null)}
-                    className="fixed inset-0 z-10 cursor-default"
-                  />
-                  <div
-                    role="menu"
-                    className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg"
-                  >
-                    <Link
-                      href={`/admin/articles/${a.id}`}
-                      className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
-                      onClick={() => setMenuId(null)}
-                    >
-                      編集
-                    </Link>
-                    <Link
-                      href={`/articles/${a.slug}`}
-                      target="_blank"
-                      className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
-                      onClick={() => setMenuId(null)}
-                    >
-                      プレビュー
-                    </Link>
-                    {a.status === "published" ? (
-                      <button
-                        onClick={() => { setMenuId(null); setStatus(a.id, "unpublished"); }}
-                        className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
-                      >
-                        公開停止
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { setMenuId(null); setStatus(a.id, "published"); }}
-                        className="block w-full px-3 py-2 text-left text-sm font-semibold text-navy-700 hover:bg-slate-100"
-                      >
-                        公開する
-                      </button>
-                    )}
-                    <button
-                      onClick={() => { setMenuId(null); remove(a.id); }}
-                      className="block w-full border-t border-slate-100 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                    >
-                      削除
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+            <ActionMenu a={a} />
           </td>
         </tr>
         {isOpen && (
@@ -223,18 +333,34 @@ export function ArticleTable({
               <div className="grid gap-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                   <p className="text-xs font-semibold text-slate-500">本文冒頭</p>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-700">{a.excerpt}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                    {a.excerpt}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-500">品質チェック</p>
+                  <p className="text-xs font-semibold text-slate-500">
+                    品質チェック
+                  </p>
                   <ul className="mt-1 space-y-1 text-sm">
-                    <li className={a.quality.layer1 ? "text-emerald-700" : "text-red-700"}>
+                    <li
+                      className={
+                        a.quality.layer1 ? "text-emerald-700" : "text-red-700"
+                      }
+                    >
                       第1層 機械判定：{a.quality.layer1 ? "合格" : "不合格"}
                     </li>
-                    <li className={a.quality.layer2 ? "text-emerald-700" : "text-red-700"}>
+                    <li
+                      className={
+                        a.quality.layer2 ? "text-emerald-700" : "text-red-700"
+                      }
+                    >
                       第2層 類似度：{a.quality.layer2 ? "合格" : "不合格"}
                     </li>
-                    <li className={a.quality.layer3 ? "text-emerald-700" : "text-red-700"}>
+                    <li
+                      className={
+                        a.quality.layer3 ? "text-emerald-700" : "text-red-700"
+                      }
+                    >
                       第3層 AI判定：{a.quality.layer3 ? "合格" : "不合格"}
                     </li>
                   </ul>
@@ -260,21 +386,37 @@ export function ArticleTable({
         const items = list.filter(g.match);
         return (
           <section key={g.key}>
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-2 px-1 md:px-0">
               <span className={`h-4 w-1.5 rounded-full ${g.accent}`} />
               <h2 className="text-base font-bold text-slate-900">{g.label}</h2>
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-600">
                 {items.length}
               </span>
             </div>
-            <p className="mt-1 text-xs text-slate-400">{g.hint}</p>
+            <p className="mt-1 hidden text-xs text-slate-400 md:block">
+              {g.hint}
+            </p>
 
-            <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            {/* モバイル：カードリスト */}
+            <ul className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white md:hidden">
+              {items.length === 0 ? (
+                <li className="px-4 py-8 text-center text-sm text-slate-400">
+                  この括りに記事はありません。
+                </li>
+              ) : (
+                items.map(renderMobileCard)
+              )}
+            </ul>
+
+            {/* デスクトップ：テーブル */}
+            <div className="mt-2 hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
               <table className="w-full min-w-[52rem] text-sm">
                 <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
                   <tr>
                     <th className="px-4 py-2.5 font-semibold">タイトル</th>
-                    <th className="whitespace-nowrap px-4 py-2.5 font-semibold">カテゴリー</th>
+                    <th className="whitespace-nowrap px-4 py-2.5 font-semibold">
+                      カテゴリー
+                    </th>
                     <th className="px-4 py-2.5 font-semibold">品質</th>
                     <th className="px-4 py-2.5 font-semibold">文字数</th>
                     <th className="px-4 py-2.5 font-semibold">生成日</th>
@@ -285,7 +427,10 @@ export function ArticleTable({
                   {items.map(renderRow)}
                   {items.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-400">
+                      <td
+                        colSpan={6}
+                        className="px-4 py-8 text-center text-sm text-slate-400"
+                      >
                         この括りに記事はありません。
                       </td>
                     </tr>

@@ -200,30 +200,32 @@ export function ThemeManager({ initial }: { initial?: Theme[] }) {
   return (
     <div className="mx-auto max-w-6xl">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">テーマ管理</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          AIがテーマ案を提案します。あなたは順番の変更・内容の修正・追加・削除で調整してください。（未生成：{pendingCount} 件 / 目安 {THEME_STOCK_WARNING} 件）
+        <h1 className="hidden text-xl font-bold text-slate-900 md:block">
+          テーマ管理
+        </h1>
+        <p className="text-sm text-slate-500 md:mt-1">
+          未生成 {pendingCount} 件 / 目安 {THEME_STOCK_WARNING} 件。順番・内容を調整できます。
         </p>
       </div>
 
       {/* AIがテーマ在庫を自動でキープ */}
-      <div className="mt-4 rounded-xl border border-navy-100 bg-navy-50 p-4">
+      <div className="mt-4 rounded-xl border border-navy-100 bg-navy-50 p-3.5 md:p-4">
         <div className="flex flex-col gap-2 sm:flex-row">
           <input
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
-            placeholder="指示（任意）例：アスベスト・産廃を多めに / 初心者向けに"
-            className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-navy-600 focus:outline-none"
+            placeholder="指示（任意）例：アスベスト・産廃を多めに"
+            className="flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-[16px] focus:border-navy-600 focus:outline-none md:py-2 md:text-sm"
           />
           <button
             onClick={generateWithAI}
             disabled={generating}
-            className="shrink-0 rounded-md bg-navy-700 px-4 py-2 text-sm font-bold text-white hover:bg-navy-600 disabled:opacity-60"
+            className="shrink-0 rounded-lg bg-navy-700 px-4 py-2.5 text-sm font-bold text-white active:bg-navy-600 disabled:opacity-60 md:py-2"
           >
             {generating
               ? "生成中…"
               : need > 0
-                ? `不足分をAIで補充（あと${need}件）`
+                ? `AIで補充（あと${need}件）`
                 : "在庫は充分です"}
           </button>
         </div>
@@ -236,7 +238,100 @@ export function ThemeManager({ initial }: { initial?: Theme[] }) {
         </div>
       )}
 
-      <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      {/* モバイル：カードリスト */}
+      <ul className="mt-3 space-y-3 md:hidden">
+        {rows.map((t, i) => (
+          <li
+            key={t.id}
+            className="rounded-xl border border-slate-200 bg-white p-3.5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[12px] font-bold text-slate-400">
+                #{i + 1}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => move(t.id, -1)}
+                  disabled={i === 0}
+                  className="rounded-md border border-slate-200 px-2.5 py-1 text-xs text-slate-500 disabled:opacity-30"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(t.id, 1)}
+                  disabled={i === rows.length - 1}
+                  className="rounded-md border border-slate-200 px-2.5 py-1 text-xs text-slate-500 disabled:opacity-30"
+                >
+                  ▼
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(t.id)}
+                  className="ml-1 text-xs font-medium text-red-600"
+                >
+                  削除
+                </button>
+              </div>
+            </div>
+            <input
+              value={t.title}
+              onChange={(e) => update(t.id, { title: e.target.value })}
+              onBlur={() => commit(t.id)}
+              className={`${cell} mt-2 py-2.5 text-[15px] font-bold`}
+              placeholder="テーマ名"
+            />
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <select
+                value={t.categorySlug}
+                onChange={(e) => {
+                  update(t.id, { categorySlug: e.target.value });
+                  commit(t.id, { categorySlug: e.target.value });
+                }}
+                className={`${cell} py-2`}
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={t.priority}
+                onChange={(e) => {
+                  update(t.id, { priority: e.target.value as ThemePriority });
+                  commit(t.id, {
+                    priority: e.target.value as ThemePriority,
+                  });
+                }}
+                className={`${cell} py-2`}
+              >
+                {(Object.keys(PRIORITY_LABEL) as ThemePriority[]).map((p) => (
+                  <option key={p} value={p}>
+                    {PRIORITY_LABEL[p]}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input
+              value={t.targetKeyword}
+              onChange={(e) => update(t.id, { targetKeyword: e.target.value })}
+              onBlur={() => commit(t.id)}
+              className={`${cell} mt-2 py-2`}
+              placeholder="狙うキーワード"
+            />
+          </li>
+        ))}
+        {rows.length === 0 && (
+          <li className="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-400">
+            テーマがありません
+          </li>
+        )}
+      </ul>
+
+      {/* デスクトップ：テーブル */}
+      <div className="mt-3 hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
         <table className="w-full min-w-[56rem] text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
             <tr>
@@ -253,35 +348,91 @@ export function ThemeManager({ initial }: { initial?: Theme[] }) {
               <tr key={t.id} className="hover:bg-slate-50">
                 <td className="px-3 py-2 align-top">
                   <div className="flex items-center gap-2">
-                    <span className="w-5 text-right text-sm font-bold text-slate-500">{i + 1}</span>
+                    <span className="w-5 text-right text-sm font-bold text-slate-500">
+                      {i + 1}
+                    </span>
                     <div className="flex flex-col">
-                      <button onClick={() => move(t.id, -1)} disabled={i === 0} className="text-slate-400 hover:text-navy-700 disabled:opacity-30">▲</button>
-                      <button onClick={() => move(t.id, 1)} disabled={i === rows.length - 1} className="text-slate-400 hover:text-navy-700 disabled:opacity-30">▼</button>
+                      <button
+                        onClick={() => move(t.id, -1)}
+                        disabled={i === 0}
+                        className="text-slate-400 hover:text-navy-700 disabled:opacity-30"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        onClick={() => move(t.id, 1)}
+                        disabled={i === rows.length - 1}
+                        className="text-slate-400 hover:text-navy-700 disabled:opacity-30"
+                      >
+                        ▼
+                      </button>
                     </div>
                   </div>
                 </td>
                 <td className="px-3 py-2 align-top">
-                  <input value={t.title} onChange={(e) => update(t.id, { title: e.target.value })} onBlur={() => commit(t.id)} className={cell} placeholder="テーマ名" />
+                  <input
+                    value={t.title}
+                    onChange={(e) => update(t.id, { title: e.target.value })}
+                    onBlur={() => commit(t.id)}
+                    className={cell}
+                    placeholder="テーマ名"
+                  />
                 </td>
                 <td className="px-3 py-2 align-top">
-                  <select value={t.categorySlug} onChange={(e) => { update(t.id, { categorySlug: e.target.value }); commit(t.id, { categorySlug: e.target.value }); }} className={cell}>
+                  <select
+                    value={t.categorySlug}
+                    onChange={(e) => {
+                      update(t.id, { categorySlug: e.target.value });
+                      commit(t.id, { categorySlug: e.target.value });
+                    }}
+                    className={cell}
+                  >
                     {CATEGORIES.map((c) => (
-                      <option key={c.slug} value={c.slug}>{c.name}</option>
+                      <option key={c.slug} value={c.slug}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </td>
                 <td className="px-3 py-2 align-top">
-                  <input value={t.targetKeyword} onChange={(e) => update(t.id, { targetKeyword: e.target.value })} onBlur={() => commit(t.id)} className={cell} />
+                  <input
+                    value={t.targetKeyword}
+                    onChange={(e) =>
+                      update(t.id, { targetKeyword: e.target.value })
+                    }
+                    onBlur={() => commit(t.id)}
+                    className={cell}
+                  />
                 </td>
                 <td className="px-3 py-2 align-top">
-                  <select value={t.priority} onChange={(e) => { update(t.id, { priority: e.target.value as ThemePriority }); commit(t.id, { priority: e.target.value as ThemePriority }); }} className={cell}>
-                    {(Object.keys(PRIORITY_LABEL) as ThemePriority[]).map((p) => (
-                      <option key={p} value={p}>{PRIORITY_LABEL[p]}</option>
-                    ))}
+                  <select
+                    value={t.priority}
+                    onChange={(e) => {
+                      update(t.id, {
+                        priority: e.target.value as ThemePriority,
+                      });
+                      commit(t.id, {
+                        priority: e.target.value as ThemePriority,
+                      });
+                    }}
+                    className={cell}
+                  >
+                    {(Object.keys(PRIORITY_LABEL) as ThemePriority[]).map(
+                      (p) => (
+                        <option key={p} value={p}>
+                          {PRIORITY_LABEL[p]}
+                        </option>
+                      ),
+                    )}
                   </select>
                 </td>
                 <td className="px-3 py-2 align-top">
-                  <button onClick={() => remove(t.id)} className="text-xs text-red-600 hover:underline">削除</button>
+                  <button
+                    onClick={() => remove(t.id)}
+                    className="text-xs text-red-600 hover:underline"
+                  >
+                    削除
+                  </button>
                 </td>
               </tr>
             ))}
@@ -289,11 +440,11 @@ export function ThemeManager({ initial }: { initial?: Theme[] }) {
         </table>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-3 pb-2">
         <button
           onClick={addRow}
           disabled={busy}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+          className="w-full rounded-xl border border-slate-300 py-3 text-sm font-bold text-slate-700 active:bg-slate-50 disabled:opacity-60 md:w-auto md:rounded-md md:px-3 md:py-2 md:font-medium"
         >
           ＋ テーマを追加
         </button>

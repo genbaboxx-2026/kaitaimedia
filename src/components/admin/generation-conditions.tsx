@@ -60,12 +60,44 @@ function GenerationConditionsInner({
 
   return (
     <div className="mx-auto max-w-6xl">
-      <h1 className="text-xl font-bold text-slate-900">生成条件</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="hidden text-xl font-bold text-slate-900 md:block">
+        生成条件
+      </h1>
+      <p className="text-sm text-slate-500 md:mt-1">
         AIが記事を「何を・どう書くか」の条件をまとめて管理します。
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+      {/* モバイル：NewsPicks風アンダーラインタブ */}
+      <div className="mt-3 -mx-4 border-b border-slate-200 md:hidden">
+        <div className="flex overflow-x-auto px-2 scrollbar-none">
+          {SUBTABS.map((t) => {
+            const isActive = t.key === tab;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`relative shrink-0 px-3.5 py-3 text-[14px] whitespace-nowrap ${
+                  isActive
+                    ? "font-bold text-ink"
+                    : "font-medium text-slate-400"
+                }`}
+              >
+                {t.label}
+                {isActive && (
+                  <span
+                    aria-hidden
+                    className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-ink"
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-slate-400 md:hidden">{active.hint}</p>
+
+      {/* デスクトップ：ピルタブ */}
+      <div className="mt-4 hidden flex-wrap gap-2 border-b border-slate-200 pb-3 md:flex">
         {SUBTABS.map((t) => {
           const isActive = t.key === tab;
           return (

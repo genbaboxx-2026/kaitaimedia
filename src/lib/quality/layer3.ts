@@ -26,18 +26,23 @@ export async function runLayer3(
     maxTokens: 1000,
   });
 
-  const min = Math.min(data.naturalness, data.consistency, data.specificity);
-  const passed = min >= thr.aiPassScore;
+  // 3観点の平均で判定（1項目だけ低くても全体を落とさない）。ただし極端に低い項目(=1)は不可。
+  const avg =
+    (data.naturalness + data.consistency + data.specificity) / 3;
+  const hasCritical =
+    Math.min(data.naturalness, data.consistency, data.specificity) <= 1;
+  const scoreRounded = Math.round(avg * 10) / 10;
+  const passed = avg >= thr.aiPassScore && !hasCritical;
 
   return [
     {
       layer: 3,
-      checkItem: passed ? "AI判定" : `AI判定 ${min}/5`,
+      checkItem: passed ? "AI判定" : `AI判定 平均${scoreRounded}/5`,
       passed,
-      detail: `自然さ${data.naturalness} / 一貫性${data.consistency} / 具体性${data.specificity}${
-        data.comment ? `（${data.comment}）` : ""
+      detail: `自然さ${data.naturalness} / 一貫性${data.consistency} / 具体性${data.specificity}（平均${scoreRounded}）${
+        data.comment ? `／${data.comment}` : ""
       }`,
-      score: min,
+      score: scoreRounded,
     },
   ];
 }

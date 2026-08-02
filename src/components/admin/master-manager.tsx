@@ -37,7 +37,10 @@ export function MasterManager({
     }));
   }
   function remove(type: MasterType, id: string) {
-    setData((prev) => ({ ...prev, [type]: prev[type].filter((r) => r.id !== id) }));
+    setData((prev) => ({
+      ...prev,
+      [type]: prev[type].filter((r) => r.id !== id),
+    }));
   }
 
   function save() {
@@ -58,20 +61,28 @@ export function MasterManager({
   }
 
   const cell =
-    "w-full rounded border border-slate-200 px-2 py-1 text-sm focus:border-navy-600 focus:outline-none";
+    "w-full rounded-lg border border-slate-200 px-3 py-2.5 text-[15px] focus:border-navy-600 focus:outline-none md:rounded-md md:px-2 md:py-1 md:text-sm";
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl pb-20 md:pb-0">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">ルール管理</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            記事の執筆・品質チェックでAIが参照する用語やルール（辞書）。すべての種別を一覧で表示しています。編集後は「保存」を押してください。
+          <h1 className="hidden text-xl font-bold text-slate-900 md:block">
+            ルール管理
+          </h1>
+          <p className="text-sm text-slate-500 md:mt-1">
+            用語・禁止表現などの辞書。編集後は保存してください。
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-3">
-          {saved && <span className="text-sm font-semibold text-emerald-700">保存しました</span>}
-          {error && <span className="text-sm font-semibold text-red-600">保存失敗</span>}
+        <div className="hidden shrink-0 items-center gap-3 md:flex">
+          {saved && (
+            <span className="text-sm font-semibold text-emerald-700">
+              保存しました
+            </span>
+          )}
+          {error && (
+            <span className="text-sm font-semibold text-red-600">保存失敗</span>
+          )}
           <button
             onClick={save}
             disabled={isPending}
@@ -82,27 +93,79 @@ export function MasterManager({
         </div>
       </div>
 
-      <div className="mt-6 space-y-8">
+      <div className="mt-4 space-y-6 md:mt-6 md:space-y-8">
         {MASTER_TABS.map((meta) => {
           const rows = data[meta.type];
           return (
             <section key={meta.type}>
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-slate-800">{meta.label}</h2>
+                <h2 className="text-[15px] font-black text-ink md:text-sm md:font-bold md:text-slate-800">
+                  {meta.label}
+                </h2>
                 <button
                   onClick={() => add(meta.type)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 active:bg-slate-100"
                 >
                   ＋ 追加
                 </button>
               </div>
 
-              <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              {/* モバイル：カード */}
+              <ul className="mt-2 space-y-2 md:hidden">
+                {rows.map((r) => (
+                  <li
+                    key={r.id}
+                    className="rounded-xl border border-slate-200 bg-white p-3"
+                  >
+                    <label className="text-[11px] font-bold text-slate-400">
+                      {meta.labelCol}
+                    </label>
+                    <input
+                      value={r.label}
+                      onChange={(e) =>
+                        update(meta.type, r.id, { label: e.target.value })
+                      }
+                      className={`${cell} mt-1`}
+                      placeholder={meta.labelCol}
+                    />
+                    <label className="mt-2 block text-[11px] font-bold text-slate-400">
+                      {meta.valueCol}
+                    </label>
+                    <textarea
+                      value={r.value}
+                      onChange={(e) =>
+                        update(meta.type, r.id, { value: e.target.value })
+                      }
+                      rows={2}
+                      className={`${cell} mt-1`}
+                      placeholder={meta.valueCol}
+                    />
+                    <button
+                      onClick={() => remove(meta.type, r.id)}
+                      className="mt-2 text-xs font-medium text-red-600"
+                    >
+                      削除
+                    </button>
+                  </li>
+                ))}
+                {rows.length === 0 && (
+                  <li className="rounded-xl border border-dashed border-slate-300 px-3 py-6 text-center text-sm text-slate-400">
+                    項目がありません
+                  </li>
+                )}
+              </ul>
+
+              {/* デスクトップ：テーブル */}
+              <div className="mt-2 hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
                 <table className="w-full min-w-[40rem] text-sm">
                   <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
                     <tr>
-                      <th className="w-1/3 px-3 py-2.5 font-semibold">{meta.labelCol}</th>
-                      <th className="px-3 py-2.5 font-semibold">{meta.valueCol}</th>
+                      <th className="w-1/3 px-3 py-2.5 font-semibold">
+                        {meta.labelCol}
+                      </th>
+                      <th className="px-3 py-2.5 font-semibold">
+                        {meta.valueCol}
+                      </th>
                       <th className="w-16 px-3 py-2.5" />
                     </tr>
                   </thead>
@@ -112,16 +175,24 @@ export function MasterManager({
                         <td className="px-3 py-2 align-top">
                           <input
                             value={r.label}
-                            onChange={(e) => update(meta.type, r.id, { label: e.target.value })}
-                            className={cell}
+                            onChange={(e) =>
+                              update(meta.type, r.id, {
+                                label: e.target.value,
+                              })
+                            }
+                            className="w-full rounded border border-slate-200 px-2 py-1 text-sm focus:border-navy-600 focus:outline-none"
                           />
                         </td>
                         <td className="px-3 py-2 align-top">
                           <textarea
                             value={r.value}
-                            onChange={(e) => update(meta.type, r.id, { value: e.target.value })}
+                            onChange={(e) =>
+                              update(meta.type, r.id, {
+                                value: e.target.value,
+                              })
+                            }
                             rows={2}
-                            className={cell}
+                            className="w-full rounded border border-slate-200 px-2 py-1 text-sm focus:border-navy-600 focus:outline-none"
                           />
                         </td>
                         <td className="px-3 py-2 align-top">
@@ -136,7 +207,10 @@ export function MasterManager({
                     ))}
                     {rows.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="px-3 py-6 text-center text-sm text-slate-400">
+                        <td
+                          colSpan={3}
+                          className="px-3 py-6 text-center text-sm text-slate-400"
+                        >
                           項目がありません。「＋ 追加」で登録してください。
                         </td>
                       </tr>
@@ -147,6 +221,31 @@ export function MasterManager({
             </section>
           );
         })}
+      </div>
+
+      {/* モバイル：固定保存バー */}
+      <div
+        className="fixed inset-x-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md md:hidden"
+        style={{
+          bottom: "calc(3.5rem + env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {(saved || error) && (
+            <span
+              className={`text-xs font-bold ${saved ? "text-emerald-700" : "text-red-600"}`}
+            >
+              {saved ? "保存しました" : "保存失敗"}
+            </span>
+          )}
+          <button
+            onClick={save}
+            disabled={isPending}
+            className="ml-auto flex-1 rounded-xl bg-navy-700 py-3 text-sm font-bold text-white disabled:opacity-60"
+          >
+            {isPending ? "保存中…" : "ルールを保存"}
+          </button>
+        </div>
       </div>
     </div>
   );

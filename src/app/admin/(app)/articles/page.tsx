@@ -16,9 +16,16 @@ export default async function AdminArticlesPage() {
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">記事管理</h1>
+          <h1 className="hidden text-xl font-bold text-slate-900 md:block">
+            記事管理
+          </h1>
           <p className="mt-1 max-w-3xl text-sm text-slate-500">
-            AIが作った記事の確認待ち一覧です。内容を確認して「公開する」で公開、または編集・削除できます。タイトルをクリックすると本文冒頭とチェック結果を確認できます。公開済みの記事は「公開記事管理」で管理します。
+            <span className="md:hidden">
+              確認待ちの記事一覧。タップで詳細・公開操作ができます。
+            </span>
+            <span className="hidden md:inline">
+              AIが作った記事の確認待ち一覧です。内容を確認して「公開する」で公開、または編集・削除できます。タイトルをクリックすると本文冒頭とチェック結果を確認できます。公開済みの記事は「公開記事管理」で管理します。
+            </span>
           </p>
         </div>
         <div className="shrink-0 text-right">

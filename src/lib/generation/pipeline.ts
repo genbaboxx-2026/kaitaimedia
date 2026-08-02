@@ -115,6 +115,9 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
   const bodyMinChars = premium
     ? getNumber(settings, "premium_min_char_count", 9000)
     : getNumber(settings, "min_char_count", 3000);
+  const bodyMaxChars = premium
+    ? getNumber(settings, "premium_max_char_count", 11000)
+    : getNumber(settings, "max_char_count", 4000);
 
   // 月間コスト上限チェック（超過で自動停止）。0 は無効。
   // 注: estimated_cost は USD 概算。上限の単位運用は着手時に確定する（要件13）。
@@ -316,20 +319,26 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
         failed_items: report.failedItems.join("、"),
         ng_expressions: ngStr,
       });
-      // 文字数不足のときは「増量」を明示（fixプロンプトは既定で“最小限修正”のため）
+      // 文字数の過不足は fix プロンプト（既定は“最小限修正”）だけでは直らないため明示指示を足す
+      const curChars = body.replace(/\s/g, "").length;
       const needsMore =
-        report.failedItems.some((f) => f.includes("文字数")) &&
-        body.replace(/\s/g, "").length < bodyMinChars;
+        report.failedItems.some((f) => f.includes("文字数")) && curChars < bodyMinChars;
+      const needsTrim =
+        report.failedItems.some((f) => f.includes("文字数")) && curChars > bodyMaxChars;
       if (needsMore) {
         promptFix +=
-          `\n\n【重要】本文が短すぎます。各セクションに具体的な手順・確認項目・注意点・背景説明を加筆し、` +
-          `全体で${bodyMinChars}字以上にしてください。既存の主張・見出しは保ち、数値は新たに創作しないこと。`;
+          `\n\n【重要】本文が短すぎます（現在約${curChars}字）。各セクションに具体的な手順・確認項目・注意点・背景説明を加筆し、` +
+          `全体で${bodyMinChars}〜${bodyMaxChars}字にしてください。既存の主張・見出しは保ち、数値は新たに創作しないこと。`;
+      } else if (needsTrim) {
+        promptFix +=
+          `\n\n【重要】本文が長すぎます（現在約${curChars}字）。冗長な繰り返し・重複説明を削り、` +
+          `${bodyMinChars}〜${bodyMaxChars}字に収めてください。見出し構成と要点は保ち、数値は新たに創作しないこと。`;
       }
       const fixRes = await callText({
         prompt: promptFix,
         model,
         maxTokens: bodyMaxTokens,
-        thinking: premium && needsMore,
+        thinking: premium && (needsMore || needsTrim),
       });
       track(fixRes);
       body = fixRes.text;

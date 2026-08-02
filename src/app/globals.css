@@ -39,6 +39,13 @@ html {
   scroll-padding-top: 6.5rem;
 }
 
+@media (max-width: 767px) {
+  html {
+    /* モバイル：アプヘッダー + カテゴリタブ */
+    scroll-padding-top: 5.75rem;
+  }
+}
+
 body {
   background: var(--color-surface);
   color: var(--color-ink);
@@ -46,6 +53,17 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* ネイティブアプリ風：オーバースクロール時の余白色 */
+  overscroll-behavior-y: none;
+}
+
+/* 横スクロールタブのスクロールバー非表示 */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 /* =========================================================
@@ -76,6 +94,23 @@ body {
   font-weight: 700;
   color: var(--color-ink-strong);
   scroll-margin-top: 6.5rem;
+}
+
+@media (max-width: 767px) {
+  .article-body {
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+  .article-body h2 {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    scroll-margin-top: 5.75rem;
+  }
+  .article-body h3 {
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    scroll-margin-top: 5.75rem;
+  }
 }
 .article-body p {
   margin-bottom: 0.85rem;

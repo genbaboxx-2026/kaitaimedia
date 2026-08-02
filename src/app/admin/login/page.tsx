@@ -36,33 +36,39 @@ export default function AdminLoginPage() {
   }
 
   const field =
-    "mt-1 w-full rounded-md border border-slate-300 px-3 py-2.5 text-sm text-slate-800 focus:border-navy-600 focus:outline-none focus:ring-1 focus:ring-navy-600";
+    "mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-[16px] text-ink focus:border-navy-600 focus:bg-white focus:outline-none focus:ring-1 focus:ring-navy-600";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <p className="font-serif text-lg font-bold text-navy-800">
-            解体業界特化メディア
+    <div
+      className="flex min-h-screen flex-col bg-white px-6"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+    >
+      <div className="flex flex-1 flex-col justify-center">
+        <div className="mb-10 text-center">
+          <p className="text-[11px] font-bold tracking-[0.2em] text-slate-400">
+            ADMIN
           </p>
-          <p className="mt-1 text-sm text-slate-500">管理画面</p>
+          <h1 className="mt-2 text-[22px] font-black tracking-wide text-ink">
+            管理コンソール
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">解体業界特化メディア</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-        >
+        <form onSubmit={handleSubmit} className="mx-auto w-full max-w-sm space-y-5">
           {error && (
             <p
               role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
               {error}
             </p>
           )}
 
           <div>
-            <label htmlFor="email" className="text-sm font-semibold text-slate-700">
+            <label htmlFor="email" className="text-sm font-bold text-ink">
               メールアドレス
             </label>
             <input
@@ -77,10 +83,7 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="text-sm font-semibold text-slate-700"
-            >
+            <label htmlFor="password" className="text-sm font-bold text-ink">
               パスワード
             </label>
             <input
@@ -97,16 +100,16 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-navy-700 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-navy-600 disabled:opacity-60"
+            className="mt-2 w-full rounded-xl bg-navy-700 px-4 py-3.5 text-[15px] font-bold text-white active:bg-navy-600 disabled:opacity-60"
           >
             {loading ? "ログイン中…" : "ログイン"}
           </button>
         </form>
-
-        <p className="mt-4 text-center text-xs text-slate-400">
-          このページは認証済みの管理者のみ利用できます。
-        </p>
       </div>
+
+      <p className="pb-6 text-center text-xs text-slate-400">
+        認証済みの管理者のみ利用できます
+      </p>
     </div>
   );
 }

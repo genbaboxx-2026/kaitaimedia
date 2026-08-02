@@ -2,6 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { AdminBottomNav } from "@/components/admin/admin-bottom-nav";
+import { AdminMobileHeader } from "@/components/admin/admin-mobile-header";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 
 export default async function AdminAppLayout({
@@ -20,8 +22,8 @@ export default async function AdminAppLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      {/* サイドバー */}
+    <div className="flex min-h-screen bg-white md:bg-slate-100">
+      {/* サイドバー（デスクトップ） */}
       <aside className="hidden w-60 shrink-0 flex-col bg-navy-800 md:flex">
         <div className="flex h-16 items-center px-5">
           <Link href="/admin" className="font-serif text-base font-bold text-white">
@@ -36,21 +38,22 @@ export default async function AdminAppLayout({
 
       {/* メイン */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
-          {/* モバイル用の簡易タイトル */}
-          <span className="font-serif text-sm font-bold text-navy-800 md:hidden">
-            解体メディア管理
-          </span>
+        <AdminMobileHeader />
+
+        {/* デスクトップヘッダー */}
+        <header className="hidden h-16 items-center justify-between border-b border-slate-200 bg-white px-6 md:flex">
           <div className="ml-auto flex items-center gap-4">
-            <span className="hidden text-sm text-slate-500 sm:inline">
-              {user.email}
-            </span>
+            <span className="text-sm text-slate-500">{user.email}</span>
             <SignOutButton />
           </div>
         </header>
 
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 px-0 py-0 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:p-6 md:pb-6">
+          <div className="px-4 py-4 md:px-0 md:py-0">{children}</div>
+        </main>
       </div>
+
+      <AdminBottomNav />
     </div>
   );
 }

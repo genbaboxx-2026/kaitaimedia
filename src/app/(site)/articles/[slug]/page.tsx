@@ -85,47 +85,49 @@ export default async function ArticleDetailPage({
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-5 md:py-8">
       <JsonLd data={articleLd} />
       <JsonLd data={breadcrumbLd} />
       <ViewBeacon slug={article.slug} />
-      <Breadcrumbs
-        items={[
-          { label: "ホーム", href: "/" },
-          { label: "記事一覧", href: "/articles" },
-          { label: categoryName, href: `/category/${article.categorySlug}` },
-          { label: article.title },
-        ]}
-      />
+      <div className="hidden md:block">
+        <Breadcrumbs
+          items={[
+            { label: "ホーム", href: "/" },
+            { label: "記事一覧", href: "/articles" },
+            { label: categoryName, href: `/category/${article.categorySlug}` },
+            { label: article.title },
+          ]}
+        />
+      </div>
 
       {/* 記事ヘッダー */}
-      <header className="mt-4 border-b border-slate-200 pb-6">
+      <header className="border-b border-slate-100 pb-5 md:mt-4 md:border-slate-200 md:pb-6">
         <div className="flex flex-wrap items-center gap-2">
           <CategoryBadge slug={article.categorySlug} name={categoryName} />
           <ArticleTypeBadge type={article.articleType} />
         </div>
-        <h1 className="mt-3 font-serif text-2xl font-bold leading-relaxed tracking-tight text-slate-900 sm:text-3xl">
+        <h1 className="mt-3 text-[1.35rem] font-black leading-snug tracking-tight text-ink md:font-serif md:text-3xl md:font-bold md:leading-relaxed md:text-slate-900">
           {article.title}
         </h1>
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-slate-400 md:mt-4 md:gap-3 md:text-xs">
           <time dateTime={article.publishedAt}>
-            公開：{formatJaDate(article.publishedAt)}
+            {formatJaDate(article.publishedAt)}
           </time>
           {article.updatedAt && (
             <>
               <span aria-hidden>·</span>
               <time dateTime={article.updatedAt}>
-                更新：{formatJaDate(article.updatedAt)}
+                更新 {formatJaDate(article.updatedAt)}
               </time>
             </>
           )}
           <span aria-hidden>·</span>
-          <span>約{article.readingMinutes}分で読めます</span>
+          <span>約{article.readingMinutes}分</span>
         </div>
       </header>
 
       {/* リード文 */}
-      <p className="mt-6 border-l-4 border-navy-700 bg-slate-50 px-5 py-4 text-[1.05rem] font-medium leading-relaxed text-slate-700">
+      <p className="mt-5 text-[15px] font-medium leading-relaxed text-slate-600 md:mt-6 md:border-l-4 md:border-navy-700 md:bg-slate-50 md:px-5 md:py-4 md:text-[1.05rem] md:text-slate-700">
         {article.excerpt}
       </p>
 

@@ -62,12 +62,12 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div>
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="min-w-0">
         <p className="text-sm font-medium text-slate-700">{label}</p>
         {hint && <p className="text-xs text-slate-400">{hint}</p>}
       </div>
-      <div className="shrink-0">{children}</div>
+      <div className="shrink-0 self-end sm:self-auto">{children}</div>
     </div>
   );
 }
@@ -120,10 +120,12 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
     "rounded-md border border-slate-300 px-2.5 py-1.5 text-sm focus:border-navy-600 focus:outline-none";
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-4xl pb-20 md:pb-0">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-900">生成設定</h1>
-        <div className="flex items-center gap-3">
+        <h1 className="hidden text-xl font-bold text-slate-900 md:block">
+          生成設定
+        </h1>
+        <div className="hidden items-center gap-3 md:flex">
           {saved && (
             <span className="text-sm font-semibold text-emerald-700">保存しました</span>
           )}
@@ -139,8 +141,8 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
           </button>
         </div>
       </div>
-      <p className="mt-1 text-sm text-slate-500">
-        すべて settings テーブルに保存されます（コードに定数を持ちません）。
+      <p className="text-sm text-slate-500 md:mt-1">
+        settings テーブルに保存されます（コードに定数を持ちません）。
       </p>
 
       <div className="mt-6 space-y-5">
@@ -219,6 +221,31 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
             </select>
           </Row>
         </Section>
+      </div>
+
+      {/* モバイル：固定保存バー */}
+      <div
+        className="fixed inset-x-0 z-30 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur-md md:hidden"
+        style={{
+          bottom: "calc(3.5rem + env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {(saved || error) && (
+            <span
+              className={`text-xs font-bold ${saved ? "text-emerald-700" : "text-red-600"}`}
+            >
+              {saved ? "保存しました" : `保存失敗`}
+            </span>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="ml-auto flex-1 rounded-xl bg-navy-700 py-3 text-sm font-bold text-white disabled:opacity-60"
+          >
+            {isPending ? "保存中…" : "設定を保存"}
+          </button>
+        </div>
       </div>
     </div>
   );

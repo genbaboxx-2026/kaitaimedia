@@ -1,0 +1,83 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  ArticleIcon,
+  GridIcon,
+  HomeIcon,
+  HomeIconFilled,
+  PlayCircleIcon,
+  UserIcon,
+} from "@/components/site/nav-icons";
+
+const ITEMS = [
+  {
+    href: "/",
+    label: "ホーム",
+    match: (p: string) => p === "/",
+    Icon: HomeIcon,
+    ActiveIcon: HomeIconFilled,
+  },
+  {
+    href: "/articles",
+    label: "記事",
+    match: (p: string) => p.startsWith("/articles") || p.startsWith("/category"),
+    Icon: ArticleIcon,
+    ActiveIcon: ArticleIcon,
+  },
+  {
+    href: "/#categories",
+    label: "カテゴリ",
+    match: () => false,
+    Icon: GridIcon,
+    ActiveIcon: GridIcon,
+  },
+  {
+    href: "/bakusoq",
+    label: "BAKUSOQ",
+    match: (p: string) => p.startsWith("/bakusoq"),
+    Icon: PlayCircleIcon,
+    ActiveIcon: PlayCircleIcon,
+  },
+  {
+    href: "/contact",
+    label: "お問合せ",
+    match: (p: string) =>
+      p.startsWith("/contact") || p.startsWith("/company"),
+    Icon: UserIcon,
+    ActiveIcon: UserIcon,
+  },
+] as const;
+
+export function SiteBottomNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      aria-label="メインメニュー"
+    >
+      <ul className="mx-auto grid h-14 max-w-lg grid-cols-5">
+        {ITEMS.map((item) => {
+          const active = item.match(pathname);
+          const Icon = active && item.ActiveIcon ? item.ActiveIcon : item.Icon;
+          return (
+            <li key={item.href} className="min-w-0">
+              <Link
+                href={item.href}
+                className={`flex h-full flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${
+                  active ? "text-ink" : "text-slate-400"
+                }`}
+              >
+                <Icon className="h-[22px] w-[22px]" />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
