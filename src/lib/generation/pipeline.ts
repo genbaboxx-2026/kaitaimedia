@@ -111,6 +111,10 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
   const inBodyImageCount = premium
     ? getNumber(settings, "premium_inbody_image_count", 2)
     : 0;
+  const imageQuality = getString(settings, "premium_image_quality", "medium") as
+    | "low"
+    | "medium"
+    | "high";
   const bodyMaxTokens = premium ? 32000 : 12000;
   const bodyMinChars = premium
     ? getNumber(settings, "premium_min_char_count", 9000)
@@ -276,7 +280,11 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
     // AIが使えない（キー未設定・課金停止など）ときは satori のSVGにフォールバック。
     const slug = slugify(categorySlug);
     let png: Buffer | null = null;
-    const aiImage = await generateAiEyecatchPng(theme.title, categoryName);
+    const aiImage = await generateAiEyecatchPng(theme.title, categoryName, {
+      quality: imageQuality,
+      variantHint:
+        "記事全体を象徴するヒーロー表紙構図。主役モチーフを大きく中央に配置し、他の図版と重複しない独自の絵にする",
+    });
     if (aiImage) {
       png = aiImage.png;
       inputTokens += aiImage.inputTokens;
@@ -407,12 +415,22 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
           picks.push(candidates[i]);
         }
       }
-      // 後ろから挿入して index のズレを防ぐ
-      let n = picks.length;
-      for (const p of [...picks].reverse()) {
-        const img = await generateAiEyecatchPng(p.text, categoryName);
+      // 図版ごとに構図を変えて重複を防ぐ
+      const figHints = [
+        "手順を表す横方向のフロー図。番号付きのステップを矢印でつなぐ",
+        "1つの主要オブジェクトを中心に据えたシンプルな概念アイコン図",
+        "対比・チェックリスト風の2カラム構図",
+        "俯瞰の現場レイアウト図。建物・重機・区画を配置",
+      ];
+      // 後ろから挿入して index のズレを防ぐ（hint は元の並び順で割り当て）
+      for (let k = picks.length - 1; k >= 0; k--) {
+        const p = picks[k];
+        const img = await generateAiEyecatchPng(p.text, categoryName, {
+          quality: imageQuality,
+          variantHint: figHints[k % figHints.length],
+        });
         if (!img) continue;
-        const url = await uploadEyecatch(img.png, `${slug}-fig${n--}`);
+        const url = await uploadEyecatch(img.png, `${slug}-fig${k + 1}`);
         inputTokens += img.inputTokens;
         outputTokens += img.outputTokens;
         cost += img.costUsd;

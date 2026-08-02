@@ -122,6 +122,7 @@ export default async function HomePage() {
                   <Eyecatch
                     categorySlug={lead.categorySlug}
                     categoryName={getCategoryName(lead.categorySlug)}
+                    imageUrl={lead.imageUrl}
                     className="aspect-[16/10]"
                   />
                 </Link>

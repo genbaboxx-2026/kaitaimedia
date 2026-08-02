@@ -7,6 +7,27 @@ export function formatJaDate(iso: string): string {
   return `${y}年${Number(mo)}月${Number(d)}日`;
 }
 
+/** ISO日時を「YYYY年M月D日 HH:MM」（Asia/Tokyo）に整形する。日付のみなら formatJaDate にフォールバック。 */
+export function formatJaDateTime(iso: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return formatJaDate(iso);
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  const hour = get("hour").padStart(2, "0");
+  const minute = get("minute").padStart(2, "0");
+  return `${get("year")}年${get("month")}月${get("day")}日 ${hour}:${minute}`;
+}
+
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"] as const;
 
 /** フィード見出し用「M月D日(曜)」 */

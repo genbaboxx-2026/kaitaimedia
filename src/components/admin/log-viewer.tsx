@@ -8,7 +8,7 @@ import {
   type GenLog,
   type GenLogStatus,
 } from "@/lib/admin-logs-data";
-import { formatJaDate } from "@/lib/format";
+import { formatJaDateTime } from "@/lib/format";
 
 const STATUS_STYLE: Record<GenLogStatus, string> = {
   published: "bg-emerald-100 text-emerald-800",
@@ -133,7 +133,7 @@ export function LogViewer({ logs }: { logs?: GenLog[] }) {
                       {GEN_LOG_STATUS_LABEL[log.status]}
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      {formatJaDate(log.startedAt)}
+                      {formatJaDateTime(log.startedAt)}
                     </span>
                   </div>
                   <p className="mt-1.5 text-[15px] font-bold leading-snug text-ink">
@@ -198,7 +198,7 @@ export function LogViewer({ logs }: { logs?: GenLog[] }) {
                       ${log.costUsd.toFixed(4)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-slate-500">
-                      {formatJaDate(log.startedAt)}
+                      {formatJaDateTime(log.startedAt)}
                     </td>
                   </tr>
                   {isOpen && (

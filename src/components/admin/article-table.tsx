@@ -141,7 +141,7 @@ export function ArticleTable({
                 編集
               </Link>
               <Link
-                href={`/articles/${a.slug}`}
+                href={`/admin/articles/${a.id}/preview`}
                 target="_blank"
                 className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                 onClick={() => setMenuId(null)}

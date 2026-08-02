@@ -84,21 +84,34 @@ export async function generateEyecatchPng(
 // OpenAI 画像モデル（gpt-image-1）でアイキャッチPNGを生成する。
 // トーン：写実的な現場写真は避け、抽象・図解・フラットベクター調（専門性を損なわないため）。
 // 文字は入れない（画像モデルは日本語を崩すため）。OPENAI_API_KEY 未設定・失敗時は null。
+export interface AiImageOptions {
+  quality?: "low" | "medium" | "high";
+  /** 画像ごとに構図を変えて重複を避けるためのヒント */
+  variantHint?: string;
+}
+
 export async function generateAiEyecatchPng(
-  title: string,
+  subject: string,
   categoryName: string,
+  opts?: AiImageOptions,
 ): Promise<AiImageResult | null> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return null;
 
+  const quality = opts?.quality ?? "high";
   const prompt = [
-    "Editorial cover illustration for a Japanese B2B media about the building demolition industry.",
-    `Theme/category: ${categoryName}. Article subject (for mood only, do NOT write any text): ${title}.`,
-    "Style: clean modern flat vector illustration, minimal, calm and professional, newspaper-like.",
-    "Palette: navy and slate grays with a single red accent. Plenty of negative space.",
-    "Motifs as simple geometric shapes only: excavator silhouette, building outline, safety cone, grid lines.",
-    "STRICT: no text, no words, no letters, no numbers, no logos, no watermark. Not photorealistic. No people faces.",
-  ].join(" ");
+    "High-quality editorial illustration for a Japanese B2B media about the building demolition industry.",
+    `Category: ${categoryName}. This specific figure represents: ${subject}.`,
+    opts?.variantHint
+      ? `Composition for THIS image (make it clearly different from other figures in the article): ${opts.variantHint}.`
+      : "",
+    "Style: refined modern flat vector illustration, crisp clean edges, balanced composition, generous negative space, calm and professional, newspaper/editorial tone.",
+    "Palette: deep navy (#1e293b) and slate grays with a single vivid red accent (#dc2626).",
+    "Depict the concept concretely with distinct, non-repeating objects relevant to the specific figure above.",
+    "STRICT: no text, no words, no letters, no numbers, no logos, no watermark. Not photorealistic. No human faces.",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {
@@ -111,7 +124,7 @@ export async function generateAiEyecatchPng(
         model: "gpt-image-1",
         prompt,
         size: "1536x1024",
-        quality: "medium",
+        quality,
         n: 1,
       }),
     });
