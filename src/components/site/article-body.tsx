@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { ArticleSection, ContentBlock } from "@/lib/types";
 
-// 段落内のインライン装飾を描画：**太字** / ==マーカー== / [リンク](url)
-const INLINE = /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\))/g;
+// 段落内のインライン装飾：**太字** / ==マーカー== / [リンク](url) / 「用語」
+const INLINE =
+  /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\)|「[^」]{2,48}」)/g;
 
 function renderInline(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -17,6 +18,13 @@ function renderInline(text: string): ReactNode[] {
       nodes.push(<strong key={key++}>{tok.slice(2, -2)}</strong>);
     } else if (tok.startsWith("==")) {
       nodes.push(<mark key={key++}>{tok.slice(2, -2)}</mark>);
+    } else if (tok.startsWith("「")) {
+      // 既存記事でも用語のかぎ括弧を視覚的に強調
+      nodes.push(
+        <strong key={key++} className="article-term">
+          {tok}
+        </strong>,
+      );
     } else {
       const mm = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);
       if (mm) {
@@ -42,7 +50,15 @@ function Block({ block }: { block: ContentBlock }) {
     case "heading3":
       return <h3>{block.text}</h3>;
     case "callout":
-      return <div className="article-callout">{renderInline(block.text)}</div>;
+      return (
+        <div className="article-callout">
+          {block.text.split("\n").map((line, i) => (
+            <p key={i} className="article-callout-line">
+              {renderInline(line)}
+            </p>
+          ))}
+        </div>
+      );
     case "list":
       return block.ordered ? (
         <ol>

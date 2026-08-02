@@ -61,9 +61,30 @@ export function markdownToSections(md: string): ArticleSection[] {
     } else if ((m = /^###\s+(.*)/.exec(line))) {
       flushList();
       pushBlock({ type: "heading3", text: plain(m[1]) });
+    } else if ((m = /^#\s+(.*)/.exec(line))) {
+      // 誤って単一 # で書かれた小見出しも H3 として扱う（生テキスト表示を防ぐ）
+      flushList();
+      pushBlock({ type: "heading3", text: plain(m[1]) });
     } else if ((m = /^>\s?(.*)/.exec(line))) {
       flushList();
-      pushBlock({ type: "callout", text: m[1] });
+      // 連続する引用行は1つのコールアウトにまとめる
+      const last =
+        current && current.blocks.length > 0
+          ? current.blocks[current.blocks.length - 1]
+          : leading.length > 0
+            ? leading[leading.length - 1]
+            : null;
+      if (last && last.type === "callout") {
+        last.text = `${last.text}\n${m[1]}`;
+      } else {
+        pushBlock({ type: "callout", text: m[1] });
+      }
+    } else if (
+      /^(注意|ポイント|重要|チェック|補足|現場の要点)[：:]/.test(line)
+    ) {
+      // 装飾なし本文でも「注意：」系はコールアウトにする
+      flushList();
+      pushBlock({ type: "callout", text: line });
     } else if ((m = /^\d+\.\s+(.*)/.exec(line))) {
       if (!listBuf || !listOrdered) {
         flushList();

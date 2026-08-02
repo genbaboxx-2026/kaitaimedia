@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { markdownToSections } from "@/lib/markdown-to-sections";
 import type { ContentBlock } from "@/lib/types";
 
-const INLINE = /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\))/g;
+const INLINE =
+  /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\)|「[^」]{2,48}」)/g;
 
 const SECTION_STYLE: Record<
   string,
@@ -38,6 +39,12 @@ function renderInline(text: string): ReactNode[] {
       nodes.push(<strong key={key++}>{tok.slice(2, -2)}</strong>);
     } else if (tok.startsWith("==")) {
       nodes.push(<mark key={key++}>{tok.slice(2, -2)}</mark>);
+    } else if (tok.startsWith("「")) {
+      nodes.push(
+        <strong key={key++} className="article-term">
+          {tok}
+        </strong>,
+      );
     } else {
       const mm = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);
       if (mm) {
