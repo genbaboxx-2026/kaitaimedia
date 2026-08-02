@@ -41,6 +41,17 @@ export interface PipelineResult {
   slug?: string;
 }
 
+/** 管理画面からの手動指定テーマ */
+export interface ManualThemeInput {
+  /** 空ならカテゴリー等の条件でAIがタイトルを決める */
+  title?: string;
+  categorySlug?: string;
+  targetKeyword?: string;
+  articleType?: ArticleType;
+  /** トピック考案時の追加指示 */
+  note?: string;
+}
+
 function slugify(categorySlug: string): string {
   return `${categorySlug}-${Date.now().toString(36)}`;
 }
@@ -127,9 +138,66 @@ async function isDuplicateTheme(title: string, threshold: number): Promise<boole
   return Boolean(rows && rows.length > 0);
 }
 
+async function resolveManualTheme(
+  input: ManualThemeInput,
+  settingsInstruction: string,
+  titleSim: number,
+): Promise<ThemeRow | null> {
+  const cats = await restSelect<{ id: string; slug: string; name: string }>(
+    "categories?select=id,slug,name",
+    0,
+  );
+  const bySlug = new Map((cats ?? []).map((c) => [c.slug, c]));
+  const cat = input.categorySlug
+    ? bySlug.get(input.categorySlug)
+    : undefined;
+  const articleType = (
+    ["A", "B", "C"].includes(input.articleType ?? "")
+      ? input.articleType
+      : "A"
+  ) as ArticleType;
+  const title = input.title?.trim() ?? "";
+
+  if (title) {
+    return {
+      id: null,
+      title,
+      category_id: cat?.id ?? null,
+      target_keyword: input.targetKeyword?.trim() ?? "",
+      article_type: articleType,
+      category: cat ? { name: cat.name, slug: cat.slug } : null,
+    };
+  }
+
+  // タイトル未指定：カテゴリー・記事型・メモを方針に足してAIに決めさせる
+  const parts = [
+    settingsInstruction,
+    cat ? `カテゴリーは「${cat.name}」（slug: ${cat.slug}）で。` : "",
+    `記事型は ${articleType} で。`,
+    input.targetKeyword?.trim()
+      ? `狙うキーワードは「${input.targetKeyword.trim()}」。`
+      : "",
+    input.note?.trim() ? `追加の指示: ${input.note.trim()}` : "",
+  ].filter(Boolean);
+  const theme = await generateTopic(parts.join(" "), titleSim);
+  if (!theme) return null;
+  // 指定カテゴリー／記事型があれば上書き
+  if (cat) {
+    theme.category_id = cat.id;
+    theme.category = { name: cat.name, slug: cat.slug };
+  }
+  theme.article_type = articleType;
+  if (input.targetKeyword?.trim()) {
+    theme.target_keyword = input.targetKeyword.trim();
+  }
+  return theme;
+}
+
 export async function runGenerationPipeline(opts?: {
   /** true なら generation_enabled=false でも実行（管理画面の手動生成用） */
   force?: boolean;
+  /** 指定があればキュー／自動考案より優先 */
+  manualTheme?: ManualThemeInput;
 }): Promise<PipelineResult> {
   const settings = await loadSettings();
 
@@ -184,10 +252,12 @@ export async function runGenerationPipeline(opts?: {
     }
   }
 
-  // 2. トピック決定：手動追加テーマがあれば優先。無ければAIがその場で考案（重複回避）。
+  // 2. トピック決定：画面指定 → キューテーマ → AI考案
   const instruction = getString(settings, "generation_instruction", "");
-  const theme =
-    (await selectQueuedTheme()) ?? (await generateTopic(instruction, titleSim));
+  const theme = opts?.manualTheme
+    ? await resolveManualTheme(opts.manualTheme, instruction, titleSim)
+    : ((await selectQueuedTheme()) ??
+      (await generateTopic(instruction, titleSim)));
   if (!theme) {
     await notifySlack(
       "記事生成：重複しないトピックを生成できませんでした（既存記事が多い可能性）。",

@@ -1,6 +1,7 @@
 import { getBool, getNumber, loadSettings } from "@/lib/ai/settings";
 import {
   runGenerationPipeline,
+  type ManualThemeInput,
   type PipelineResult,
 } from "@/lib/generation/pipeline";
 import { restSelect, restUpdate } from "@/lib/supabase/rest";
@@ -15,6 +16,8 @@ export interface RunBatchOptions {
    * false（管理画面手動）: 常に新規生成する
    */
   drainDraftsFirst?: boolean;
+  /** 管理画面で指定したテーマ */
+  manualTheme?: ManualThemeInput;
 }
 
 export interface RunBatchResult {
@@ -72,7 +75,10 @@ export async function runGenerationBatch(
 
   const results: PipelineResult[] = [];
   for (let i = 0; i < perDay; i++) {
-    const result = await runGenerationPipeline({ force: opts.force });
+    const result = await runGenerationPipeline({
+      force: opts.force,
+      manualTheme: opts.manualTheme,
+    });
     results.push(result);
     if (result.status === "skipped") break;
   }

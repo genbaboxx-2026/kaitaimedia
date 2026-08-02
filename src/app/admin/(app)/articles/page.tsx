@@ -22,7 +22,7 @@ export default async function AdminArticlesPage() {
             記事管理
           </h1>
           <p className="mt-1 hidden text-sm text-slate-500 md:block">
-            「記事を生成する」でAIが1本作成します。確認待ちに入ります。
+            「記事を生成する」でテーマ・カテゴリーを指定して1本作成します。
           </p>
         </div>
         <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
