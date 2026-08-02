@@ -2,9 +2,10 @@ name: 記事自動生成
 
 on:
   schedule:
-    # 毎日 18:00 UTC（= 03:00 JST）。settings の generation_time と揃える運用。
-    - cron: "0 18 * * *"
-  workflow_dispatch: {} # 手動トリガー可
+    # 15分ごとに起こし、scripts 側で settings.generation_time（JST）を見て実行可否を判定する。
+    # UI の実行時刻を変えても、この YAML を書き換えなくてよい。
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {} # 手動トリガー可（時刻判定をスキップして即実行）
 
 jobs:
   generate:
@@ -23,6 +24,8 @@ jobs:
       - name: 記事生成バッチ実行
         run: npm run generate
         env:
+          # schedule のときだけ 1。workflow_dispatch（手動）は 0 で即実行。
+          GENERATE_SCHEDULED: ${{ github.event_name == 'schedule' && '1' || '0' }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

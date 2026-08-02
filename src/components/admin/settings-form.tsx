@@ -154,7 +154,10 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
           <Row label="自動生成を有効にする" hint="OFFで生成自体を停止">
             <Toggle checked={s.generationEnabled} onChange={(v) => set("generationEnabled", v)} />
           </Row>
-          <Row label="実行時刻（JST）" hint="スケジュールの目安。実際の起動は GitHub Actions の cron（この時刻に合わせて設定）">
+          <Row
+            label="実行時刻（JST）"
+            hint="この時刻を含む15分枠で自動生成します（例: 23:54 → 23:45〜23:59）。GitHub Actions が15分ごとに確認するため、時刻変更は保存するだけで反映されます"
+          >
             <input type="time" value={s.generationTime} onChange={(e) => set("generationTime", e.target.value)} className={sel} />
           </Row>
           <Row label="1日の生成本数" hint="1回のバッチでこの本数まで生成します">

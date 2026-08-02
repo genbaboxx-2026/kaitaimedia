@@ -2,7 +2,10 @@
  * 記事生成バッチのエントリポイント。
  *   npm run generate
  * .env.local を読み込み、生成パイプライン（要件5.1）を1回実行する。
- * 実行には ANTHROPIC_API_KEY と、正しい SUPABASE_SERVICE_ROLE_KEY（secretキー）が必要。
+ *
+ * GitHub Actions 定時起動時は GENERATE_SCHEDULED=1 を付与する。
+ * その場合、settings.generation_time（JST）の枠内でのみ本実行し、
+ * UI の時刻変更が Actions の YAML 修正なしで効くようにする。
  */
 import { loadEnvLocal } from "./load-env-local";
 
@@ -12,6 +15,22 @@ async function main(): Promise<void> {
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error("ANTHROPIC_API_KEY が未設定です（.env.local）。");
     process.exit(1);
+  }
+
+  const scheduled = process.env.GENERATE_SCHEDULED === "1";
+
+  if (scheduled) {
+    const {
+      evaluateScheduleGate,
+      markScheduledGenerationDate,
+    } = await import("../src/lib/generation/schedule-gate");
+    const gate = await evaluateScheduleGate();
+    console.log(`[schedule] ${gate.reason}`);
+    if (!gate.run) {
+      process.exit(0);
+    }
+    // 二重起動防止のため、バッチ前に本日分を記録
+    await markScheduledGenerationDate(gate.jstDate);
   }
 
   const { runGenerationBatch } = await import(
