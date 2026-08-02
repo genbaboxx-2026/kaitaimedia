@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getCategoryName } from "@/lib/dummy-data";
 import {
   getApprovedSnsTrends,
-  getCategories,
   getLatestArticles,
   getLatestNews,
   getPickupArticles,
@@ -14,7 +13,7 @@ import { Eyecatch } from "@/components/site/eyecatch";
 import { NewsListItem } from "@/components/site/news-list-item";
 import { SnsTrendList } from "@/components/site/sns-trend-list";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
-import { ArrowIcon, CategoryIcon } from "@/components/site/icons";
+import { ArrowIcon } from "@/components/site/icons";
 import { formatJaDate, formatRelativeJa } from "@/lib/format";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -62,15 +61,13 @@ function SecondaryArticleCard({ article }: { article: Article }) {
 export const revalidate = 300; // ISR: 5分
 
 export default async function HomePage() {
-  const [news, articles, categories, pickup, ranking, snsTrends] =
-    await Promise.all([
-      getLatestNews(12),
-      getLatestArticles(8),
-      getCategories(),
-      getPickupArticles(4),
-      getRankingArticles(3),
-      getApprovedSnsTrends(8),
-    ]);
+  const [news, articles, pickup, ranking, snsTrends] = await Promise.all([
+    getLatestNews(12),
+    getLatestArticles(8),
+    getPickupArticles(4),
+    getRankingArticles(3),
+    getApprovedSnsTrends(8),
+  ]);
 
   const [lead, ...rest] = articles;
   const secondary = rest.slice(0, 3);
@@ -173,31 +170,6 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
-        </section>
-
-        <section id="categories" className="border-t border-slate-100 px-4 py-6">
-          <h2 className="text-[17px] font-black text-ink">カテゴリーから探す</h2>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {categories.map((c) => {
-              const meta = getCategoryMeta(c.slug);
-              return (
-                <Link
-                  key={c.slug}
-                  href={`/category/${c.slug}`}
-                  className="flex items-center gap-2.5 rounded-xl border border-slate-200 px-3 py-3 active:bg-slate-50"
-                >
-                  <span
-                    aria-hidden
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white"
-                    style={{ backgroundColor: meta.accent }}
-                  >
-                    <CategoryIcon icon={meta.icon} className="h-4 w-4" />
-                  </span>
-                  <span className="text-sm font-bold text-ink">{c.name}</span>
-                </Link>
-              );
-            })}
-          </div>
         </section>
       </div>
 
@@ -376,33 +348,6 @@ export default async function HomePage() {
               記事一覧をすべて見る
               <ArrowIcon className="h-4 w-4" />
             </Link>
-          </div>
-        </section>
-
-        <section id="categories-desktop" className="mt-14">
-          <SectionTitle>カテゴリーから探す</SectionTitle>
-          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-            {categories.map((c) => {
-              const meta = getCategoryMeta(c.slug);
-              return (
-                <Link
-                  key={c.slug}
-                  href={`/category/${c.slug}`}
-                  className="group flex items-center gap-2.5 rounded-md border border-slate-200 px-3.5 py-3 transition-colors hover:border-navy-600 hover:bg-navy-50"
-                >
-                  <span
-                    aria-hidden
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white"
-                    style={{ backgroundColor: meta.accent }}
-                  >
-                    <CategoryIcon icon={meta.icon} className="h-4 w-4" />
-                  </span>
-                  <span className="font-bold text-slate-800 group-hover:text-navy-700">
-                    {c.name}
-                  </span>
-                </Link>
-              );
-            })}
           </div>
         </section>
       </div>
