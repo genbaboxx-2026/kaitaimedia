@@ -12,13 +12,10 @@ import { loadEnvLocal } from "./load-env-local";
 loadEnvLocal();
 
 async function main(): Promise<void> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("ANTHROPIC_API_KEY が未設定です（.env.local）。");
-    process.exit(1);
-  }
-
   const scheduled = process.env.GENERATE_SCHEDULED === "1";
 
+  // 定時ポーリングは枠外が多い。APIキー未設定でも枠外スキップは成功終了にする
+  // （Secrets 欠落時に Actions が毎15分 red にならないようにする）
   if (scheduled) {
     const {
       evaluateScheduleGate,
@@ -31,6 +28,13 @@ async function main(): Promise<void> {
     }
     // 二重起動防止のため、バッチ前に本日分を記録
     await markScheduledGenerationDate(gate.jstDate);
+  }
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error(
+      "ANTHROPIC_API_KEY が未設定です。ローカルは .env.local、GitHub Actions は Repository secrets を確認してください。",
+    );
+    process.exit(1);
   }
 
   const { runGenerationBatch } = await import(
