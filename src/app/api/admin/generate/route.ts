@@ -10,10 +10,19 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 const ARTICLE_TYPES: ArticleType[] = ["A", "B", "C"];
+const MODES = ["queue_top", "theme_id", "custom"] as const;
 
-function parseBody(raw: unknown): ManualThemeInput | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
+function parseBody(raw: unknown): ManualThemeInput {
+  if (!raw || typeof raw !== "object") {
+    return { mode: "queue_top" };
+  }
   const b = raw as Record<string, unknown>;
+  const modeRaw = typeof b.mode === "string" ? b.mode : "queue_top";
+  const mode = MODES.includes(modeRaw as (typeof MODES)[number])
+    ? (modeRaw as ManualThemeInput["mode"])
+    : "queue_top";
+
+  const themeId = typeof b.themeId === "string" ? b.themeId.trim() : "";
   const title = typeof b.title === "string" ? b.title.trim() : "";
   const categorySlug =
     typeof b.categorySlug === "string" ? b.categorySlug.trim() : "";
@@ -26,23 +35,24 @@ function parseBody(raw: unknown): ManualThemeInput | undefined {
     ? (articleTypeRaw as ArticleType)
     : "A";
 
-  // 何も指定がなければ従来どおりおまかせ
-  if (!title && !categorySlug && !targetKeyword && !note) {
-    return undefined;
+  if (mode === "theme_id") {
+    return { mode, themeId: themeId || undefined };
   }
-
-  return {
-    title: title || undefined,
-    categorySlug: categorySlug || undefined,
-    targetKeyword: targetKeyword || undefined,
-    articleType,
-    note: note || undefined,
-  };
+  if (mode === "custom") {
+    return {
+      mode,
+      title: title || undefined,
+      categorySlug: categorySlug || undefined,
+      targetKeyword: targetKeyword || undefined,
+      articleType,
+      note: note || undefined,
+    };
+  }
+  return { mode: "queue_top" };
 }
 
 /**
  * 管理画面からの手動記事生成（1本）。
- * body でテーマ・カテゴリーなどを指定可能。
  */
 export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient();
@@ -60,12 +70,25 @@ export async function POST(req: Request) {
     );
   }
 
-  let manualTheme: ManualThemeInput | undefined;
+  let manualTheme: ManualThemeInput = { mode: "queue_top" };
   try {
     const json: unknown = await req.json();
     manualTheme = parseBody(json);
   } catch {
-    manualTheme = undefined;
+    manualTheme = { mode: "queue_top" };
+  }
+
+  if (manualTheme.mode === "theme_id" && !manualTheme.themeId) {
+    return NextResponse.json(
+      { ok: false, error: "テーマを選択してください" },
+      { status: 400 },
+    );
+  }
+  if (manualTheme.mode === "custom" && !manualTheme.title) {
+    return NextResponse.json(
+      { ok: false, error: "テーマ・タイトルを入力してください" },
+      { status: 400 },
+    );
   }
 
   try {
@@ -83,6 +106,7 @@ export async function POST(req: Request) {
     revalidatePath("/admin/articles");
     revalidatePath("/admin/published");
     revalidatePath("/admin/logs");
+    revalidatePath("/admin/generation");
     revalidatePath("/");
 
     const ok =

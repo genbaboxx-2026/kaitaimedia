@@ -43,12 +43,19 @@ export interface PipelineResult {
 
 /** 管理画面からの手動指定テーマ */
 export interface ManualThemeInput {
-  /** 空ならカテゴリー等の条件でAIがタイトルを決める */
+  /**
+   * queue_top: 生成条件の待ち行列の一番上
+   * theme_id: 待ち行列から特定テーマを指定（themeId 必須）
+   * custom: タイトル等を手入力
+   */
+  mode?: "queue_top" | "theme_id" | "custom";
+  /** mode=theme_id のとき */
+  themeId?: string;
   title?: string;
   categorySlug?: string;
   targetKeyword?: string;
   articleType?: ArticleType;
-  /** トピック考案時の追加指示 */
+  /** custom でタイトル空のときの追加指示 */
   note?: string;
 }
 
@@ -65,21 +72,16 @@ function excerptFrom(body: string): string {
   return firstPara.slice(0, 120);
 }
 
-// 手動で追加された未生成テーマがあれば、それを優先して1件取り出す（無ければ null）。
-async function selectQueuedTheme(): Promise<ThemeRow | null> {
-  const rows = await restSelect<{
-    id: string;
-    title: string;
-    category_id: string | null;
-    target_keyword: string | null;
-    article_type: ArticleType;
-    category: { name: string; slug: string } | null;
-  }>(
-    "themes?select=id,title,category_id,target_keyword,article_type,category:categories(name,slug)&status=eq.pending&order=sort_order.asc,created_at.asc&limit=1",
-    0,
-  );
-  const t = rows?.[0];
-  if (!t) return null;
+type QueuedThemeRow = {
+  id: string;
+  title: string;
+  category_id: string | null;
+  target_keyword: string | null;
+  article_type: ArticleType;
+  category: { name: string; slug: string } | null;
+};
+
+function toThemeRow(t: QueuedThemeRow): ThemeRow {
   return {
     id: t.id,
     title: t.title,
@@ -88,6 +90,25 @@ async function selectQueuedTheme(): Promise<ThemeRow | null> {
     article_type: t.article_type ?? "A",
     category: t.category,
   };
+}
+
+// 手動で追加された未生成テーマがあれば、それを優先して1件取り出す（無ければ null）。
+async function selectQueuedTheme(): Promise<ThemeRow | null> {
+  const rows = await restSelect<QueuedThemeRow>(
+    "themes?select=id,title,category_id,target_keyword,article_type,category:categories(name,slug)&status=eq.pending&order=sort_order.asc,created_at.asc&limit=1",
+    0,
+  );
+  const t = rows?.[0];
+  return t ? toThemeRow(t) : null;
+}
+
+async function selectThemeById(id: string): Promise<ThemeRow | null> {
+  const rows = await restSelect<QueuedThemeRow>(
+    `themes?select=id,title,category_id,target_keyword,article_type,category:categories(name,slug)&id=eq.${encodeURIComponent(id)}&status=eq.pending&limit=1`,
+    0,
+  );
+  const t = rows?.[0];
+  return t ? toThemeRow(t) : null;
 }
 
 // トピックをその場生成：AIに数件提案させ、既存記事と重複しない最初の1件を採用する。
@@ -143,6 +164,18 @@ async function resolveManualTheme(
   settingsInstruction: string,
   titleSim: number,
 ): Promise<ThemeRow | null> {
+  const mode = input.mode ?? "queue_top";
+
+  if (mode === "queue_top") {
+    return selectQueuedTheme();
+  }
+
+  if (mode === "theme_id") {
+    if (!input.themeId) return null;
+    return selectThemeById(input.themeId);
+  }
+
+  // custom: 手入力（タイトル必須）。空なら方針＋条件でAI考案
   const cats = await restSelect<{ id: string; slug: string; name: string }>(
     "categories?select=id,slug,name",
     0,
@@ -169,7 +202,6 @@ async function resolveManualTheme(
     };
   }
 
-  // タイトル未指定：カテゴリー・記事型・メモを方針に足してAIに決めさせる
   const parts = [
     settingsInstruction,
     cat ? `カテゴリーは「${cat.name}」（slug: ${cat.slug}）で。` : "",
@@ -181,7 +213,6 @@ async function resolveManualTheme(
   ].filter(Boolean);
   const theme = await generateTopic(parts.join(" "), titleSim);
   if (!theme) return null;
-  // 指定カテゴリー／記事型があれば上書き
   if (cat) {
     theme.category_id = cat.id;
     theme.category = { name: cat.name, slug: cat.slug };
@@ -254,15 +285,42 @@ export async function runGenerationPipeline(opts?: {
 
   // 2. トピック決定：画面指定 → キューテーマ → AI考案
   const instruction = getString(settings, "generation_instruction", "");
-  const theme = opts?.manualTheme
-    ? await resolveManualTheme(opts.manualTheme, instruction, titleSim)
-    : ((await selectQueuedTheme()) ??
-      (await generateTopic(instruction, titleSim)));
-  if (!theme) {
-    await notifySlack(
-      "記事生成：重複しないトピックを生成できませんでした（既存記事が多い可能性）。",
-    );
-    return { status: "skipped", message: "重複しない新しいトピックを生成できませんでした" };
+  let theme: ThemeRow | null;
+  if (opts?.manualTheme) {
+    theme = await resolveManualTheme(opts.manualTheme, instruction, titleSim);
+    if (!theme) {
+      const mode = opts.manualTheme.mode ?? "queue_top";
+      if (mode === "queue_top") {
+        return {
+          status: "skipped",
+          message:
+            "待ち行列にテーマがありません。生成条件でテーマを追加するか、手入力で生成してください。",
+        };
+      }
+      if (mode === "theme_id") {
+        return {
+          status: "skipped",
+          message: "指定のテーマが見つかりません（削除済み／生成済みの可能性）。",
+        };
+      }
+      return {
+        status: "skipped",
+        message: "重複しない新しいトピックを生成できませんでした",
+      };
+    }
+  } else {
+    theme =
+      (await selectQueuedTheme()) ??
+      (await generateTopic(instruction, titleSim));
+    if (!theme) {
+      await notifySlack(
+        "記事生成：重複しないトピックを生成できませんでした（既存記事が多い可能性）。",
+      );
+      return {
+        status: "skipped",
+        message: "重複しない新しいトピックを生成できませんでした",
+      };
+    }
   }
 
   const categoryName = theme.category?.name ?? "";

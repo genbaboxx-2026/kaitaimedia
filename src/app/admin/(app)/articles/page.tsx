@@ -2,15 +2,17 @@ import { ArticleTable } from "@/components/admin/article-table";
 import { AutoPublishToggle } from "@/components/admin/auto-publish-toggle";
 import { GenerateArticleButton } from "@/components/admin/generate-article-button";
 import { fetchAdminArticles } from "@/lib/admin/fetch-articles";
+import { fetchPendingThemes } from "@/lib/admin/fetch-generation";
 import { loadSettings } from "@/lib/ai/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminArticlesPage() {
-  const [articles, settings] = await Promise.all([
+  const [articles, settings, pendingThemes] = await Promise.all([
     // 確認待ち画面：公開済みは別タブなので除外して軽くする
     fetchAdminArticles({ status: "neq.published" }),
     loadSettings(),
+    fetchPendingThemes(),
   ]);
   const autoPublish = settings["auto_publish_enabled"] === "true";
 
@@ -22,11 +24,11 @@ export default async function AdminArticlesPage() {
             記事管理
           </h1>
           <p className="mt-1 hidden text-sm text-slate-500 md:block">
-            「記事を生成する」でテーマ・カテゴリーを指定して1本作成します。
+            「記事を生成する」でキュー先頭・テーマ選択・手入力から1本作成します。
           </p>
         </div>
         <div className="flex w-full flex-col items-stretch gap-3 sm:w-auto sm:items-end">
-          <GenerateArticleButton />
+          <GenerateArticleButton pendingThemes={pendingThemes ?? []} />
           <div className="text-right">
             <AutoPublishToggle initial={autoPublish} />
             <p className="mt-1 text-xs text-slate-400">
