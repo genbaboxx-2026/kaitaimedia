@@ -1,0 +1,205 @@
+import { restUpsert } from "@/lib/supabase/rest";
+import { passesNewsFilter } from "@/lib/news/filter";
+import { fillMissingImages } from "@/lib/news/og-image";
+import { fetchFeedXml, parseFeedXml } from "@/lib/news/parse-rss";
+import {
+  getEnabledNewsSources,
+  isGoogleNewsEnabled,
+  type NewsSource,
+} from "@/lib/news/sources";
+
+export interface NewsItemRow {
+  title: string;
+  url: string;
+  source_id: string;
+  source_name: string;
+  published_at: string | null;
+  fetched_at: string;
+  is_visible: boolean;
+  image_url: string | null;
+}
+
+export interface FetchNewsResult {
+  sourceId: string;
+  fetched: number;
+  accepted: number;
+  withImage: number;
+  upserted: number;
+  error?: string;
+}
+
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    u.hash = "";
+    return u.toString();
+  } catch {
+    return url.trim();
+  }
+}
+
+function toRows(
+  draft: Array<{
+    title: string;
+    url: string;
+    source_id: string;
+    source_name: string;
+    published_at: string | null;
+    fetched_at: string;
+    is_visible: boolean;
+    imageUrl: string | null;
+  }>,
+): NewsItemRow[] {
+  return draft.map((r) => ({
+    title: r.title,
+    url: r.url,
+    source_id: r.source_id,
+    source_name: r.source_name,
+    published_at: r.published_at,
+    fetched_at: r.fetched_at,
+    is_visible: r.is_visible,
+    image_url: r.imageUrl ?? null,
+  }));
+}
+
+async function collectFromSource(source: NewsSource): Promise<{
+  rows: NewsItemRow[];
+  fetched: number;
+}> {
+  console.log(`[${source.id}] RSS取得中...`);
+  const xml = await fetchFeedXml(source.feedUrl, source.encoding ?? "utf-8");
+  const items = parseFeedXml(xml);
+  const now = new Date().toISOString();
+  const draft: Array<{
+    title: string;
+    url: string;
+    source_id: string;
+    source_name: string;
+    published_at: string | null;
+    fetched_at: string;
+    is_visible: boolean;
+    imageUrl: string | null;
+  }> = [];
+
+  for (const item of items) {
+    const title = item.title.replace(/\s+/g, " ").trim();
+    const url = normalizeUrl(item.url);
+    if (!title || !url) continue;
+
+    if (
+      !passesNewsFilter(title, {
+        requireIncludeKeyword: source.requireIncludeKeyword,
+      })
+    ) {
+      continue;
+    }
+
+    const sourceName = item.sourceHint
+      ? `${source.name} / ${item.sourceHint}`
+      : source.name;
+
+    draft.push({
+      title,
+      url,
+      source_id: source.id,
+      source_name: sourceName,
+      published_at: item.publishedAt ? item.publishedAt.toISOString() : null,
+      fetched_at: now,
+      is_visible: true,
+      imageUrl: item.imageUrl ?? null,
+    });
+  }
+
+  console.log(`[${source.id}] フィルタ後 ${draft.length}件`);
+
+  if (source.id === "google_news") {
+    // Googleは無料画像APIが不安定なため、表示時に自動サムネを使う。
+    // ここでは見出しの保存だけ行い、すぐ終わるようにする。
+    console.log(
+      `[${source.id}] 画像はサイト側で自動生成（取得スキップ）`,
+    );
+    return { rows: toRows(draft), fetched: items.length };
+  }
+
+  // 国交省・産廃は件数が少ないので OGP で補完
+  const filled = await fillMissingImages(draft, {
+    concurrency: 5,
+    preferJina: false,
+    onProgress: (done, total, ok) => {
+      console.log(`[${source.id}] 画像 ${done}/${total}（取得成功 ${ok}）`);
+    },
+  });
+
+  return { rows: toRows(filled), fetched: items.length };
+}
+
+/** 全ソースを取得して news_items に upsert */
+export async function fetchAndStoreNews(): Promise<FetchNewsResult[]> {
+  const sources = getEnabledNewsSources();
+  console.log(
+    `取得ソース: ${sources.map((s) => s.id).join(", ")}` +
+      (isGoogleNewsEnabled()
+        ? ""
+        : "（Googleニュースは NEWS_ENABLE_GOOGLE_NEWS=false のため無効）"),
+  );
+
+  const results: FetchNewsResult[] = [];
+
+  for (const source of sources) {
+    let fetched = 0;
+    let accepted = 0;
+    let withImage = 0;
+    try {
+      const collected = await collectFromSource(source);
+      fetched = collected.fetched;
+      accepted = collected.rows.length;
+      withImage = collected.rows.filter((r) => r.image_url).length;
+      let upserted = 0;
+      if (collected.rows.length > 0) {
+        console.log(`[${source.id}] DB保存中...`);
+        // image_url が null の行はカラムを送らない（既存サムネを消さない）
+        const payload = collected.rows.map((r) => {
+          if (r.image_url) return r;
+          return {
+            title: r.title,
+            url: r.url,
+            source_id: r.source_id,
+            source_name: r.source_name,
+            published_at: r.published_at,
+            fetched_at: r.fetched_at,
+            is_visible: r.is_visible,
+          };
+        });
+        const saved = await restUpsert<NewsItemRow>(
+          "news_items",
+          payload,
+          "url",
+        );
+        upserted = saved.length;
+      }
+      results.push({
+        sourceId: source.id,
+        fetched,
+        accepted,
+        withImage,
+        upserted,
+      });
+      console.log(
+        `[${source.id}] 完了 fetched=${fetched} accepted=${accepted} withImage=${withImage} upserted=${upserted}`,
+      );
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error(`[${source.id}] ${message}`);
+      results.push({
+        sourceId: source.id,
+        fetched,
+        accepted,
+        withImage,
+        upserted: 0,
+        error: message,
+      });
+    }
+  }
+
+  return results;
+}

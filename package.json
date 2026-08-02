@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "generate": "tsx scripts/generate-article.ts",
+    "fetch-news": "tsx scripts/fetch-news.ts",
     "create-admin": "tsx scripts/create-admin-user.ts",
     "test:ai": "tsx scripts/test-ai.ts"
   },

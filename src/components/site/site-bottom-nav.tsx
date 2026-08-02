@@ -20,18 +20,18 @@ const ITEMS = [
     ActiveIcon: HomeIconFilled,
   },
   {
+    href: "/news",
+    label: "ニュース",
+    match: (p: string) => p.startsWith("/news"),
+    Icon: GridIcon,
+    ActiveIcon: GridIcon,
+  },
+  {
     href: "/articles",
     label: "記事",
     match: (p: string) => p.startsWith("/articles") || p.startsWith("/category"),
     Icon: ArticleIcon,
     ActiveIcon: ArticleIcon,
-  },
-  {
-    href: "/#categories",
-    label: "カテゴリ",
-    match: () => false,
-    Icon: GridIcon,
-    ActiveIcon: GridIcon,
   },
   {
     href: "/bakusoq",

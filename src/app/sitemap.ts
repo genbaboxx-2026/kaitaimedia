@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPaths = [
     "",
+    "/news",
     "/articles",
     "/company",
     "/bakusoq",
@@ -23,8 +24,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticEntries: MetadataRoute.Sitemap = staticPaths.map((p) => ({
     url: `${SITE_URL}${p}`,
-    changeFrequency: "weekly",
-    priority: p === "" ? 1 : 0.6,
+    changeFrequency: p === "/news" ? "hourly" : "weekly",
+    priority: p === "" ? 1 : p === "/news" ? 0.9 : 0.6,
   }));
 
   const categoryEntries: MetadataRoute.Sitemap = categories.map((c) => ({

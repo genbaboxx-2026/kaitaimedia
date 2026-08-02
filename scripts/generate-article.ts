@@ -13,21 +13,8 @@ async function main(): Promise<void> {
     console.error("ANTHROPIC_API_KEY が未設定です（.env.local）。");
     process.exit(1);
   }
-  // env 読み込み後に動的import
-  // まず未生成テーマを20件まで自動補充（標準運用：常に在庫を保つ）
-  try {
-    const { replenishThemes } = await import(
-      "../src/lib/generation/replenish-themes"
-    );
-    const added = await replenishThemes(20);
-    if (added > 0) console.log(`テーマを${added}件自動補充しました（在庫20件を維持）`);
-  } catch (e) {
-    console.warn(
-      "テーマ自動補充をスキップ:",
-      e instanceof Error ? e.message : String(e),
-    );
-  }
-
+  // テーマ在庫は廃止。生成のたびにパイプライン内でAIがトピックをその場で決める。
+  // env 読み込み後に動的import。
   // 生成本数は settings.articles_per_day に従う（管理画面の「1日の生成本数」）
   const { loadSettings, getNumber } = await import("../src/lib/ai/settings");
   const settings = await loadSettings();

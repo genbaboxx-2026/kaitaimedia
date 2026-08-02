@@ -1,0 +1,55 @@
+name: ニュースRSS取得
+
+# 必要な GitHub Secrets（Settings → Secrets and variables → Actions）:
+#   - NEXT_PUBLIC_SUPABASE_URL
+#   - SUPABASE_SERVICE_ROLE_KEY
+# 任意の Variables:
+#   - NEWS_ENABLE_GOOGLE_NEWS … "false" で Googleニュース取得を止める（公式ソースのみ）
+
+on:
+  schedule:
+    # 30分ごと（UTC）。無料枠内・負荷のバランスを取った間隔。
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: 必須Secretsの確認
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          missing=0
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+            echo "::error::Secret NEXT_PUBLIC_SUPABASE_URL が未設定です"
+            missing=1
+          fi
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Secret SUPABASE_SERVICE_ROLE_KEY が未設定です"
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            echo "GitHub リポジトリの Settings → Secrets and variables → Actions に上記を追加してください。"
+            exit 1
+          fi
+          echo "Secrets OK"
+
+      - name: ニュースRSS取得
+        run: npm run fetch-news
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Variables で "false" を入れると Google をスキップ（未設定時は取得する）
+          NEWS_ENABLE_GOOGLE_NEWS: ${{ vars.NEWS_ENABLE_GOOGLE_NEWS }}

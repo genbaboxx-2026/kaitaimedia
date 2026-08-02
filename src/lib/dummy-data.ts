@@ -1,4 +1,4 @@
-import type { Article, Category, Cta } from "@/lib/types";
+import type { Article, Category, Cta, NewsItem } from "@/lib/types";
 
 // タスク4で Supabase に接続するまでの仮データ。
 // 数値不使用ポリシー（金額・重量・単価・割合・断定的な工期日数を書かない）に準拠。
@@ -1203,3 +1203,31 @@ export function sortByNewest(list: Article[]): Article[] {
 }
 
 export const ALL_ARTICLES_NEWEST = sortByNewest(ARTICLES);
+
+/** DB未接続時のニュースフィード用サンプル（実装確認用） */
+export const DUMMY_NEWS: NewsItem[] = [
+  {
+    id: "dummy-1",
+    title: "建設リサイクル法に係る全国一斉パトロールの実施について",
+    url: "https://www.env.go.jp/",
+    sourceId: "mlit",
+    sourceName: "国土交通省",
+    publishedAt: "2026-07-28T09:00:00+09:00",
+  },
+  {
+    id: "dummy-2",
+    title: "住宅街に産業廃棄物の山、建設業者に措置命令",
+    url: "https://www.sanpai-news.com/",
+    sourceId: "sanpai",
+    sourceName: "産業廃棄物ニュース",
+    publishedAt: "2026-07-27T12:00:00+09:00",
+  },
+  {
+    id: "dummy-3",
+    title: "旧施設の解体工事に着手、周辺への説明会を実施",
+    url: "https://news.google.com/",
+    sourceId: "google_news",
+    sourceName: "Googleニュース",
+    publishedAt: "2026-07-26T08:30:00+09:00",
+  },
+];

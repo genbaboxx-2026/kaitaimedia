@@ -3,15 +3,17 @@ import { getCategoryName } from "@/lib/dummy-data";
 import {
   getCategories,
   getLatestArticles,
+  getLatestNews,
   getPickupArticles,
   getRankingArticles,
 } from "@/lib/site-data";
 import { getCategoryMeta } from "@/lib/categories-meta";
+import type { Article } from "@/lib/types";
 import { Eyecatch } from "@/components/site/eyecatch";
-import { ArticleListItem } from "@/components/site/article-list-item";
+import { NewsListItem } from "@/components/site/news-list-item";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
 import { ArrowIcon, CategoryIcon } from "@/components/site/icons";
-import { formatJaDate } from "@/lib/format";
+import { formatJaDate, formatRelativeJa } from "@/lib/format";
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
@@ -21,30 +23,112 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+function SecondaryArticleCard({ article }: { article: Article }) {
+  const categoryName = getCategoryName(article.categorySlug);
+  const meta = getCategoryMeta(article.categorySlug);
+
+  return (
+    <article>
+      <Link href={`/articles/${article.slug}`} className="group block">
+        <div className="overflow-hidden rounded-lg border border-slate-200">
+          <Eyecatch
+            categorySlug={article.categorySlug}
+            categoryName={categoryName}
+            imageUrl={article.imageUrl}
+            className="aspect-[16/10]"
+          />
+        </div>
+        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
+          <span
+            aria-hidden
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: meta.accent }}
+          />
+          {categoryName}
+        </span>
+        <h3 className="mt-1 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-slate-900 decoration-navy-600 decoration-2 underline-offset-4 group-hover:underline">
+          {article.title}
+        </h3>
+        <p className="mt-1.5 text-[11px] text-slate-400">
+          {formatRelativeJa(article.publishedAt)}
+        </p>
+      </Link>
+    </article>
+  );
+}
+
 export const revalidate = 300; // ISR: 5分
 
 export default async function HomePage() {
-  const [articles, categories, pickup, ranking] = await Promise.all([
-    getLatestArticles(),
+  const [news, articles, categories, pickup, ranking] = await Promise.all([
+    getLatestNews(12),
+    getLatestArticles(8),
     getCategories(),
     getPickupArticles(4),
     getRankingArticles(5),
   ]);
+
   const [lead, ...rest] = articles;
-  const secondary = rest.slice(0, 6);
-  const feed = articles.slice(0, 12);
+  const secondary = rest.slice(0, 3);
+  const newsRows = news.slice(0, 8);
 
   return (
     <>
-      {/* ========== モバイル：NewsPicks風フィード ========== */}
+      {/* ========== モバイル：記事主＋ニュース ========== */}
       <div className="md:hidden">
-        <FeedSectionHeader />
+        {lead && (
+          <section className="border-b border-slate-100 px-4 pb-5 pt-5">
+            <p className="text-[12px] font-bold text-navy-700">最新記事</p>
+            <Link href={`/articles/${lead.slug}`} className="mt-2 block">
+              <div className="overflow-hidden rounded-lg border border-slate-200">
+                <Eyecatch
+                  categorySlug={lead.categorySlug}
+                  categoryName={getCategoryName(lead.categorySlug)}
+                  imageUrl={lead.imageUrl}
+                  className="aspect-[16/10]"
+                />
+              </div>
+              <h2 className="mt-3 text-[18px] font-black leading-snug text-ink">
+                {lead.title}
+              </h2>
+              <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-slate-500">
+                {lead.excerpt}
+              </p>
+              <p className="mt-2 text-[11px] text-slate-400">
+                {getCategoryName(lead.categorySlug)} ·{" "}
+                {formatRelativeJa(lead.publishedAt)}
+              </p>
+            </Link>
+          </section>
+        )}
 
-        <div className="-mx-0">
-          {feed.map((a) => (
-            <ArticleListItem key={a.slug} article={a} />
-          ))}
-        </div>
+        {secondary.length > 0 && (
+          <section className="border-b border-slate-100 px-4 py-5">
+            <h2 className="text-[17px] font-black text-ink">注目の記事</h2>
+            <div className="mt-3 grid grid-cols-1 gap-4">
+              {secondary.map((a) => (
+                <SecondaryArticleCard key={a.slug} article={a} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className="border-b border-slate-100">
+          <FeedSectionHeader title="今日のニュース" />
+          <div className="mt-1">
+            {newsRows.map((item) => (
+              <NewsListItem key={item.id} item={item} />
+            ))}
+          </div>
+          <div className="px-4 py-5">
+            <Link
+              href="/news"
+              className="flex h-11 items-center justify-center rounded-lg border border-slate-200 text-sm font-bold text-ink active:bg-slate-50"
+            >
+              ニュースをもっと見る
+            </Link>
+          </div>
+        </section>
 
         <div className="px-4 py-5">
           <Link
@@ -55,7 +139,6 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {/* ランキング（モバイル簡易） */}
         <section className="border-t border-slate-100 px-4 py-5">
           <h2 className="text-[17px] font-black text-ink">注目ランキング</h2>
           <ol className="mt-3">
@@ -109,7 +192,7 @@ export default async function HomePage() {
         </section>
       </div>
 
-      {/* ========== デスクトップ：既存レイアウト ========== */}
+      {/* ========== デスクトップ：最新記事 → 3列 → ニュース2列 ========== */}
       <div className="mx-auto hidden max-w-6xl px-4 py-6 md:block">
         <div className="grid gap-8 lg:grid-cols-3">
           <main className="lg:col-span-2">
@@ -156,22 +239,43 @@ export default async function HomePage() {
               </article>
             )}
 
-            <div className="mt-8">
-              <SectionTitle>新着記事</SectionTitle>
-              <div className="grid sm:grid-cols-2 sm:gap-x-8">
-                {secondary.map((a) => (
-                  <ArticleListItem key={a.slug} article={a} />
+            {secondary.length > 0 && (
+              <div className="mt-8">
+                <SectionTitle>注目の記事</SectionTitle>
+                <div className="mt-4 grid gap-5 sm:grid-cols-3">
+                  {secondary.map((a) => (
+                    <SecondaryArticleCard key={a.slug} article={a} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-10">
+              <FeedSectionHeader title="今日のニュース" />
+              <div className="mt-2 grid gap-x-8 sm:grid-cols-2">
+                {newsRows.map((item) => (
+                  <NewsListItem key={item.id} item={item} />
                 ))}
               </div>
               <div className="mt-5 text-right">
                 <Link
-                  href="/articles"
+                  href="/news"
                   className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
                 >
-                  記事一覧をすべて見る
+                  ニュースをもっと見る
                   <ArrowIcon className="h-4 w-4" />
                 </Link>
               </div>
+            </div>
+
+            <div className="mt-8 text-right">
+              <Link
+                href="/articles"
+                className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+              >
+                記事一覧をすべて見る
+                <ArrowIcon className="h-4 w-4" />
+              </Link>
             </div>
           </main>
 

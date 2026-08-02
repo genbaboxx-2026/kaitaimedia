@@ -2,31 +2,24 @@
 
 import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ThemeManager } from "@/components/admin/theme-manager";
 import { SettingsForm } from "@/components/admin/settings-form";
 import { PromptManager } from "@/components/admin/prompt-manager";
-import { MasterManager } from "@/components/admin/master-manager";
-import type {
-  GenerationSettings,
-  MasterRow,
-  MasterType,
-} from "@/lib/admin-config-data";
+import { GenerationPolicy } from "@/components/admin/generation-policy";
+import type { GenerationSettings } from "@/lib/admin-config-data";
 import type { ActivePrompt } from "@/lib/admin/fetch-generation";
 import type { Theme } from "@/lib/admin-data";
 
-type SubTab = "themes" | "settings" | "masters" | "prompts";
+type SubTab = "policy" | "settings" | "prompts";
 
 interface GenerationConditionsProps {
   initialPrompts?: ActivePrompt[];
   initialSettings?: GenerationSettings;
   initialThemes?: Theme[];
-  initialMasters?: Record<MasterType, MasterRow[]>;
 }
 
 const SUBTABS: { key: SubTab; label: string; hint: string }[] = [
-  { key: "themes", label: "テーマ", hint: "何を書くか（AIが20件を自動維持・調整可）" },
-  { key: "settings", label: "生成設定", hint: "文字数・文体・自動公開・品質基準・モデルなど" },
-  { key: "masters", label: "ルール", hint: "用語集・禁止/推奨表現・数値除外・記事型テンプレ" },
+  { key: "policy", label: "生成方針", hint: "何を書くか（AIが毎回自動でテーマを決定・方針だけ指定）" },
+  { key: "settings", label: "生成設定", hint: "文字数・文体・自動公開・モデルなど" },
   { key: "prompts", label: "プロンプト", hint: "AIへの指示文（構成/本文/SEO/修正/AI判定）" },
 ];
 
@@ -42,7 +35,6 @@ function GenerationConditionsInner({
   initialPrompts,
   initialSettings,
   initialThemes,
-  initialMasters,
 }: GenerationConditionsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -51,7 +43,7 @@ function GenerationConditionsInner({
   const raw = params.get("tab");
   const tab: SubTab = SUBTABS.some((t) => t.key === raw)
     ? (raw as SubTab)
-    : "themes";
+    : "policy";
   const active = SUBTABS.find((t) => t.key === tab)!;
 
   function setTab(key: SubTab) {
@@ -120,10 +112,14 @@ function GenerationConditionsInner({
       </div>
 
       <div className="mt-6">
-        {tab === "themes" && <ThemeManager initial={initialThemes} />}
+        {tab === "policy" && (
+          <GenerationPolicy
+            initialInstruction={initialSettings?.generationInstruction}
+            initialThemes={initialThemes}
+          />
+        )}
         {tab === "settings" && <SettingsForm initial={initialSettings} />}
         {tab === "prompts" && <PromptManager initial={initialPrompts} />}
-        {tab === "masters" && <MasterManager initial={initialMasters} />}
       </div>
     </div>
   );

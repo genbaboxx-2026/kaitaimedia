@@ -56,6 +56,7 @@ export async function fetchGenerationSettings(): Promise<GenerationSettings> {
     ...DEFAULT_SETTINGS,
     autoPublishEnabled: b("auto_publish_enabled", DEFAULT_SETTINGS.autoPublishEnabled),
     generationEnabled: b("generation_enabled", DEFAULT_SETTINGS.generationEnabled),
+    generationInstruction: s("generation_instruction", DEFAULT_SETTINGS.generationInstruction),
     generationTime: s("generation_time", DEFAULT_SETTINGS.generationTime),
     articlesPerDay: n("articles_per_day", DEFAULT_SETTINGS.articlesPerDay),
     minCharCount: n("min_char_count", DEFAULT_SETTINGS.minCharCount),

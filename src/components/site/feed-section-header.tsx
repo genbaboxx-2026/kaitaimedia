@@ -6,9 +6,12 @@ import { PlayCircleIcon } from "@/components/site/nav-icons";
 export function FeedSectionHeader({
   title = "今日のニュース",
   date,
+  subtitle = "見出しをタップすると外部の元記事へ移動します",
 }: {
   title?: string;
   date?: Date;
+  /** 外部リンクであることの案内 */
+  subtitle?: string | null;
 }) {
   return (
     <div className="flex items-start justify-between gap-3 px-4 pb-1 pt-5 md:px-0">
@@ -18,6 +21,14 @@ export function FeedSectionHeader({
         </h2>
         <p className="mt-1.5 text-[13px] text-slate-400">
           {formatFeedDate(date)}
+          {subtitle ? (
+            <>
+              <span aria-hidden className="mx-1.5">
+                ·
+              </span>
+              <span>{subtitle}</span>
+            </>
+          ) : null}
         </p>
       </div>
       <Link

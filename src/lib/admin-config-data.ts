@@ -8,6 +8,7 @@ import type { ArticleType } from "@/lib/types";
 export interface GenerationSettings {
   autoPublishEnabled: boolean;
   generationEnabled: boolean;
+  generationInstruction: string;
   generationTime: string;
   articlesPerDay: number;
   minCharCount: number;
@@ -51,6 +52,7 @@ export const AI_MODELS = ["claude-sonnet-5", "claude-opus-4-8", "claude-haiku-4-
 export const DEFAULT_SETTINGS: GenerationSettings = {
   autoPublishEnabled: false,
   generationEnabled: true,
+  generationInstruction: "",
   generationTime: "03:00",
   articlesPerDay: 1,
   minCharCount: 3500,

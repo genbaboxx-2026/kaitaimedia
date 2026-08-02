@@ -16,12 +16,12 @@ import { notifySlack } from "@/lib/notify/slack";
 import type { ArticleType } from "@/lib/types";
 
 interface ThemeRow {
-  id: string;
+  /** テーマ在庫は廃止。その場生成なので id は持たない（null） */
+  id: string | null;
   title: string;
   category_id: string | null;
   target_keyword: string | null;
   article_type: ArticleType;
-  priority: string;
   category: { name: string; slug: string } | null;
 }
 
@@ -54,26 +54,62 @@ function excerptFrom(body: string): string {
   return firstPara.slice(0, 120);
 }
 
-// テーマ選定：未生成を優先度順に取得し、直近3本と同一カテゴリーが続く場合は避ける。
-async function selectTheme(): Promise<ThemeRow | null> {
-  const themes = await restSelect<ThemeRow>(
-    "themes?select=id,title,category_id,target_keyword,article_type,priority,category:categories(name,slug)&status=eq.pending&order=priority.asc,sort_order.asc",
+// 手動で追加された未生成テーマがあれば、それを優先して1件取り出す（無ければ null）。
+async function selectQueuedTheme(): Promise<ThemeRow | null> {
+  const rows = await restSelect<{
+    id: string;
+    title: string;
+    category_id: string | null;
+    target_keyword: string | null;
+    article_type: ArticleType;
+    category: { name: string; slug: string } | null;
+  }>(
+    "themes?select=id,title,category_id,target_keyword,article_type,category:categories(name,slug)&status=eq.pending&order=sort_order.asc,created_at.asc&limit=1",
     0,
   );
-  if (!themes || themes.length === 0) return null;
+  const t = rows?.[0];
+  if (!t) return null;
+  return {
+    id: t.id,
+    title: t.title,
+    category_id: t.category_id,
+    target_keyword: t.target_keyword,
+    article_type: t.article_type ?? "A",
+    category: t.category,
+  };
+}
 
-  const recent = await restSelect<{ category_id: string | null }>(
-    "articles?select=category_id&order=created_at.desc&limit=3",
+// トピックをその場生成：AIに数件提案させ、既存記事と重複しない最初の1件を採用する。
+async function generateTopic(
+  instruction: string,
+  titleSim: number,
+): Promise<ThemeRow | null> {
+  const { suggestThemes } = await import("@/lib/generation/theme-suggest");
+  const cats = await restSelect<{ id: string; slug: string; name: string }>(
+    "categories?select=id,slug,name",
     0,
   );
-  const recentCats = (recent ?? []).map((r) => r.category_id);
-  const blockedCat =
-    recentCats.length === 3 && recentCats.every((c) => c === recentCats[0])
-      ? recentCats[0]
-      : null;
+  const bySlug = new Map((cats ?? []).map((c) => [c.slug, c]));
 
-  const preferred = themes.find((t) => t.category_id !== blockedCat);
-  return preferred ?? themes[0];
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { themes } = await suggestThemes(5, instruction);
+    for (const s of themes) {
+      if (!s?.title) continue;
+      if (await isDuplicateTheme(s.title, titleSim)) continue; // 既存と類似なら次の候補へ
+      const cat = bySlug.get(s.categorySlug) ?? cats?.[0];
+      return {
+        id: null,
+        title: s.title,
+        category_id: cat?.id ?? null,
+        target_keyword: s.targetKeyword ?? "",
+        article_type: (["A", "B", "C"].includes(s.articleType)
+          ? s.articleType
+          : "A") as ArticleType,
+        category: cat ? { name: cat.name, slug: cat.slug } : null,
+      };
+    }
+  }
+  return null;
 }
 
 // テーマ重複チェック（タイトル類似度）。重複ならテーマを除外して true を返す。
@@ -142,24 +178,19 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
     }
   }
 
-  // 2. テーマ選定
-  const theme = await selectTheme();
+  // 2. トピック決定：手動追加テーマがあれば優先。無ければAIがその場で考案（重複回避）。
+  const instruction = getString(settings, "generation_instruction", "");
+  const theme =
+    (await selectQueuedTheme()) ?? (await generateTopic(instruction, titleSim));
   if (!theme) {
-    await notifySlack("記事生成：未生成テーマがありません。テーマを補充してください。");
-    return { status: "skipped", message: "未生成テーマがありません" };
+    await notifySlack(
+      "記事生成：重複しないトピックを生成できませんでした（既存記事が多い可能性）。",
+    );
+    return { status: "skipped", message: "重複しない新しいトピックを生成できませんでした" };
   }
 
   const categoryName = theme.category?.name ?? "";
   const categorySlug = theme.category?.slug ?? "news";
-
-  // 3. 重複チェック
-  if (await isDuplicateTheme(theme.title, titleSim)) {
-    await restUpdate(`themes?id=eq.${theme.id}`, { status: "excluded" });
-    return {
-      status: "skipped",
-      message: `テーマ「${theme.title}」は既存記事と類似のため除外しました`,
-    };
-  }
 
   // トークン/コスト集計
   let inputTokens = 0;
@@ -375,10 +406,12 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
         estimated_cost: cost,
         finished_at: new Date().toISOString(),
       });
-      await restUpdate(`themes?id=eq.${theme.id}`, {
-        status: "generated",
-        generated_at: new Date().toISOString(),
-      });
+      if (theme.id) {
+        await restUpdate(`themes?id=eq.${theme.id}`, {
+          status: "generated",
+          generated_at: new Date().toISOString(),
+        });
+      }
       await notifySlack(
         `記事生成：品質チェック不合格のため破棄「${theme.title}」 不合格項目：${report.failedItems.join("、")}`,
       );
@@ -529,11 +562,13 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       published_at: publishedAt,
     });
 
-    // テーマを生成済に
-    await restUpdate(`themes?id=eq.${theme.id}`, {
-      status: "generated",
-      generated_at: new Date().toISOString(),
-    });
+    // テーマ在庫を使う運用時のみ生成済みに更新（その場生成では id=null でスキップ）
+    if (theme.id) {
+      await restUpdate(`themes?id=eq.${theme.id}`, {
+        status: "generated",
+        generated_at: new Date().toISOString(),
+      });
+    }
 
     // 通知
     const label = !report.passed

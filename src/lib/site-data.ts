@@ -1,8 +1,9 @@
-import type { Article, ArticleType, Category } from "@/lib/types";
+import type { Article, ArticleType, Category, NewsItem } from "@/lib/types";
 import {
   ALL_ARTICLES_NEWEST,
   ARTICLES,
   CATEGORIES,
+  DUMMY_NEWS,
   getArticleBySlug as dummyGetArticleBySlug,
   getArticlesByCategory as dummyGetArticlesByCategory,
   getRelatedArticles as dummyGetRelatedArticles,
@@ -191,4 +192,37 @@ export async function searchArticles(query: string): Promise<Article[]> {
   if (!q) return [];
   const all = await getAllArticles();
   return sortByNewest(all.filter((a) => searchableText(a).includes(q)));
+}
+
+// ---- ニュース（外部RSS集約） ----
+interface NewsRow {
+  id: string;
+  title: string;
+  url: string;
+  source_id: string;
+  source_name: string;
+  published_at: string | null;
+  fetched_at: string;
+  image_url: string | null;
+}
+
+function mapNews(r: NewsRow): NewsItem {
+  return {
+    id: r.id,
+    title: r.title,
+    url: r.url,
+    sourceId: r.source_id,
+    sourceName: r.source_name,
+    publishedAt: r.published_at ?? r.fetched_at,
+    imageUrl: r.image_url ?? undefined,
+  };
+}
+
+export async function getLatestNews(limit = 30): Promise<NewsItem[]> {
+  const rows = await restSelect<NewsRow>(
+    `news_items?select=id,title,url,source_id,source_name,published_at,fetched_at,image_url&is_visible=eq.true&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}`,
+    REVALIDATE,
+  );
+  if (rows && rows.length > 0) return rows.map(mapNews);
+  return DUMMY_NEWS.slice(0, limit);
 }

@@ -50,9 +50,9 @@ export async function suggestThemes(
   }
   try {
     const { callJson } = await import("@/lib/ai/client");
-    const { loadSettings, getModel } = await import("@/lib/ai/settings");
     const { restSelect } = await import("@/lib/supabase/rest");
-    const settings = await loadSettings();
+    // テーマ案は速い・安いモデル（Haiku）で生成する（本文生成モデルとは別。応答が速く、UIが固まらない）
+    const suggestModel = "claude-haiku-4-5";
     const slugs = CATEGORIES.map((cat) => `${cat.slug}(${cat.name})`).join("、");
 
     // 既存の記事タイトル＋既存テーマを取得し、重複しない切り口だけを出させる
@@ -88,8 +88,8 @@ export async function suggestThemes(
       `出力はJSON配列のみ。`;
     const { data } = await callJson<ThemeSuggestion[]>({
       prompt,
-      model: getModel(settings),
-      maxTokens: 4000,
+      model: suggestModel,
+      maxTokens: 2500,
     });
     const themes = Array.isArray(data) ? data.slice(0, c) : mock(c);
     return { themes, source: "ai" };

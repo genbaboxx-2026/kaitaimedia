@@ -54,6 +54,31 @@ export async function restInsert<T>(
   return (await res.json()) as T[];
 }
 
+/** UPSERT（on_conflict 列で重複時はマージ）。例: restUpsert("news_items", rows, "url") */
+export async function restUpsert<T>(
+  table: string,
+  body: unknown,
+  onConflict: string,
+): Promise<T[]> {
+  const creds = serviceCreds();
+  if (!creds) throw new Error("Supabase接続情報（service role）が未設定です");
+  const res = await fetch(
+    `${creds.url}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`,
+    {
+      method: "POST",
+      headers: {
+        ...headers(creds.key),
+        Prefer: "resolution=merge-duplicates,return=representation",
+      },
+      body: JSON.stringify(body),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`UPSERT失敗 (${table}): HTTP ${res.status} ${await res.text()}`);
+  }
+  return (await res.json()) as T[];
+}
+
 // UPDATE（PATCH）。pathAndQuery 例: "articles?id=eq.<uuid>"
 export async function restUpdate<T>(
   pathAndQuery: string,

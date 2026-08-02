@@ -20,7 +20,25 @@ BAKUSOQ本番DBには絶対に流さないこと。MCP経由の `apply_migration
 | 4 | `migrations/20260801000004_indexes.sql` | 索引（フィルタ / 全文検索 / HNSW） |
 | 5 | `migrations/20260801000005_rls_policies.sql` | RLS・アクセス権 |
 | 6 | `migrations/20260801000006_functions.sql` | 類似度判定RPC（第2層） |
+| 7 | `migrations/20260802000001_view_count.sql` | 記事閲覧数 |
+| 8 | `migrations/20260802000002_news_items.sql` | 外部ニュース集約テーブル |
+| 9 | `migrations/20260802000003_news_image_url.sql` | ニュース画像URL列 |
 | - | `seed.sql` | 初期データ（冪等） |
+
+## ニュース定期取得（本番）
+
+GitHub Actions ワークフロー `.github/workflows/fetch-news.yml` が30分ごとに `npm run fetch-news` を実行する。
+
+必要な **Actions Secrets**:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+任意の **Actions Variables**:
+
+- `NEWS_ENABLE_GOOGLE_NEWS=false` … Googleニュースを止め、国交省・産廃のみにする
+
+手動確認: Actions タブ →「ニュースRSS取得」→ Run workflow。
 
 ## アクセス制御方針
 

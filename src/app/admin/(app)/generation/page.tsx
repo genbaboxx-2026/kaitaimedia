@@ -3,17 +3,15 @@ import {
   fetchActivePrompts,
   fetchGenerationSettings,
   fetchPendingThemes,
-  fetchMasters,
 } from "@/lib/admin/fetch-generation";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminGenerationPage() {
-  const [prompts, settings, themes, masters] = await Promise.all([
+  const [prompts, settings, themes] = await Promise.all([
     fetchActivePrompts(),
     fetchGenerationSettings(),
     fetchPendingThemes(),
-    fetchMasters(),
   ]);
 
   return (
@@ -21,7 +19,6 @@ export default async function AdminGenerationPage() {
       initialPrompts={prompts ?? undefined}
       initialSettings={settings}
       initialThemes={themes ?? undefined}
-      initialMasters={masters ?? undefined}
     />
   );
 }

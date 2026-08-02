@@ -5,6 +5,7 @@ import { CATEGORIES, SITE_NAME } from "@/lib/dummy-data";
 import { CloseIcon } from "@/components/site/nav-icons";
 
 const LINKS = [
+  { href: "/news", label: "ニュース" },
   { href: "/articles", label: "記事一覧" },
   { href: "/bakusoq", label: "BAKUSOQ紹介" },
   { href: "/company", label: "運営会社" },

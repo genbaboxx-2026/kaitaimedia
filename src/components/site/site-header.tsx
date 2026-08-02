@@ -34,6 +34,7 @@ export function SiteHeader() {
   ).filter((c): c is (typeof CATEGORIES)[number] => Boolean(c));
 
   const isTop = pathname === "/";
+  const isNews = pathname === "/news" || pathname.startsWith("/news/");
   const activeCategory = pathname.startsWith("/category/")
     ? pathname.split("/")[2]
     : null;
@@ -89,6 +90,9 @@ export function SiteHeader() {
           >
             <TabLink href="/" active={isTop}>
               トップ
+            </TabLink>
+            <TabLink href="/news" active={isNews}>
+              ニュース
             </TabLink>
             {primary.map((c) => (
               <TabLink
@@ -158,6 +162,14 @@ export function SiteHeader() {
               className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-bold hover:bg-white/10"
             >
               トップ
+            </Link>
+            <Link
+              href="/news"
+              className={`whitespace-nowrap rounded px-3 py-1.5 text-sm hover:bg-white/10 ${
+                isNews ? "font-bold" : "font-medium text-slate-100"
+              }`}
+            >
+              ニュース
             </Link>
             {primary.map((c) => (
               <Link

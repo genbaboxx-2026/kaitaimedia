@@ -54,3 +54,16 @@ export const ARTICLE_TYPE_LABEL: Record<ArticleType, string> = {
   B: "計算テンプレート",
   C: "一次情報",
 };
+
+/** 外部RSSから集約した業界ニュース（見出し＋元記事URL） */
+export interface NewsItem {
+  id: string;
+  title: string;
+  url: string;
+  sourceId: string;
+  sourceName: string;
+  /** ISO日時または YYYY-MM-DD */
+  publishedAt: string;
+  /** サムネイル（RSS / OGP）。無ければプレースホルダ表示 */
+  imageUrl?: string;
+}
