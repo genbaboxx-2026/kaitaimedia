@@ -184,10 +184,10 @@ export const PROMPTS: PromptStepData[] = [
     versions: [
       {
         version: 1,
-        note: "初期版",
+        note: "約10件取得を目標",
         createdAt: "2026-08-02",
         content:
-          "Xを検索し解体・産廃・建設の実務者が気になりそうなバズ投稿を最大{{max_count}}件、いいね目安{{min_likes}}以上、{{from_date}}以降。JSON配列のみ出力。",
+          "Xを複数回検索し、解体・産廃・建設の実務向け投稿をできるだけ{{max_count}}件。いいね目安{{min_likes}}、{{from_date}}以降。JSON配列のみ。",
       },
     ],
   },

@@ -70,8 +70,9 @@ insert into public.settings (key, value, value_type, description) values
   ('news_editorial_max_per_run',  '5',       'number',  '1回のfetch-newsで生成する解説の上限件数'),
   ('news_editorial_model',        'claude-haiku-4-5-20251001','string','ニュース自社解説に使うAIモデル'),
   ('sns_trends_model',            'grok-4-1-fast-reasoning', 'string', 'SNSトレンド取得に使うGrokモデル'),
-  ('sns_trends_min_likes',        '100',     'number',  'いいね数の目安（これ以上を優先）'),
-  ('sns_trends_max_candidates',   '15',      'number',  '1回の更新で取得する候補件数の上限'),
+  ('sns_trends_min_likes',        '30',      'number',  'いいね数の目安（これ以上を優先）'),
+  ('sns_trends_max_candidates',   '10',      'number',  '1回の更新で取得する候補件数の上限'),
+  ('sns_trends_lookback_days',    '30',      'number',  'SNSトレンド検索の遡及日数'),
   -- コスト制御・モデル
   ('monthly_ai_budget_limit',     '0',       'number',  '月間AI利用料の上限（円）。0=未設定（上限なし）'),
   ('per_article_cost_limit_usd',  '3',       'number',  '1記事あたりの推定コスト上限（USD）。0=上限なし。超過で生成中断'),

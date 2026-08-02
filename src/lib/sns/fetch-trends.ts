@@ -174,11 +174,11 @@ export async function fetchSnsTrends(): Promise<FetchSnsTrendsResult> {
   );
   const minLikes = Math.max(
     0,
-    Math.floor(getNumber(settings, "sns_trends_min_likes", 100)),
+    Math.floor(getNumber(settings, "sns_trends_min_likes", 30)),
   );
   const maxCount = Math.min(
     30,
-    Math.max(1, Math.floor(getNumber(settings, "sns_trends_max_candidates", 15))),
+    Math.max(1, Math.floor(getNumber(settings, "sns_trends_max_candidates", 10))),
   );
   const lookbackDays = Math.min(
     60,
@@ -218,15 +218,17 @@ export async function fetchSnsTrends(): Promise<FetchSnsTrendsResult> {
     rows = rowsFromCitationUrls(grok.citationUrls);
   }
 
-  if (rows.length === 0) {
-    const softMin = Math.max(10, Math.floor(minLikes / 2));
+  // 0件、または目標件数の半分未満なら条件を緩めて再検索
+  if (rows.length < Math.ceil(maxCount / 2)) {
+    const softMin = Math.max(5, Math.floor(minLikes / 2));
+    const need = Math.max(maxCount - rows.length, maxCount);
     const retryPrompt =
       interpolate(template, {
         from_date: fromDateDaysAgo(Math.max(lookbackDays, 45)),
         min_likes: String(softMin),
-        max_count: String(maxCount),
+        max_count: String(need),
       }) +
-      "\n\n前回は該当0件でした。条件を緩め、建設・解体・産廃・現場・許可・アスベスト・産廃処理のいずれかに少しでも関連する日本語の投稿を優先して再検索し、必ず実在URL付きでJSON配列を返してください。空配列は最終手段です。";
+      `\n\n前回の取得は ${rows.length} 件だけで不足しています。追加で異なる検索語でもう一度探し、合計で約 ${maxCount} 件になるよう実在URL付きJSON配列を返してください。重複URLは避けてください。`;
 
     const retry = await callGrokXSearch({
       prompt: retryPrompt,
@@ -240,13 +242,25 @@ export async function fetchSnsTrends(): Promise<FetchSnsTrendsResult> {
       outputTokens: grok.outputTokens + retry.outputTokens,
       citationUrls: [...new Set([...grok.citationUrls, ...retry.citationUrls])],
     };
+    let more: GrokPostRow[] = [];
     try {
-      rows = parseRows(retry.text);
+      more = parseRows(retry.text);
     } catch {
-      rows = [];
+      more = [];
     }
-    if (rows.length === 0 && retry.citationUrls.length > 0) {
-      rows = rowsFromCitationUrls(retry.citationUrls);
+    if (more.length === 0 && retry.citationUrls.length > 0) {
+      more = rowsFromCitationUrls(retry.citationUrls);
+    }
+    const seenUrls = new Set(
+      rows
+        .map((r) => asString(r.post_url) ?? asString(r.url) ?? "")
+        .filter(Boolean),
+    );
+    for (const r of more) {
+      const u = asString(r.post_url) ?? asString(r.url) ?? "";
+      if (!u || seenUrls.has(u)) continue;
+      seenUrls.add(u);
+      rows.push(r);
     }
   }
 
