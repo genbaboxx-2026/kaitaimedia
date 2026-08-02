@@ -4,7 +4,6 @@ import {
   getApprovedSnsTrends,
   getLatestArticles,
   getLatestNews,
-  getPickupArticles,
   getRankingArticles,
 } from "@/lib/site-data";
 import { getCategoryMeta } from "@/lib/categories-meta";
@@ -61,10 +60,9 @@ function SecondaryArticleCard({ article }: { article: Article }) {
 export const revalidate = 300; // ISR: 5分
 
 export default async function HomePage() {
-  const [news, articles, pickup, ranking, snsTrends] = await Promise.all([
+  const [news, articles, ranking, snsTrends] = await Promise.all([
     getLatestNews(12),
     getLatestArticles(8),
-    getPickupArticles(4),
     getRankingArticles(3),
     getApprovedSnsTrends(8),
   ]);
@@ -251,29 +249,6 @@ export default async function HomePage() {
                 <ArrowIcon className="h-4 w-4" />
               </Link>
             </div>
-
-            {pickup.length > 0 && (
-              <div>
-                <SectionTitle>PICK UP ─ 制度・法改正</SectionTitle>
-                <ul className="mt-1">
-                  {pickup.map((a) => (
-                    <li key={a.slug} className="border-b border-slate-200">
-                      <Link
-                        href={`/articles/${a.slug}`}
-                        className="group block py-3"
-                      >
-                        <span className="text-xs font-bold text-navy-700">
-                          {getCategoryName(a.categorySlug)}
-                        </span>
-                        <span className="mt-1 block font-serif text-sm font-bold leading-snug text-slate-900 decoration-navy-600 decoration-2 underline-offset-4 group-hover:underline">
-                          {a.title}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             <div>
               <SectionTitle>RANKING</SectionTitle>
