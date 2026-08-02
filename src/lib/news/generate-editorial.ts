@@ -97,7 +97,8 @@ export async function generateMissingEditorials(): Promise<GenerateEditorialResu
     };
   }
 
-  const model = getString(settings, "ai_model", "claude-sonnet-5");
+  // ニュース解説はコスト優先で Haiku（本記事生成の ai_model とは分離）
+  const model = getString(settings, "news_editorial_model", "claude-haiku-4-5");
   const pending = await restSelect<PendingNewsRow>(
     `news_items?select=id,title,source_name,summary&is_visible=eq.true&editorial_body=is.null&order=published_at.desc.nullslast&limit=${maxPerRun}`,
     0,

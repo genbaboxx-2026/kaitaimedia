@@ -27,6 +27,7 @@ BAKUSOQ本番DBには絶対に流さないこと。MCP経由の `apply_migration
 | 11 | `migrations/20260802000005_clear_retired_quality_flags.sql` | 旧チェックの不合格バッジ掃除 |
 | 12 | `migrations/20260802000006_news_summary.sql` | ニュース詳細用の要約列 |
 | 13 | `migrations/20260802000007_news_editorial.sql` | ニュース自社解説文＋プロンプト |
+| 14 | `migrations/20260802000008_news_editorial_haiku.sql` | ニュース解説モデルをHaikuに |
 | - | `seed.sql` | 初期データ（冪等） |
 
 ## ニュース定期取得（本番）

@@ -68,6 +68,7 @@ insert into public.settings (key, value, value_type, description) values
   ('check_ai_quality_enabled',    'false',   'boolean', '第3層: AI定性評価チェック（運用方針により既定OFF）'),
   ('news_editorial_enabled',      'true',    'boolean', 'ニュース自社解説文の自動生成'),
   ('news_editorial_max_per_run',  '10',      'number',  '1回のfetch-newsで生成する解説の上限件数'),
+  ('news_editorial_model',        'claude-haiku-4-5','string','ニュース自社解説に使うAIモデル'),
   -- コスト制御・モデル
   ('monthly_ai_budget_limit',     '0',       'number',  '月間AI利用料の上限（円）。0=未設定（上限なし）'),
   ('ai_model',                    'claude-sonnet-5','string','記事生成に使用するAIモデル'),
