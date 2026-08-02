@@ -204,6 +204,7 @@ interface NewsRow {
   published_at: string | null;
   fetched_at: string;
   image_url: string | null;
+  summary: string | null;
 }
 
 function mapNews(r: NewsRow): NewsItem {
@@ -215,14 +216,28 @@ function mapNews(r: NewsRow): NewsItem {
     sourceName: r.source_name,
     publishedAt: r.published_at ?? r.fetched_at,
     imageUrl: r.image_url ?? undefined,
+    summary: r.summary ?? undefined,
   };
 }
 
+const NEWS_SELECT =
+  "id,title,url,source_id,source_name,published_at,fetched_at,image_url,summary";
+
 export async function getLatestNews(limit = 30): Promise<NewsItem[]> {
   const rows = await restSelect<NewsRow>(
-    `news_items?select=id,title,url,source_id,source_name,published_at,fetched_at,image_url&is_visible=eq.true&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}`,
+    `news_items?select=${NEWS_SELECT}&is_visible=eq.true&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}`,
     REVALIDATE,
   );
   if (rows && rows.length > 0) return rows.map(mapNews);
   return DUMMY_NEWS.slice(0, limit);
+}
+
+export async function getNewsById(id: string): Promise<NewsItem | null> {
+  if (!id) return null;
+  const rows = await restSelect<NewsRow>(
+    `news_items?select=${NEWS_SELECT}&id=eq.${encodeURIComponent(id)}&is_visible=eq.true&limit=1`,
+    REVALIDATE,
+  );
+  if (rows && rows.length > 0) return mapNews(rows[0]);
+  return DUMMY_NEWS.find((n) => n.id === id) ?? null;
 }

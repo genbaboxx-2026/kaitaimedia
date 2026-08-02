@@ -3,7 +3,7 @@ import type { Article, Category, Cta, NewsItem } from "@/lib/types";
 // タスク4で Supabase に接続するまでの仮データ。
 // 数値不使用ポリシー（金額・重量・単価・割合・断定的な工期日数を書かない）に準拠。
 
-export const SITE_NAME = "解体業界特化メディア";
+export const SITE_NAME = "解体ナレッジ";
 export const OPERATOR_NAME = "GENBABOXX";
 
 // 7カテゴリーに統合（旧17項目を吸収）
@@ -1204,6 +1204,8 @@ export const DUMMY_NEWS: NewsItem[] = [
     sourceId: "mlit",
     sourceName: "国土交通省",
     publishedAt: "2026-07-28T09:00:00+09:00",
+    summary:
+      "建設リサイクル法に基づく全国一斉パトロールの実施について、国土交通省が周知しています。現場での分別解体や再資源化の確認が焦点です。",
   },
   {
     id: "dummy-2",
@@ -1212,6 +1214,8 @@ export const DUMMY_NEWS: NewsItem[] = [
     sourceId: "sanpai",
     sourceName: "産業廃棄物ニュース",
     publishedAt: "2026-07-27T12:00:00+09:00",
+    summary:
+      "住宅街に積み上げられた産業廃棄物について、自治体が建設業者へ措置命令を出した事例が報じられています。",
   },
   {
     id: "dummy-3",

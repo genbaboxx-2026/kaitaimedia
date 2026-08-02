@@ -25,6 +25,7 @@ BAKUSOQ本番DBには絶対に流さないこと。MCP経由の `apply_migration
 | 9 | `migrations/20260802000003_news_image_url.sql` | ニュース画像URL列 |
 | 10 | `migrations/20260802000004_relax_quality_checks.sql` | リンク/類似度/AI定性を既定OFF・URL非掲載プロンプト |
 | 11 | `migrations/20260802000005_clear_retired_quality_flags.sql` | 旧チェックの不合格バッジ掃除 |
+| 12 | `migrations/20260802000006_news_summary.sql` | ニュース詳細用の要約列 |
 | - | `seed.sql` | 初期データ（冪等） |
 
 ## ニュース定期取得（本番）

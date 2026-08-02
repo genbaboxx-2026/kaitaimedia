@@ -6,7 +6,7 @@ import { PlayCircleIcon } from "@/components/site/nav-icons";
 export function FeedSectionHeader({
   title = "今日のニュース",
   date,
-  subtitle = "見出しをタップすると外部の元記事へ移動します",
+  subtitle = "見出しをタップすると詳細を表示します",
 }: {
   title?: string;
   date?: Date;

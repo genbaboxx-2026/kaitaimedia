@@ -7,6 +7,30 @@ export interface ParsedFeedItem {
   /** 媒体名のヒント（Googleニュースの " - 媒体名" など） */
   sourceHint?: string;
   imageUrl?: string;
+  /** RSS description 等の短い要約（HTML除去済み） */
+  summary?: string;
+}
+
+/** description / content からプレーンテキスト要約を作る（最大 maxLen 文字） */
+export function extractSummaryFromItemBlock(
+  block: string,
+  maxLen = 400,
+): string | undefined {
+  const raw =
+    tagContent(block, "description") ??
+    tagContent(block, "summary") ??
+    tagContent(block, "content:encoded") ??
+    tagContent(block, "content") ??
+    "";
+  const text = raw
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length < 20) return undefined;
+  if (text.length <= maxLen) return text;
+  return `${text.slice(0, maxLen).replace(/\s+\S*$/, "")}…`;
 }
 
 function isUsableImageUrl(url: string): boolean {
@@ -133,7 +157,8 @@ function parseRss2(xml: string): ParsedFeedItem[] {
       parseDate(tagContent(block, "dc:date")) ??
       parseDate(tagContent(block, "published"));
     const imageUrl = extractImageFromItemBlock(block) ?? undefined;
-    items.push({ title, url: link, publishedAt, sourceHint, imageUrl });
+    const summary = extractSummaryFromItemBlock(block);
+    items.push({ title, url: link, publishedAt, sourceHint, imageUrl, summary });
   }
   return items;
 }
@@ -155,7 +180,8 @@ function parseRss1(xml: string): ParsedFeedItem[] {
       parseDate(tagContent(block, "dc:date")) ??
       parseDate(tagContent(block, "pubDate"));
     const imageUrl = extractImageFromItemBlock(block) ?? undefined;
-    items.push({ title, url: link, publishedAt, sourceHint, imageUrl });
+    const summary = extractSummaryFromItemBlock(block);
+    items.push({ title, url: link, publishedAt, sourceHint, imageUrl, summary });
   }
   return items;
 }
@@ -175,7 +201,8 @@ function parseAtom(xml: string): ParsedFeedItem[] {
       parseDate(tagContent(block, "published")) ??
       parseDate(tagContent(block, "updated"));
     const imageUrl = extractImageFromItemBlock(block) ?? undefined;
-    items.push({ title, url: link, publishedAt, sourceHint, imageUrl });
+    const summary = extractSummaryFromItemBlock(block);
+    items.push({ title, url: link, publishedAt, sourceHint, imageUrl, summary });
   }
   return items;
 }

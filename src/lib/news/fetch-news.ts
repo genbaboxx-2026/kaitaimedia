@@ -17,6 +17,7 @@ export interface NewsItemRow {
   fetched_at: string;
   is_visible: boolean;
   image_url: string | null;
+  summary: string | null;
 }
 
 export interface FetchNewsResult {
@@ -48,6 +49,7 @@ function toRows(
     fetched_at: string;
     is_visible: boolean;
     imageUrl: string | null;
+    summary: string | null;
   }>,
 ): NewsItemRow[] {
   return draft.map((r) => ({
@@ -59,6 +61,7 @@ function toRows(
     fetched_at: r.fetched_at,
     is_visible: r.is_visible,
     image_url: r.imageUrl ?? null,
+    summary: r.summary ?? null,
   }));
 }
 
@@ -79,6 +82,7 @@ async function collectFromSource(source: NewsSource): Promise<{
     fetched_at: string;
     is_visible: boolean;
     imageUrl: string | null;
+    summary: string | null;
   }> = [];
 
   for (const item of items) {
@@ -107,6 +111,7 @@ async function collectFromSource(source: NewsSource): Promise<{
       fetched_at: now,
       is_visible: true,
       imageUrl: item.imageUrl ?? null,
+      summary: item.summary ?? null,
     });
   }
 
@@ -157,10 +162,9 @@ export async function fetchAndStoreNews(): Promise<FetchNewsResult[]> {
       let upserted = 0;
       if (collected.rows.length > 0) {
         console.log(`[${source.id}] DB保存中...`);
-        // image_url が null の行はカラムを送らない（既存サムネを消さない）
+        // null の任意カラムは送らない（既存値を消さない）
         const payload = collected.rows.map((r) => {
-          if (r.image_url) return r;
-          return {
+          const base: Record<string, unknown> = {
             title: r.title,
             url: r.url,
             source_id: r.source_id,
@@ -169,6 +173,9 @@ export async function fetchAndStoreNews(): Promise<FetchNewsResult[]> {
             fetched_at: r.fetched_at,
             is_visible: r.is_visible,
           };
+          if (r.image_url) base.image_url = r.image_url;
+          if (r.summary) base.summary = r.summary;
+          return base;
         });
         const saved = await restUpsert<NewsItemRow>(
           "news_items",

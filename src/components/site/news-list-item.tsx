@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { NewsItem } from "@/lib/types";
 import { formatRelativeJa } from "@/lib/format";
 
@@ -16,7 +17,7 @@ function toneFor(seed: string): string {
 }
 
 /**
- * NewsPicks風：左に見出し＋メタ、右にサムネ。タップで元記事（外部サイト）へ。
+ * 左に見出し＋メタ、右にサムネ。タップで自社のニュース詳細へ。
  */
 export function NewsListItem({ item }: { item: NewsItem }) {
   const tone = toneFor(`${item.sourceId}:${item.sourceName}`);
@@ -24,12 +25,10 @@ export function NewsListItem({ item }: { item: NewsItem }) {
 
   return (
     <article className="border-b border-slate-100">
-      <a
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href={`/news/${item.id}`}
         className="group flex gap-3 px-4 py-4 active:bg-slate-50 md:gap-4 md:px-0 md:py-4"
-        aria-label={`${item.title}（外部サイトへ移動）`}
+        aria-label={item.title}
       >
         <div className="min-w-0 flex-1">
           <h3 className="line-clamp-3 text-[16px] font-bold leading-snug tracking-tight text-ink md:font-serif md:text-base">
@@ -41,24 +40,6 @@ export function NewsListItem({ item }: { item: NewsItem }) {
             <time dateTime={item.publishedAt}>
               {formatRelativeJa(item.publishedAt)}
             </time>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-0.5 font-medium text-slate-400">
-              外部サイト
-              <svg
-                viewBox="0 0 24 24"
-                className="h-3 w-3"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden
-              >
-                <path
-                  d="M7 17L17 7M9 7h8v8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
           </p>
         </div>
 
@@ -85,7 +66,7 @@ export function NewsListItem({ item }: { item: NewsItem }) {
             </div>
           )}
         </div>
-      </a>
+      </Link>
     </article>
   );
 }
