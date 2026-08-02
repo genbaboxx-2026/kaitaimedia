@@ -15,15 +15,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "解体業界特化メディア | GENBABOXX",
-    template: "%s | 解体業界特化メディア",
+    default: "解体ナレッジ | GENBABOXX",
+    template: "%s | 解体ナレッジ",
   },
   description: DESCRIPTION,
   openGraph: {
     type: "website",
-    siteName: "解体業界特化メディア",
+    siteName: "解体ナレッジ",
     locale: "ja_JP",
-    title: "解体業界特化メディア | GENBABOXX",
+    title: "解体ナレッジ | GENBABOXX",
     description: DESCRIPTION,
     url: SITE_URL,
   },

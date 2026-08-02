@@ -67,7 +67,7 @@ export async function generateEyecatchPng(
     createElement(
       "div",
       { style: { fontSize: 28, opacity: 0.85 } },
-      "解体業界特化メディア | GENBABOXX",
+      "解体ナレッジ | GENBABOXX",
     ),
   );
 

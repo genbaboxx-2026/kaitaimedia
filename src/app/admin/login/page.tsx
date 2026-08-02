@@ -54,7 +54,7 @@ export default function AdminLoginPage() {
           <h1 className="mt-2 text-[22px] font-black tracking-wide text-ink">
             管理コンソール
           </h1>
-          <p className="mt-2 text-sm text-slate-400">解体業界特化メディア</p>
+          <p className="mt-2 text-sm text-slate-400">解体ナレッジ</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mx-auto w-full max-w-sm space-y-5">
