@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // native バイナリを webpack に食わせない
+  serverExternalPackages: ["@resvg/resvg-js", "satori"],
   // satori 用フォントを API / 生成ルートに同梱
   outputFileTracingIncludes: {
     "/api/news/[id]/thumb": ["./assets/fonts/**/*"],
