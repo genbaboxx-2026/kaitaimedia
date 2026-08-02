@@ -6,24 +6,15 @@ import type { Article, Category, Cta, NewsItem } from "@/lib/types";
 export const SITE_NAME = "解体業界特化メディア";
 export const OPERATOR_NAME = "GENBABOXX";
 
+// 7カテゴリーに統合（旧17項目を吸収）
 export const CATEGORIES: Category[] = [
-  { slug: "estimate", name: "見積もり", description: "解体工事の見積もりの考え方・チェック項目" },
-  { slug: "cost", name: "原価管理", description: "原価の内訳と管理の実務" },
-  { slug: "schedule", name: "工期", description: "工程・工期の組み立てと管理" },
-  { slug: "labor", name: "人工", description: "人工（にんく）と人員計画の考え方" },
-  { slug: "waste", name: "産廃", description: "産業廃棄物・マニフェストの実務" },
-  { slug: "law", name: "法改正", description: "解体・建設関連の法改正と制度" },
-  { slug: "subsidy", name: "補助金", description: "解体・空き家関連の補助金・制度" },
-  { slug: "news", name: "業界ニュース", description: "解体業界の動向・一次情報" },
-  { slug: "asbestos", name: "アスベスト対策", description: "石綿の事前調査・除去・届出の実務" },
-  { slug: "license", name: "許認可・届出", description: "解体工事業登録・建設業許可・各種届出" },
-  { slug: "safety", name: "安全管理", description: "現場の安全管理・KY・災害防止" },
-  { slug: "machinery", name: "重機・工法", description: "重機・アタッチメント・解体工法の選定" },
-  { slug: "neighbor", name: "近隣対応", description: "近隣説明・苦情対応・トラブル防止" },
-  { slug: "management", name: "経営・集客", description: "解体会社の経営・集客・人材" },
-  { slug: "hr", name: "人事・採用", description: "解体会社の採用・育成・定着・人事制度" },
-  { slug: "field", name: "現場管理", description: "現場の段取り・品質・工程・職長マネジメント" },
-  { slug: "industry", name: "業界研究", description: "他業種比較・スタートアップ視点・海外事例で見る解体業界" },
+  { slug: "estimate", name: "見積もり・原価", description: "見積もりの考え方・原価内訳と管理の実務" },
+  { slug: "schedule", name: "工程・人員", description: "工程・工期の組み立てと人員計画" },
+  { slug: "law", name: "法規・許認可", description: "法改正・許認可/届出・補助金など制度全般" },
+  { slug: "waste", name: "産廃・アスベスト", description: "産業廃棄物・マニフェスト・石綿の実務" },
+  { slug: "field", name: "現場運営", description: "安全管理・重機/工法・近隣対応・現場マネジメント" },
+  { slug: "management", name: "経営・採用", description: "経営・集客・人事・採用・育成" },
+  { slug: "industry", name: "業界動向", description: "業界ニュース・他業種比較・スタートアップ視点" },
 ];
 
 export const DEFAULT_CTA: Cta = {
