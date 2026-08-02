@@ -45,6 +45,17 @@ export function ArticleTable({
   const [isPending, startTransition] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+
+  function openMenu(id: string, e: React.MouseEvent<HTMLButtonElement>) {
+    if (menuId === id) {
+      setMenuId(null);
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    setMenuPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
+    setMenuId(id);
+  }
 
   function setStatus(id: string, status: AdminStatus) {
     const snapshot = rows;
@@ -112,9 +123,9 @@ export function ArticleTable({
 
   function ActionMenu({ a }: { a: AdminArticle }) {
     return (
-      <div className="relative inline-block text-left">
+      <div className="inline-block text-left">
         <button
-          onClick={() => setMenuId(menuId === a.id ? null : a.id)}
+          onClick={(e) => openMenu(a.id, e)}
           aria-label="操作メニュー"
           aria-haspopup="menu"
           className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-base leading-none text-slate-600 hover:bg-slate-100"
@@ -127,11 +138,16 @@ export function ArticleTable({
               aria-hidden
               tabIndex={-1}
               onClick={() => setMenuId(null)}
-              className="fixed inset-0 z-10 cursor-default"
+              className="fixed inset-0 z-40 cursor-default"
             />
             <div
               role="menu"
-              className="absolute right-0 z-20 mt-1 w-36 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg"
+              style={{
+                position: "fixed",
+                top: menuPos?.top ?? 0,
+                right: menuPos?.right ?? 0,
+              }}
+              className="z-50 w-40 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg"
             >
               <Link
                 href={`/admin/articles/${a.id}`}

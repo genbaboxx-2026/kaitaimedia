@@ -55,7 +55,7 @@ export const ARTICLE_TYPE_LABEL: Record<ArticleType, string> = {
   C: "一次情報",
 };
 
-/** 外部RSSから集約した業界ニュース（見出し＋元記事URL） */
+/** 外部RSSから集約した業界ニュース（自社詳細ページ＋元記事リンク） */
 export interface NewsItem {
   id: string;
   title: string;
@@ -66,4 +66,6 @@ export interface NewsItem {
   publishedAt: string;
   /** サムネイル（RSS / OGP）。無ければプレースホルダ表示 */
   imageUrl?: string;
+  /** RSSの短い要約（全文ではない） */
+  summary?: string;
 }
