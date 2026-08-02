@@ -155,18 +155,31 @@ export default async function NewsDetailPage({
       <div className="mt-6 space-y-8 px-4 md:px-0">
         {item.editorialBody ? (
           <section>
-            <p className="text-[13px] font-bold tracking-wide text-slate-500">
-              解体ナレッジ編集部の解説
+            <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+              <h2 className="text-[22px] font-black tracking-tight text-ink">
+                わかりやすく解説！
+              </h2>
+              <p className="pb-0.5 text-[12px] font-medium text-slate-400">
+                解体ナレッジ編集部
+              </p>
+            </div>
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
+              元記事の転載ではなく、実務者向けにポイントを整理した独自の解説です。
             </p>
-            <div className="mt-3">
+            <div className="mt-4">
               <NewsEditorialBody markdown={item.editorialBody} />
             </div>
           </section>
         ) : (
           <section>
-            <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
-              解体ナレッジ編集部の読み方
-            </h2>
+            <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+              <h2 className="text-[22px] font-black tracking-tight text-ink">
+                わかりやすく解説！
+              </h2>
+              <p className="pb-0.5 text-[12px] font-medium text-slate-400">
+                解体ナレッジ編集部
+              </p>
+            </div>
             <p className="mt-2 text-[16px] leading-8 text-slate-700">
               {briefing.lead}
             </p>
