@@ -27,7 +27,7 @@ async function main(): Promise<void> {
 
   console.log(
     `完了: accepted=${totalAccepted} withImage=${totalWithImage} upserted=${totalUpserted} errors=${failed.length}` +
-      ` / editorial generated=${editorial.generated}` +
+      ` / editorial AI=${editorial.generated} reuse=${editorial.reused ?? 0}` +
       (editorial.skipped ? ` (skip: ${editorial.skipReason ?? ""})` : ""),
   );
   // ソースが0件（全部無効）は設定ミスの可能性が高い

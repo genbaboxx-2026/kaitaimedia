@@ -221,7 +221,7 @@ export async function fetchAndStoreNews(): Promise<FetchAndStoreNewsResult> {
   try {
     editorial = await generateMissingEditorials();
     console.log(
-      `[editorial] 完了 generated=${editorial.generated}/${editorial.attempted}` +
+      `[editorial] 完了 AI=${editorial.generated} reuse=${editorial.reused ?? 0}` +
         (editorial.skipped ? ` skipped=${editorial.skipReason ?? ""}` : "") +
         (editorial.errors.length > 0
           ? ` errors=${editorial.errors.length}`
@@ -233,6 +233,7 @@ export async function fetchAndStoreNews(): Promise<FetchAndStoreNewsResult> {
     editorial = {
       attempted: 0,
       generated: 0,
+      reused: 0,
       skipped: true,
       skipReason: message,
       errors: [message],
