@@ -139,7 +139,8 @@ export default async function ArticleDetailPage({
           <time dateTime={article.publishedAt}>
             {formatJaDate(article.publishedAt)}
           </time>
-          {article.updatedAt && (
+          {article.updatedAt &&
+            article.updatedAt !== article.publishedAt && (
             <>
               <span aria-hidden>·</span>
               <time dateTime={article.updatedAt}>
