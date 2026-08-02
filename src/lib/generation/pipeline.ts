@@ -127,11 +127,14 @@ async function isDuplicateTheme(title: string, threshold: number): Promise<boole
   return Boolean(rows && rows.length > 0);
 }
 
-export async function runGenerationPipeline(): Promise<PipelineResult> {
+export async function runGenerationPipeline(opts?: {
+  /** true なら generation_enabled=false でも実行（管理画面の手動生成用） */
+  force?: boolean;
+}): Promise<PipelineResult> {
   const settings = await loadSettings();
 
-  // 1. 自動生成の有効/無効
-  if (!getBool(settings, "generation_enabled", true)) {
+  // 1. 自動生成の有効/無効（手動 force 時はスキップしない）
+  if (!opts?.force && !getBool(settings, "generation_enabled", true)) {
     return { status: "skipped", message: "自動生成が無効です（generation_enabled=false）" };
   }
 
