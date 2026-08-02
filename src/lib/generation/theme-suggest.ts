@@ -39,6 +39,39 @@ function mock(count: number): ThemeSuggestion[] {
   return out;
 }
 
+function currentYear(): number {
+  return new Date().getFullYear();
+}
+
+/** 過去年の「◯年版」などを現行年に直す（AIの古い知識対策） */
+function sanitizeThemeYear(title: string, year: number): string {
+  let t = title;
+  // 2020〜(今年-1)年版 → 今年年版
+  t = t.replace(
+    /\b(202[0-9]|203[0-9])\s*年版\b/g,
+    (m, y: string) => {
+      const n = Number(y);
+      return n < year ? `${year}年版` : m;
+    },
+  );
+  // 「2024年の〜」など、明らかに古い年だけを今年に寄せる（今年未満）
+  t = t.replace(/\b(20[0-2]\d)年(?!版)/g, (m, y: string) => {
+    const n = Number(y);
+    return n < year && n >= 2020 ? `${year}年` : m;
+  });
+  return t;
+}
+
+function sanitizeThemes(
+  themes: ThemeSuggestion[],
+  year: number,
+): ThemeSuggestion[] {
+  return themes.map((th) => ({
+    ...th,
+    title: sanitizeThemeYear(th.title, year),
+  }));
+}
+
 // AIで記事テーマ案を生成する。ANTHROPIC_API_KEY 未設定・失敗時はダミーで返す。
 export async function suggestThemes(
   count: number,
@@ -53,6 +86,7 @@ export async function suggestThemes(
     const { restSelect } = await import("@/lib/supabase/rest");
     // テーマ案は速い・安いモデル（Haiku）で生成する（本文生成モデルとは別。応答が速く、UIが固まらない）
     const suggestModel = "claude-haiku-4-5";
+    const year = currentYear();
     const slugs = CATEGORIES.map((cat) => `${cat.slug}(${cat.name})`).join("、");
 
     // 既存の記事タイトル＋既存テーマを取得し、重複しない切り口だけを出させる
@@ -75,6 +109,8 @@ export async function suggestThemes(
       `articleType は A/B/C（A=手順, B=計算テンプレ, C=一次情報）。priority は high/medium/low。\n` +
       `categorySlug は次から選ぶ：${slugs}。\n` +
       `金額・単価・割合などの数値を主題にしないこと。実務者に役立つ具体的なお題にすること。\n` +
+      `\n【時点】いまは${year}年です。タイトルに過去の西暦（例: 2024年版・2025年）を付けないこと。` +
+      `年を入れるなら${year}年を使うか、「最新」「現行」など時点をぼかした表現にする。\n` +
       `\n【編集方針】解体会社の経営・スタートアップ視点で役立つ幅広いテーマを、カテゴリーが偏らないよう分散させる。\n` +
       `- estimate（見積もり・原価）：見積もりの精度/原価内訳/追加費用の防止 など\n` +
       `- schedule（工程・人員）：工程管理/工期短縮/人員計画/多能工化 など\n` +
@@ -93,7 +129,10 @@ export async function suggestThemes(
       model: suggestModel,
       maxTokens: 2500,
     });
-    const themes = Array.isArray(data) ? data.slice(0, c) : mock(c);
+    const themes = sanitizeThemes(
+      Array.isArray(data) ? data.slice(0, c) : mock(c),
+      year,
+    );
     return { themes, source: "ai" };
   } catch {
     return { themes: mock(c), source: "mock" };
