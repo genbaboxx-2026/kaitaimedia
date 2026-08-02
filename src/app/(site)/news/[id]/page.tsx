@@ -1,10 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getNewsById } from "@/lib/site-data";
+import {
+  getLatestArticles,
+  getLatestNews,
+  getNewsById,
+  searchArticles,
+} from "@/lib/site-data";
 import { SITE_URL } from "@/lib/site-url";
 import { formatJaDateTime } from "@/lib/format";
+import {
+  buildNewsBriefing,
+  newsSearchKeywords,
+} from "@/lib/news/briefing";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
+import { ArticleCard } from "@/components/site/article-card";
+import { NewsListItem } from "@/components/site/news-list-item";
+import type { Article } from "@/lib/types";
 
 export const revalidate = 300;
 
@@ -17,9 +29,9 @@ export async function generateMetadata({
   const item = await getNewsById(id);
   if (!item) return { title: "ニュースが見つかりません" };
   const url = `${SITE_URL}/news/${item.id}`;
-  const description =
-    item.summary ??
-    `${item.sourceName}のニュース紹介。詳細は元記事をご覧ください。`;
+  const displaySource = item.sourceName.replace(/^Googleニュース\s*\/\s*/, "");
+  const briefing = buildNewsBriefing(item.title, displaySource);
+  const description = item.summary ?? briefing.lead.slice(0, 120);
   return {
     title: item.title,
     description,
@@ -34,6 +46,29 @@ export async function generateMetadata({
   };
 }
 
+async function collectRelatedArticles(title: string): Promise<Article[]> {
+  const keys = newsSearchKeywords(title);
+  const found: Article[] = [];
+  const seen = new Set<string>();
+  for (const key of keys) {
+    const hits = await searchArticles(key);
+    for (const a of hits) {
+      if (seen.has(a.slug)) continue;
+      seen.add(a.slug);
+      found.push(a);
+      if (found.length >= 3) return found;
+    }
+  }
+  if (found.length >= 3) return found;
+  const latest = await getLatestArticles(6);
+  for (const a of latest) {
+    if (seen.has(a.slug)) continue;
+    found.push(a);
+    if (found.length >= 3) break;
+  }
+  return found.slice(0, 3);
+}
+
 export default async function NewsDetailPage({
   params,
 }: {
@@ -44,6 +79,12 @@ export default async function NewsDetailPage({
   if (!item) notFound();
 
   const displaySource = item.sourceName.replace(/^Googleニュース\s*\/\s*/, "");
+  const briefing = buildNewsBriefing(item.title, displaySource);
+  const [relatedArticles, latestNews] = await Promise.all([
+    collectRelatedArticles(item.title),
+    getLatestNews(8),
+  ]);
+  const moreNews = latestNews.filter((n) => n.id !== item.id).slice(0, 4);
 
   return (
     <article className="mx-auto max-w-3xl md:px-4 md:py-6">
@@ -70,6 +111,18 @@ export default async function NewsDetailPage({
         <h1 className="mt-3 text-[24px] font-black leading-snug tracking-tight text-ink md:font-serif md:text-[28px]">
           {item.title}
         </h1>
+        {briefing.topics.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {briefing.topics.map((t) => (
+              <span
+                key={t}
+                className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </header>
 
       {item.imageUrl ? (
@@ -82,29 +135,115 @@ export default async function NewsDetailPage({
             referrerPolicy="no-referrer"
           />
         </div>
-      ) : null}
+      ) : (
+        <div className="mt-5 px-4 md:px-0">
+          <div className="flex aspect-[16/9] w-full flex-col justify-end rounded-lg bg-gradient-to-br from-[#1e3a5f] to-[#0f2744] p-5 text-white">
+            <p className="text-[12px] font-semibold opacity-80">
+              {displaySource}
+            </p>
+            <p className="mt-2 line-clamp-3 text-[18px] font-bold leading-snug">
+              {item.title}
+            </p>
+          </div>
+        </div>
+      )}
 
-      <div className="mt-6 space-y-5 px-4 leading-relaxed text-slate-700 md:px-0">
-        {item.summary ? (
-          <p className="text-[16px] leading-8">{item.summary}</p>
-        ) : (
-          <p className="text-[15px] leading-7 text-slate-600">
-            このニュースの詳細本文は、出典元のサイトでご覧いただけます。当サイトでは見出しと概要の紹介のみ行っています。
+      <div className="mt-6 space-y-8 px-4 md:px-0">
+        <section>
+          <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
+            解体ナレッジ編集部の読み方
+          </h2>
+          <p className="mt-2 text-[16px] leading-8 text-slate-700">
+            {briefing.lead}
           </p>
+          <ul className="mt-4 space-y-2.5">
+            {briefing.points.map((p) => (
+              <li
+                key={p}
+                className="flex gap-2.5 text-[15px] leading-7 text-slate-700"
+              >
+                <span
+                  className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navy-600"
+                  aria-hidden
+                />
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {item.summary ? (
+          <section>
+            <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
+              配信元の概要
+            </h2>
+            <p className="mt-2 text-[15px] leading-7 text-slate-600">
+              {item.summary}
+            </p>
+          </section>
+        ) : null}
+
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+          <p className="text-[13px] leading-relaxed text-slate-500">
+            当ページは各媒体のニュースを紹介するものであり、記事本文の転載ではありません。内容の正確性・最新性は元記事をご確認ください。
+          </p>
+          <a
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 flex h-12 items-center justify-center rounded-lg bg-navy-700 text-sm font-bold text-white active:bg-navy-800"
+          >
+            元記事を読む（外部サイト）
+          </a>
+        </section>
+
+        <section className="rounded-xl border border-navy-200 bg-navy-50/60 p-5">
+          <h2 className="text-[15px] font-bold text-ink">
+            見積・原価の実務につなげるなら
+          </h2>
+          <p className="mt-2 text-[14px] leading-relaxed text-slate-600">
+            解体工事の見積精度を上げるなら、BAKUSOQで数量拾いと原価の見える化を検討できます。
+          </p>
+          <Link
+            href="/bakusoq"
+            className="mt-4 inline-flex h-11 items-center justify-center rounded-lg bg-brand-600 px-5 text-sm font-bold text-white active:opacity-90"
+          >
+            BAKUSOQを見る
+          </Link>
+        </section>
+
+        {relatedArticles.length > 0 && (
+          <section>
+            <h2 className="text-[18px] font-bold text-ink">関連する解説記事</h2>
+            <p className="mt-1 text-[13px] text-slate-500">
+              同じテーマを、解体ナレッジの記事で深く読めます
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              {relatedArticles.map((a) => (
+                <ArticleCard key={a.slug} article={a} />
+              ))}
+            </div>
+          </section>
         )}
 
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-slate-500">
-          当ページは各媒体のニュースを紹介するものであり、記事本文の転載ではありません。内容の正確性・最新性は元記事をご確認ください。
-        </p>
-
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-12 items-center justify-center rounded-lg bg-navy-700 text-sm font-bold text-white active:bg-navy-800"
-        >
-          元記事を読む（外部サイト）
-        </a>
+        {moreNews.length > 0 && (
+          <section>
+            <h2 className="text-[18px] font-bold text-ink">ほかのニュース</h2>
+            <div className="mt-2">
+              {moreNews.map((n) => (
+                <NewsListItem key={n.id} item={n} />
+              ))}
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/news"
+                className="text-sm font-bold text-navy-700 hover:underline"
+              >
+                ニュース一覧へ →
+              </Link>
+            </div>
+          </section>
+        )}
       </div>
 
       <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 px-4 pb-10 text-sm font-semibold text-navy-700 md:px-0">
@@ -112,7 +251,7 @@ export default async function NewsDetailPage({
           ← ニュース一覧へ
         </Link>
         <Link href="/articles" className="hover:underline">
-          解説記事を見る →
+          解説記事をすべて見る →
         </Link>
       </div>
     </article>
