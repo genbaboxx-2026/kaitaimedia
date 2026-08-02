@@ -465,7 +465,7 @@ export function ArticleEditor({ article }: { article: AdminArticle }) {
                 ))}
               </ul>
               <p className="mt-3 text-xs text-slate-400">
-                ※ 類似度（第2層）とAI判定（第3層）はタスク9で接続します。閾値・除外リストは settings/masters から取得予定です。
+                ※ 数値・禁止表現・文字数などの機械チェック結果です。
               </p>
             </div>
           )}

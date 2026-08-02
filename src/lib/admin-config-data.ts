@@ -33,18 +33,13 @@ export interface GenerationSettings {
   checks: Record<string, boolean>;
 }
 
-// CTA・アイキャッチは廃止/未使用のためチェック一覧から除外（DB側は既定OFF）。
+// リンク死活・類似度・AI定性は運用上OFFのため設定UIからも除外（DBキーは残す）。
 export const CHECK_ITEMS: { key: string; label: string; layer: number }[] = [
   { key: "number_detection", label: "数値表現の検出", layer: 1 },
   { key: "char_count", label: "文字数", layer: 1 },
   { key: "heading", label: "見出し階層", layer: 1 },
   { key: "ng_expression", label: "禁止表現", layer: 1 },
   { key: "seo_length", label: "SEO文字数", layer: 1 },
-  { key: "link_alive", label: "リンク死活", layer: 1 },
-  { key: "source_url", label: "出典URL（型C）", layer: 1 },
-  { key: "title_similarity", label: "タイトル類似度", layer: 2 },
-  { key: "body_similarity", label: "本文類似度", layer: 2 },
-  { key: "ai_quality", label: "AI定性評価", layer: 3 },
 ];
 
 export const AI_MODELS = ["claude-sonnet-5", "claude-opus-4-8", "claude-haiku-4-5-20251001"];
@@ -128,7 +123,7 @@ export const PROMPTS: PromptStepData[] = [
         note: "数値不使用ルールを強調・文体/専門用語レベル/文字数/禁止表現/推奨表現/参照マスタ/FAQを明記",
         createdAt: "2026-08-01",
         content:
-          "見出し構成に沿って本文をMarkdownで書いてください。\n\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現（使用禁止）: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要（違反厳禁）：金額・重量・単価・割合・断定的な工期日数を一切書かない。数量は読者が入力する前提で、計算式や確認項目として示す。型Cは出典URLを併記する。",
+          "見出し構成に沿って本文をMarkdownで書いてください。\n\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現（使用禁止）: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要（違反厳禁）：金額・重量・単価・割合・断定的な工期日数を一切書かない。数量は読者が入力する前提で、計算式や確認項目として示す。本文に外部URLは載せない。法令・制度は名称と概要のみで示す。",
       },
     ],
   },
@@ -205,7 +200,7 @@ export const MASTERS: Record<MasterType, MasterRow[]> = {
   article_template: [
     { id: "at1", label: "A", value: "手順・チェックリスト型。判断順序と確認項目を示す。" },
     { id: "at2", label: "B", value: "計算テンプレート型。計算式と項目構成のみ提示。" },
-    { id: "at3", label: "C", value: "一次情報型。出典URLの併記を必須とする。" },
+    { id: "at3", label: "C", value: "一次情報型。法令名・制度名で参照を示し、外部URLは本文に載せない。" },
   ],
 };
 

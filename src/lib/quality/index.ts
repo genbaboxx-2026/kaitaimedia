@@ -28,12 +28,32 @@ const CHECK_KEYS = [
   "ai_quality",
 ] as const;
 
+/** 設定未登録時の既定。リンク/類似度/AI定性は運用方針によりOFF。 */
+const CHECK_DEFAULT_ENABLED: Record<(typeof CHECK_KEYS)[number], boolean> = {
+  number_detection: true,
+  char_count: true,
+  heading: true,
+  ng_expression: true,
+  cta: false,
+  image: false,
+  seo_length: true,
+  link_alive: false,
+  source_url: false,
+  title_similarity: false,
+  body_similarity: false,
+  ai_quality: false,
+};
+
 export async function buildThresholds(
   settings: Record<string, string>,
 ): Promise<QualityThresholds> {
   const enabled: Record<string, boolean> = {};
   for (const key of CHECK_KEYS) {
-    enabled[key] = getBool(settings, `check_${key}_enabled`, true);
+    enabled[key] = getBool(
+      settings,
+      `check_${key}_enabled`,
+      CHECK_DEFAULT_ENABLED[key],
+    );
   }
   const [ngExpressions, numberExclusions] = await Promise.all([
     loadMasterLabels("ng_expression"),

@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import {
   ADMIN_ARTICLES,
-  qualityPassedCount,
+  qualityStatusLabel,
   type AdminArticle,
   type AdminStatus,
 } from "@/lib/admin-data";
@@ -186,7 +186,7 @@ export function ArticleTable({
   }
 
   function renderMobileCard(a: AdminArticle) {
-    const passed = qualityPassedCount(a.quality);
+    const quality = qualityStatusLabel(a);
     const isOpen = expanded === a.id;
     return (
       <li key={a.id} className="border-b border-slate-100 last:border-b-0">
@@ -204,7 +204,7 @@ export function ArticleTable({
               {a.title}
             </p>
             <p className="mt-1.5 text-[11px] text-slate-400">
-              品質 {passed}/3 · {a.charCount.toLocaleString()}字 ·{" "}
+              品質 {quality.label} · {a.charCount.toLocaleString()}字 ·{" "}
               {formatJaDateTime(a.createdAt)}
             </p>
             {a.failedChecks.length > 0 && (
@@ -231,22 +231,18 @@ export function ArticleTable({
                 {a.excerpt}
               </p>
             </div>
-            <div>
-              <p className="text-[11px] font-semibold text-slate-500">
-                品質チェック
-              </p>
-              <ul className="mt-1 space-y-1 text-sm">
-                <li className={a.quality.layer1 ? "text-emerald-700" : "text-red-700"}>
-                  第1層 機械判定：{a.quality.layer1 ? "合格" : "不合格"}
-                </li>
-                <li className={a.quality.layer2 ? "text-emerald-700" : "text-red-700"}>
-                  第2層 類似度：{a.quality.layer2 ? "合格" : "不合格"}
-                </li>
-                <li className={a.quality.layer3 ? "text-emerald-700" : "text-red-700"}>
-                  第3層 AI判定：{a.quality.layer3 ? "合格" : "不合格"}
-                </li>
-              </ul>
-            </div>
+            {a.failedChecks.length > 0 && (
+              <div>
+                <p className="text-[11px] font-semibold text-slate-500">
+                  要確認項目
+                </p>
+                <ul className="mt-1 space-y-1 text-sm text-red-700">
+                  {a.failedChecks.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="flex gap-2 pt-1">
               <Link
                 href={`/admin/articles/${a.id}`}
@@ -279,7 +275,7 @@ export function ArticleTable({
   }
 
   function renderRow(a: AdminArticle) {
-    const passed = qualityPassedCount(a.quality);
+    const quality = qualityStatusLabel(a);
     const isOpen = expanded === a.id;
     return (
       <Fragment key={a.id}>
@@ -312,9 +308,9 @@ export function ArticleTable({
           </td>
           <td className="px-4 py-2.5 align-top">
             <span
-              className={passed === 3 ? "text-emerald-700" : "text-amber-700"}
+              className={quality.ok ? "text-emerald-700" : "text-amber-700"}
             >
-              {passed}/3
+              {quality.label}
             </span>
           </td>
           <td className="px-4 py-2.5 align-top text-slate-500">
@@ -338,32 +334,16 @@ export function ArticleTable({
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-500">
-                    品質チェック
-                  </p>
-                  <ul className="mt-1 space-y-1 text-sm">
-                    <li
-                      className={
-                        a.quality.layer1 ? "text-emerald-700" : "text-red-700"
-                      }
-                    >
-                      第1層 機械判定：{a.quality.layer1 ? "合格" : "不合格"}
-                    </li>
-                    <li
-                      className={
-                        a.quality.layer2 ? "text-emerald-700" : "text-red-700"
-                      }
-                    >
-                      第2層 類似度：{a.quality.layer2 ? "合格" : "不合格"}
-                    </li>
-                    <li
-                      className={
-                        a.quality.layer3 ? "text-emerald-700" : "text-red-700"
-                      }
-                    >
-                      第3層 AI判定：{a.quality.layer3 ? "合格" : "不合格"}
-                    </li>
-                  </ul>
+                  <p className="text-xs font-semibold text-slate-500">品質</p>
+                  {a.failedChecks.length === 0 ? (
+                    <p className="mt-1 text-sm text-emerald-700">合格</p>
+                  ) : (
+                    <ul className="mt-1 space-y-1 text-sm text-red-700">
+                      {a.failedChecks.map((f) => (
+                        <li key={f}>{f}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </td>

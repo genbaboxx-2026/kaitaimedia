@@ -51,20 +51,11 @@ export const GEN_LOGS: GenLog[] = ADMIN_ARTICLES.map((a, i) => {
     {
       layer: 1,
       checkItem: "数値検出 / 文字数 / 見出し / 禁止表現",
-      passed: a.quality.layer1,
-      detail: a.quality.layer1 ? "第1層 合格" : `不合格：${a.failedChecks.join("、")}`,
-    },
-    {
-      layer: 2,
-      checkItem: "タイトル / 本文 類似度",
-      passed: a.quality.layer2,
-      detail: a.quality.layer2 ? "第2層 合格" : "類似記事を検出",
-    },
-    {
-      layer: 3,
-      checkItem: "AI定性評価",
-      passed: a.quality.layer3,
-      detail: a.quality.layer3 ? "自然さ4 / 一貫性4 / 具体性4" : "自然さ2 / 一貫性3 / 具体性2",
+      passed: a.failedChecks.length === 0,
+      detail:
+        a.failedChecks.length === 0
+          ? "合格"
+          : `不合格：${a.failedChecks.join("、")}`,
     },
   ];
   return {

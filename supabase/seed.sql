@@ -18,9 +18,9 @@ insert into public.categories (slug, name, description, default_article_type, im
   ('schedule',  '工期',           '工程・工期の組み立てと管理',                          'A', 'schedule',  3),
   ('labor',     '人工',           '人工（にんく）と人員計画の考え方',                    'B', 'labor',     4),
   ('waste',     '産廃',           '産業廃棄物・マニフェストの実務',                      'B', 'waste',     5),
-  ('law',       '法改正',         '解体・建設関連の法改正と制度（出典URL必須）',         'C', 'law',       6),
-  ('subsidy',   '補助金',         '解体・空き家関連の補助金・制度（出典URL必須）',       'C', 'subsidy',   7),
-  ('news',      '業界ニュース',   '解体業界の動向・一次情報（出典URL必須）',             'C', 'news',      8),
+  ('law',       '法改正',         '解体・建設関連の法改正と制度（法令名・制度名で参照）', 'C', 'law',       6),
+  ('subsidy',   '補助金',         '解体・空き家関連の補助金・制度（法令名・制度名で参照）', 'C', 'subsidy',   7),
+  ('news',      '業界ニュース',   '解体業界の動向・一次情報（外部URLは本文に載せない）',   'C', 'news',      8),
   ('asbestos',  'アスベスト対策', 'アスベスト（石綿）の事前調査・除去・届出の実務',      null, 'asbestos',  9),
   ('license',   '許認可・届出',   '解体工事業登録・建設業許可・各種届出',                null, 'license',   10),
   ('safety',    '安全管理',       '現場の安全管理・KY・災害防止',                        null, 'safety',    11),
@@ -61,11 +61,11 @@ insert into public.settings (key, value, value_type, description) values
   ('check_cta_enabled',           'false',   'boolean', '第1層: CTA有無チェック（CTA機能は廃止のため既定OFF）'),
   ('check_image_enabled',         'false',   'boolean', '第1層: アイキャッチ有無チェック（公開サイトはSVGで自動表示のため既定OFF）'),
   ('check_seo_length_enabled',    'true',    'boolean', '第1層: SEOタイトル/メタ文字数チェック'),
-  ('check_link_alive_enabled',    'true',    'boolean', '第1層: リンク死活チェック'),
-  ('check_source_url_enabled',    'true',    'boolean', '第1層: 出典URLチェック（型Cのみ）'),
-  ('check_title_similarity_enabled','true',  'boolean', '第2層: タイトル類似度チェック'),
-  ('check_body_similarity_enabled','true',   'boolean', '第2層: 本文類似度チェック'),
-  ('check_ai_quality_enabled',    'true',    'boolean', '第3層: AI定性評価チェック'),
+  ('check_link_alive_enabled',    'false',   'boolean', '第1層: リンク死活チェック（URL非掲載方針のため既定OFF）'),
+  ('check_source_url_enabled',    'false',   'boolean', '第1層: 出典URLチェック（URL非掲載方針のため既定OFF）'),
+  ('check_title_similarity_enabled','false', 'boolean', '第2層: タイトル類似度チェック（テーマ選定で重複回避のため既定OFF）'),
+  ('check_body_similarity_enabled','false',  'boolean', '第2層: 本文類似度チェック（矛盾なければ重複許容のため既定OFF）'),
+  ('check_ai_quality_enabled',    'false',   'boolean', '第3層: AI定性評価チェック（運用方針により既定OFF）'),
   -- コスト制御・モデル
   ('monthly_ai_budget_limit',     '0',       'number',  '月間AI利用料の上限（円）。0=未設定（上限なし）'),
   ('ai_model',                    'claude-sonnet-5','string','記事生成に使用するAIモデル'),
@@ -103,7 +103,7 @@ select v.master_type::public.master_type, v.label, v.value, v.description, v.sor
 from (values
   ('article_template', 'A', '手順・チェックリスト型。実務上の判断順序と確認項目を、番号付きの手順とチェックリストで示す。具体的な単価・金額・数量は書かない。', '型Aの構成雛形', 1),
   ('article_template', 'B', '計算テンプレート型。計算式と項目構成のみを提示し、単価は読者が入力する前提で書く。数値そのものは埋めない。', '型Bの構成雛形', 2),
-  ('article_template', 'C', '一次情報型。法改正・制度・補助金を扱い、出典URLの併記を必須とする。', '型Cの構成雛形', 3)
+  ('article_template', 'C', '一次情報型。法改正・制度・補助金を扱う。法令名・制度名で参照を示し、外部URLは本文に載せない。', '型Cの構成雛形', 3)
 ) as v(master_type, label, value, description, sort_order)
 where not exists (
   select 1 from public.masters m
@@ -121,9 +121,9 @@ E'あなたは解体業界の専門メディアの編集者です。以下のテ
    true, '初期版', 'seed'),
 
   ('body', 1,
-E'あなたは解体業界の専門メディアのライターです。以下の見出し構成に沿って本文をMarkdownで書いてください。\n\n見出し構成: {{structure}}\n記事型: {{article_type}}\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要の制約（違反厳禁）:\n- 金額（円・万円）、重量・容積（t・kg・m³）、単価（円/t 等）、割合（%・割）、断定的な工期日数を一切書かない。\n- 数量は読者が自分の現場の値を入れる前提で、計算式・考え方・確認項目として示す。\n- 事実と異なる数値を創作しない。不確かな数値は書かない。\n- 禁止表現（{{ng_expressions}}）は使わない。\n- 型Cの場合は出典URLを併記する。',
+E'あなたは解体業界の専門メディアのライターです。以下の見出し構成に沿って本文をMarkdownで書いてください。\n\n見出し構成: {{structure}}\n記事型: {{article_type}}\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要の制約（違反厳禁）:\n- 金額（円・万円）、重量・容積（t・kg・m³）、単価（円/t 等）、割合（%・割）、断定的な工期日数を一切書かない。\n- 数量は読者が自分の現場の値を入れる前提で、計算式・考え方・確認項目として示す。\n- 事実と異なる数値を創作しない。不確かな数値は書かない。\n- 禁止表現（{{ng_expressions}}）は使わない。\n- 本文に http/https のURLや外部リンクを書かない。法令・制度は名称と概要のみで示す（読者が公式サイトで確認できるよう案内する程度にとどめる）。',
    array['structure','article_type','writing_style','expertise_level','min_char_count','max_char_count','ng_expressions','recommended_expressions','faq_section','masters'],
-   true, '初期版', 'seed'),
+   true, '初期版（URL非掲載）', 'seed'),
 
   ('seo', 1,
 E'次の記事のSEOタイトルとメタディスクリプションを作成してください。\n\n記事タイトル: {{title}}\n狙うキーワード: {{target_keyword}}\n本文冒頭: {{body_excerpt}}\n\n制約:\n- SEOタイトルは全角32文字以内。狙うキーワード（{{target_keyword}}）を自然に含める。\n- メタディスクリプションは全角120文字以内。\n- 数値の断定表現は含めない。\n- 出力は {"seo_title":"...","meta_description":"..."} のJSONのみ。',

@@ -1,6 +1,10 @@
 import "server-only";
 import { restSelect } from "@/lib/supabase/rest";
-import type { AdminArticle, AdminStatus } from "@/lib/admin-data";
+import {
+  filterActiveFailedChecks,
+  type AdminArticle,
+  type AdminStatus,
+} from "@/lib/admin-data";
 import type { ArticleType } from "@/lib/types";
 
 interface DbArticle {
@@ -31,9 +35,8 @@ const SELECT =
   "failed_check_items,created_at,published_at,category:categories(slug,name)";
 
 function toAdmin(r: DbArticle): AdminArticle {
-  const passed = r.quality_layers_passed ?? 3;
-  const total = r.quality_layers_total ?? 3;
-  const allPass = passed >= total;
+  const failedChecks = filterActiveFailedChecks(r.failed_check_items ?? []);
+  const allPass = failedChecks.length === 0;
   const status = (STATUSES.includes(r.status as AdminStatus)
     ? r.status
     : "draft") as AdminStatus;
@@ -47,8 +50,9 @@ function toAdmin(r: DbArticle): AdminArticle {
     status,
     charCount: r.char_count ?? 0,
     revisionCount: r.revision_count ?? 0,
+    // 3層UIは廃止。互換のため同値で埋める
     quality: { layer1: allPass, layer2: allPass, layer3: allPass },
-    failedChecks: r.failed_check_items ?? [],
+    failedChecks,
     excerpt: r.excerpt ?? "",
     body: r.body ?? "",
     firstDraftBody: r.body ?? "",

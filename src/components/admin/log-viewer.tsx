@@ -24,10 +24,10 @@ function LogDetail({ log }: { log: GenLog }) {
         <ul className="mt-1 space-y-1 text-sm">
           {log.checks.map((c) => (
             <li
-              key={c.layer}
+              key={`${c.layer}-${c.checkItem}`}
               className={c.passed ? "text-emerald-700" : "text-red-700"}
             >
-              第{c.layer}層：{c.detail}
+              {c.checkItem}：{c.detail}
             </li>
           ))}
         </ul>

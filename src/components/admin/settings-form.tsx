@@ -202,7 +202,6 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
                   checked={s.checks[c.key]}
                   onChange={(e) => set("checks", { ...s.checks, [c.key]: e.target.checked })}
                 />
-                <span className="rounded bg-slate-100 px-1.5 text-xs text-slate-500">第{c.layer}層</span>
                 {c.label}
               </label>
             ))}

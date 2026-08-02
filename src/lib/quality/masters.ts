@@ -52,7 +52,8 @@ const PAIR_DEFAULTS: Record<string, { label: string; value: string }[]> = {
     },
     {
       label: "C",
-      value: "一次情報型。法改正・制度・補助金を扱い、出典URLの併記を必須とする。",
+      value:
+        "一次情報型。法改正・制度・補助金を扱う。法令名・制度名で参照を示し、外部URLは本文に載せない。",
     },
   ],
 };

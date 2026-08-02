@@ -131,6 +131,28 @@ export function qualityPassedCount(q: AdminArticle["quality"]): number {
   return [q.layer1, q.layer2, q.layer3].filter(Boolean).length;
 }
 
+/** 運用上OFFにした旧チェック（一覧バッジに出さない） */
+const RETIRED_FAILED_CHECK_RE =
+  /^(リンク死活|出典URL|タイトル類似度|本文類似度|類似度|AI判定)/;
+
+export function isActiveFailedCheck(item: string): boolean {
+  return !RETIRED_FAILED_CHECK_RE.test(item);
+}
+
+export function filterActiveFailedChecks(items: string[]): string[] {
+  return items.filter(isActiveFailedCheck);
+}
+
+/** 一覧用：合格 / 要確認（3層表記は使わない） */
+export function qualityStatusLabel(a: Pick<AdminArticle, "failedChecks" | "quality">): {
+  ok: boolean;
+  label: string;
+} {
+  const active = filterActiveFailedChecks(a.failedChecks);
+  if (active.length === 0) return { ok: true, label: "合格" };
+  return { ok: false, label: "要確認" };
+}
+
 // ---- テーマ管理 ----
 export type ThemePriority = "high" | "medium" | "low";
 export type ThemeStatus = "pending" | "generated" | "excluded";
