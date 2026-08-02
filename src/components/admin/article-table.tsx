@@ -306,7 +306,7 @@ export function ArticleTable({
           <td className="px-4 py-2.5 align-top whitespace-nowrap text-slate-600">
             {a.categoryName}
           </td>
-          <td className="px-4 py-2.5 align-top">
+          <td className="whitespace-nowrap px-4 py-2.5 align-top">
             <span
               className={quality.ok ? "text-emerald-700" : "text-amber-700"}
             >
@@ -397,7 +397,9 @@ export function ArticleTable({
                     <th className="whitespace-nowrap px-4 py-2.5 font-semibold">
                       カテゴリー
                     </th>
-                    <th className="px-4 py-2.5 font-semibold">品質</th>
+                    <th className="whitespace-nowrap px-4 py-2.5 font-semibold">
+                      品質
+                    </th>
                     <th className="px-4 py-2.5 font-semibold">文字数</th>
                     <th className="px-4 py-2.5 font-semibold">生成日</th>
                     <th className="px-4 py-2.5 text-right font-semibold">操作</th>
