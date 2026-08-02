@@ -150,16 +150,28 @@ export async function getArticleBySlug(
 }
 
 export async function getArticlesByCategory(slug: string): Promise<Article[]> {
-  const rows = await restSelect<ArticleRow>(
-    `articles?select=${ARTICLE_SELECT}&status=eq.published&category.slug=eq.${slug}&order=published_at.desc.nullslast`,
+  // PostgREST の category.slug=eq.* は埋め込みフィルタとして期待どおり動かず
+  // 全件が返ることがあるため、必ず category_id で絞る
+  const cats = await restSelect<{ id: string }>(
+    `categories?select=id&slug=eq.${encodeURIComponent(slug)}&limit=1`,
     REVALIDATE,
   );
-  if (rows && rows.length > 0) return rows.map(mapArticle);
-  // category.slug フィルタが効かない/空のときは全件から絞り込み
-  const all = await getAllArticles();
-  const filtered = all.filter((a) => a.categorySlug === slug);
-  if (filtered.length > 0) return filtered;
-  return dummyGetArticlesByCategory(slug);
+  const categoryId = cats?.[0]?.id;
+  if (categoryId) {
+    const rows = await restSelect<ArticleRow>(
+      `articles?select=${ARTICLE_SELECT}&status=eq.published&category_id=eq.${encodeURIComponent(categoryId)}&order=published_at.desc.nullslast`,
+      REVALIDATE,
+    );
+    if (rows) {
+      return rows
+        .map(mapArticle)
+        .filter((a) => a.categorySlug === slug);
+    }
+  }
+
+  // DB未接続時のみダミー。空カテゴリは空配列のまま（他カテゴリ記事を混ぜない）
+  if (cats === null) return dummyGetArticlesByCategory(slug);
+  return [];
 }
 
 // 関連記事：同じカテゴリーの新着から自分を除いて最大3件（無ければダミー）
