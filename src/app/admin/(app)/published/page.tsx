@@ -4,7 +4,7 @@ import { fetchAdminArticles } from "@/lib/admin/fetch-articles";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPublishedPage() {
-  const articles = await fetchAdminArticles();
+  const articles = await fetchAdminArticles({ status: "eq.published" });
 
   return (
     <div className="mx-auto max-w-6xl">

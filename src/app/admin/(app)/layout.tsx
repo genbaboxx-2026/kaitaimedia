@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminBottomNav } from "@/components/admin/admin-bottom-nav";
 import { AdminMobileHeader } from "@/components/admin/admin-mobile-header";
+import { AdminPrefetch } from "@/components/admin/admin-prefetch";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 
 export default async function AdminAppLayout({
@@ -11,21 +12,16 @@ export default async function AdminAppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // middleware で getUser 済み。ここでは Cookie のセッションを読むだけ（Auth API 再リクエストしない）
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session?.user) {
+  // middleware の getClaims 結果をヘッダ経由で受け取る（Auth API の二重呼び出しなし）
+  const email = (await headers()).get("x-admin-email");
+  if (!email) {
     redirect("/admin/login");
   }
 
-  const email = session.user.email ?? "";
-
   return (
     <div className="flex min-h-screen bg-white md:bg-slate-100">
-      {/* サイドバー（デスクトップ） */}
+      <AdminPrefetch />
+
       <aside className="hidden w-60 shrink-0 flex-col bg-navy-800 md:flex">
         <div className="flex h-16 items-center px-5">
           <Link
@@ -41,11 +37,9 @@ export default async function AdminAppLayout({
         </div>
       </aside>
 
-      {/* メイン */}
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminMobileHeader />
 
-        {/* デスクトップヘッダー */}
         <header className="hidden h-16 items-center justify-between border-b border-slate-200 bg-white px-6 md:flex">
           <div className="ml-auto flex items-center gap-4">
             <span className="text-sm text-slate-500">{email}</span>

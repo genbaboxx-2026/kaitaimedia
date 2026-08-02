@@ -13,7 +13,7 @@ interface DbArticle {
   title: string;
   status: string;
   article_type: ArticleType;
-  body: string | null;
+  body?: string | null;
   excerpt: string | null;
   seo_title: string | null;
   meta_description: string | null;
@@ -30,10 +30,14 @@ interface DbArticle {
 
 const STATUSES: AdminStatus[] = ["published", "draft", "unpublished", "failed"];
 
-const SELECT =
-  "id,slug,title,status,article_type,body,excerpt,seo_title,meta_description," +
+/** 一覧用（本文なし。一覧で body を取ると遷移が遅くなる） */
+const LIST_SELECT =
+  "id,slug,title,status,article_type,excerpt,seo_title,meta_description," +
   "char_count,view_count,revision_count,quality_layers_passed,quality_layers_total," +
   "failed_check_items,created_at,published_at,category:categories(slug,name)";
+
+/** 編集画面用（本文あり） */
+const DETAIL_SELECT = `${LIST_SELECT},body`;
 
 function toAdmin(r: DbArticle): AdminArticle {
   const failedChecks = filterActiveFailedChecks(r.failed_check_items ?? []);
@@ -66,10 +70,20 @@ function toAdmin(r: DbArticle): AdminArticle {
   };
 }
 
-// 記事一覧をDBから取得。接続不可（service role未設定など）は null を返し、呼び出し側でダミーにフォールバック。
-export async function fetchAdminArticles(): Promise<AdminArticle[] | null> {
+export type FetchAdminArticlesOpts = {
+  /** PostgREST の status フィルタ（例: "eq.published" / "neq.published"） */
+  status?: string;
+};
+
+// 記事一覧をDBから取得。接続不可は null（呼び出し側でダミーへ）。
+export async function fetchAdminArticles(
+  opts: FetchAdminArticlesOpts = {},
+): Promise<AdminArticle[] | null> {
+  const statusFilter = opts.status
+    ? `&status=${opts.status}`
+    : "";
   const rows = await restSelect<DbArticle>(
-    `articles?select=${SELECT}&order=created_at.desc`,
+    `articles?select=${LIST_SELECT}${statusFilter}&order=created_at.desc`,
     0,
   );
   if (!rows) return null;
@@ -79,7 +93,7 @@ export async function fetchAdminArticles(): Promise<AdminArticle[] | null> {
 // 単一記事をIDで取得（編集画面用）。
 export async function fetchAdminArticle(id: string): Promise<AdminArticle | null> {
   const rows = await restSelect<DbArticle>(
-    `articles?select=${SELECT}&id=eq.${id}&limit=1`,
+    `articles?select=${DETAIL_SELECT}&id=eq.${encodeURIComponent(id)}&limit=1`,
     0,
   );
   if (!rows || rows.length === 0) return null;

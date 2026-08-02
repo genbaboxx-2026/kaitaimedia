@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminArticlesPage() {
   const [articles, settings] = await Promise.all([
-    fetchAdminArticles(),
+    // 確認待ち画面：公開済みは別タブなので除外して軽くする
+    fetchAdminArticles({ status: "neq.published" }),
     loadSettings(),
   ]);
   const autoPublish = settings["auto_publish_enabled"] === "true";
