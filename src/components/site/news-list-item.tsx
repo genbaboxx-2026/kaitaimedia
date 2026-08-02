@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { NewsItem } from "@/lib/types";
 import { formatRelativeJa } from "@/lib/format";
 
@@ -17,21 +20,25 @@ function toneFor(seed: string): string {
 }
 
 /**
- * 左に見出し＋メタ、右にサムネ。タップで自社のニュース詳細へ。
+ * NewsPicks風：左に見出し＋メタ、右に写真サムネ。
+ * imageUrl が無い場合は /api/news/[id]/thumb でOGP取得を試みる。
  */
 export function NewsListItem({ item }: { item: NewsItem }) {
   const tone = toneFor(`${item.sourceId}:${item.sourceName}`);
   const displaySource = item.sourceName.replace(/^Googleニュース\s*\/\s*/, "");
+  const initialSrc = item.imageUrl || `/api/news/${item.id}/thumb`;
+  const [failed, setFailed] = useState(false);
+  const [src, setSrc] = useState(initialSrc);
 
   return (
     <article className="border-b border-slate-100">
       <Link
         href={`/news/${item.id}`}
-        className="group flex gap-3 px-4 py-4 active:bg-slate-50 md:gap-4 md:px-0 md:py-4"
+        className="group flex gap-3 px-4 py-4 active:bg-slate-50 md:gap-4 md:px-0 md:py-5"
         aria-label={item.title}
       >
         <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-3 text-[16px] font-bold leading-snug tracking-tight text-ink md:font-serif md:text-base">
+          <h3 className="line-clamp-3 text-[16px] font-bold leading-snug tracking-tight text-ink md:font-serif md:text-[17px] md:leading-snug">
             {item.title}
           </h3>
           <p className="mt-2 flex flex-wrap items-center gap-x-1.5 text-[12px] leading-none text-slate-400">
@@ -43,15 +50,16 @@ export function NewsListItem({ item }: { item: NewsItem }) {
           </p>
         </div>
 
-        <div className="relative mt-0.5 aspect-[16/10] w-[104px] shrink-0 overflow-hidden rounded-md bg-slate-100 sm:w-28">
-          {item.imageUrl ? (
+        <div className="relative mt-0.5 aspect-[16/10] w-[112px] shrink-0 overflow-hidden rounded-[4px] bg-slate-200 sm:w-[128px] md:w-[140px]">
+          {!failed ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={item.imageUrl}
+              src={src}
               alt=""
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy"
               referrerPolicy="no-referrer"
+              onError={() => setFailed(true)}
             />
           ) : (
             <div

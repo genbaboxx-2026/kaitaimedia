@@ -121,19 +121,11 @@ async function collectFromSource(source: NewsSource): Promise<{
 
   console.log(`[${source.id}] フィルタ後 ${draft.length}件`);
 
-  if (source.id === "google_news") {
-    // Googleは無料画像APIが不安定なため、表示時に自動サムネを使う。
-    // ここでは見出しの保存だけ行い、すぐ終わるようにする。
-    console.log(
-      `[${source.id}] 画像はサイト側で自動生成（取得スキップ）`,
-    );
-    return { rows: toRows(draft), fetched: items.length };
-  }
-
-  // 国交省・産廃は件数が少ないので OGP で補完
+  // Googleニュースはリダイレクトが多く Jina 優先。他ソースは OGP 優先。
+  const preferJina = source.id === "google_news";
   const filled = await fillMissingImages(draft, {
-    concurrency: 5,
-    preferJina: false,
+    concurrency: preferJina ? 2 : 5,
+    preferJina,
     onProgress: (done, total, ok) => {
       console.log(`[${source.id}] 画像 ${done}/${total}（取得成功 ${ok}）`);
     },
