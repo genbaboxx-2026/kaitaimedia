@@ -2,7 +2,10 @@ import { callText } from "@/lib/ai/client";
 import { getActivePrompt, interpolate } from "@/lib/ai/prompts";
 import { getBool, getNumber, getString, loadSettings } from "@/lib/ai/settings";
 import { extractNewsTopics } from "@/lib/news/briefing";
+import { normalizeNewsTitleKey } from "@/lib/news/title-key";
 import { restSelect, restUpdate } from "@/lib/supabase/rest";
+
+export { normalizeNewsTitleKey } from "@/lib/news/title-key";
 
 interface PendingNewsRow {
   id: string;
@@ -25,20 +28,6 @@ export interface GenerateEditorialResult {
   skipped: boolean;
   skipReason?: string;
   errors: string[];
-}
-
-/** 見出しの表記ゆれを潰して重複判定用キーにする */
-export function normalizeNewsTitleKey(title: string): string {
-  return title
-    .normalize("NFKC")
-    .toLowerCase()
-    .replace(/【[^】]*】/g, "")
-    .replace(/\([^)]*\)/g, "")
-    .replace(/（[^）]*）/g, "")
-    .replace(/https?:\/\/\S+/g, "")
-    .replace(/[／/|:：・\-–—_]/g, "")
-    .replace(/[\s\u3000「」『』\[\]【】、。,.!?！？]/g, "")
-    .slice(0, 48);
 }
 
 /** 1件あたりの上限（超過したらスキップして次へ）。ハング検知用 */

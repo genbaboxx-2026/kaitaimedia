@@ -18,6 +18,7 @@ import {
 } from "@/lib/dummy-data";
 import { restSelect } from "@/lib/supabase/rest";
 import { markdownToSections } from "@/lib/markdown-to-sections";
+import { dedupeNewsByStory } from "@/lib/news/title-key";
 
 // 公開サイトのデータ層。
 // Supabase（service_role, REST）から公開記事を取得し、未接続・空・失敗時はダミーへフォールバックする。
@@ -233,11 +234,15 @@ const NEWS_SELECT =
   "id,title,url,source_id,source_name,published_at,fetched_at,image_url,summary,editorial_body";
 
 export async function getLatestNews(limit = 30): Promise<NewsItem[]> {
+  // 同話題の別メディアが混ざるので多めに取ってから見出し類似で間引く
+  const fetchLimit = Math.min(120, Math.max(limit * 4, limit));
   const rows = await restSelect<NewsRow>(
-    `news_items?select=${NEWS_SELECT}&is_visible=eq.true&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}`,
+    `news_items?select=${NEWS_SELECT}&is_visible=eq.true&order=published_at.desc.nullslast,fetched_at.desc&limit=${fetchLimit}`,
     REVALIDATE,
   );
-  if (rows && rows.length > 0) return rows.map(mapNews);
+  if (rows && rows.length > 0) {
+    return dedupeNewsByStory(rows.map(mapNews)).slice(0, limit);
+  }
   return DUMMY_NEWS.slice(0, limit);
 }
 

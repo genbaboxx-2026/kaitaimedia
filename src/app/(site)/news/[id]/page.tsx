@@ -13,6 +13,7 @@ import {
   buildNewsBriefing,
   newsSearchKeywords,
 } from "@/lib/news/briefing";
+import { isSameNewsStory } from "@/lib/news/title-key";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ArticleCard } from "@/components/site/article-card";
 import { NewsEditorialBody } from "@/components/site/news-editorial-body";
@@ -88,7 +89,9 @@ export default async function NewsDetailPage({
     collectRelatedArticles(item.title),
     getLatestNews(8),
   ]);
-  const moreNews = latestNews.filter((n) => n.id !== item.id).slice(0, 4);
+  const moreNews = latestNews
+    .filter((n) => n.id !== item.id && !isSameNewsStory(n.title, item.title))
+    .slice(0, 4);
 
   return (
     <article className="mx-auto max-w-3xl md:px-4 md:py-6">
