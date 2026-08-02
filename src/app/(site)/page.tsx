@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getCategoryName } from "@/lib/dummy-data";
 import {
@@ -7,6 +8,8 @@ import {
   getRankingArticles,
 } from "@/lib/site-data";
 import { getCategoryMeta } from "@/lib/categories-meta";
+import { SITE_URL } from "@/lib/site-url";
+import { SITE_DESCRIPTION } from "@/lib/seo";
 import type { Article } from "@/lib/types";
 import { Eyecatch } from "@/components/site/eyecatch";
 import { NewsListItem } from "@/components/site/news-list-item";
@@ -14,6 +17,17 @@ import { SnsTrendList } from "@/components/site/sns-trend-list";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
 import { ArrowIcon } from "@/components/site/icons";
 import { formatJaDate, formatRelativeJa } from "@/lib/format";
+
+export const metadata: Metadata = {
+  title: { absolute: "解体ナレッジ | GENBABOXX" },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    title: "解体ナレッジ | GENBABOXX",
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+  },
+};
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

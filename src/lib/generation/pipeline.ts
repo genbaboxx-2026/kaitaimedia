@@ -624,6 +624,10 @@ export async function runGenerationPipeline(opts?: {
     const logStatus = articleStatus;
     const publishedAt = articleStatus === "published" ? new Date().toISOString() : null;
 
+    // 狙うキーワードがあれば tags に載せ、公開ページの meta / 関連の手掛かりにする
+    const keywordTag = theme.target_keyword?.trim();
+    const articleTags = keywordTag ? [keywordTag.slice(0, 80)] : [];
+
     // 記事を保存
     const articleRows = await restInsert<{ id: string }>("articles", {
       theme_id: theme.id,
@@ -635,6 +639,7 @@ export async function runGenerationPipeline(opts?: {
       excerpt: excerptFrom(body),
       article_type: theme.article_type,
       status: articleStatus,
+      tags: articleTags,
       seo_title: seoTitle.slice(0, 200),
       meta_description: metaDescription.slice(0, 400),
       eyecatch_url: eyecatchUrl,

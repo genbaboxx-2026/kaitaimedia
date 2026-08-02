@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site-url";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ContactForm } from "@/components/site/contact-form";
 
@@ -6,6 +7,7 @@ export const metadata: Metadata = {
   title: "お問い合わせ",
   description:
     "記事・メディアに関するお問い合わせ、BAKUSOQの資料請求・導入相談はこちらから。",
+  alternates: { canonical: `${SITE_URL}/contact` },
 };
 
 export default function ContactPage() {

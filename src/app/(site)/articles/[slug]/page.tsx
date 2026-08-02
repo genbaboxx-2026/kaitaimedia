@@ -8,7 +8,11 @@ import {
   getRelatedArticles,
 } from "@/lib/site-data";
 import { SITE_URL } from "@/lib/site-url";
-import { OPERATOR_NAME } from "@/lib/dummy-data";
+import {
+  articleJsonLd,
+  articleSeoDescription,
+  articleSeoTitle,
+} from "@/lib/seo";
 import { formatJaDate } from "@/lib/format";
 import { ArticleBody } from "@/components/site/article-body";
 import { ViewBeacon } from "@/components/site/view-beacon";
@@ -16,7 +20,6 @@ import { TableOfContents } from "@/components/site/table-of-contents";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ArticleTypeBadge, CategoryBadge } from "@/components/site/badges";
 import { JsonLd } from "@/components/site/json-ld";
-// 記事末尾CTAは削除済み
 
 export const revalidate = 300; // ISR: 5分
 
@@ -33,18 +36,37 @@ export async function generateMetadata({
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
   if (!article) return { title: "記事が見つかりません" };
+
   const url = `${SITE_URL}/articles/${article.slug}`;
+  const title = articleSeoTitle(article);
+  const description = articleSeoDescription(article);
+  const images = article.imageUrl
+    ? [{ url: article.imageUrl, alt: article.title }]
+    : undefined;
+
   return {
-    title: article.title,
-    description: article.excerpt,
+    title,
+    description,
+    keywords: article.tags,
     alternates: { canonical: url },
     openGraph: {
       type: "article",
-      title: article.title,
-      description: article.excerpt,
+      title,
+      description,
       url,
+      siteName: "解体ナレッジ",
+      locale: "ja_JP",
       publishedTime: article.publishedAt,
       modifiedTime: article.updatedAt ?? article.publishedAt,
+      section: getCategoryName(article.categorySlug),
+      tags: article.tags,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: article.imageUrl ? [article.imageUrl] : undefined,
     },
   };
 }
@@ -62,31 +84,35 @@ export default async function ArticleDetailPage({
   const related = await getRelatedArticles(article);
 
   const articleUrl = `${SITE_URL}/articles/${article.slug}`;
-  const articleLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description: article.excerpt,
-    datePublished: article.publishedAt,
-    dateModified: article.updatedAt ?? article.publishedAt,
-    mainEntityOfPage: articleUrl,
-    author: { "@type": "Organization", name: OPERATOR_NAME },
-    publisher: { "@type": "Organization", name: OPERATOR_NAME },
-  };
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "ホーム", item: SITE_URL },
-      { "@type": "ListItem", position: 2, name: "記事一覧", item: `${SITE_URL}/articles` },
-      { "@type": "ListItem", position: 3, name: categoryName, item: `${SITE_URL}/category/${article.categorySlug}` },
-      { "@type": "ListItem", position: 4, name: article.title, item: articleUrl },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "記事一覧",
+        item: `${SITE_URL}/articles`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: categoryName,
+        item: `${SITE_URL}/category/${article.categorySlug}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: article.title,
+        item: articleUrl,
+      },
     ],
   };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-5 md:py-8">
-      <JsonLd data={articleLd} />
+      <JsonLd data={articleJsonLd(article, categoryName)} />
       <JsonLd data={breadcrumbLd} />
       <ViewBeacon slug={article.slug} />
       <div className="hidden md:block">
@@ -161,6 +187,17 @@ export default async function ArticleDetailPage({
               </ul>
             </section>
           )}
+
+          {/* カテゴリへの内部リンク */}
+          <p className="mt-10 text-sm text-slate-500">
+            同じテーマの記事：
+            <Link
+              href={`/category/${article.categorySlug}`}
+              className="ml-1 font-bold text-brand-700 underline underline-offset-2"
+            >
+              {categoryName}
+            </Link>
+          </p>
         </div>
 
         {/* サイドバー（PCでは追従） */}
@@ -168,13 +205,47 @@ export default async function ArticleDetailPage({
           <div className="hidden lg:block">
             <TableOfContents sections={article.sections} />
           </div>
+          {related.length > 0 && (
+            <nav
+              aria-label="関連記事"
+              className="hidden border border-slate-200 bg-white p-4 lg:block"
+            >
+              <h2 className="text-sm font-bold text-slate-900">関連記事</h2>
+              <ul className="mt-3 space-y-3">
+                {related.slice(0, 4).map((r) => (
+                  <li key={r.slug}>
+                    <Link
+                      href={`/articles/${r.slug}`}
+                      className="block text-sm font-medium leading-snug text-slate-800 hover:text-brand-700"
+                    >
+                      {r.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href={`/category/${article.categorySlug}`}
+                className="mt-4 inline-block text-xs font-bold text-brand-700 underline underline-offset-2"
+              >
+                {categoryName}の記事一覧
+              </Link>
+            </nav>
+          )}
         </aside>
       </div>
 
-      {/* 関連記事 */}
+      {/* 関連記事（全画面） */}
       {related.length > 0 && (
         <section className="mt-14 border-t border-slate-200 pt-8">
-          <h2 className="text-xl font-bold text-slate-900">関連記事</h2>
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-xl font-bold text-slate-900">関連記事</h2>
+            <Link
+              href={`/category/${article.categorySlug}`}
+              className="text-sm font-bold text-brand-700 underline underline-offset-2"
+            >
+              {categoryName}をすべて見る
+            </Link>
+          </div>
           <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((r) => (
               <li

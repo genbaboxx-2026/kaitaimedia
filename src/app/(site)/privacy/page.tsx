@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { OPERATOR_NAME } from "@/lib/dummy-data";
+import { SITE_URL } from "@/lib/site-url";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
   description: `${OPERATOR_NAME}のプライバシーポリシー（個人情報の取り扱いについて）。`,
+  alternates: { canonical: `${SITE_URL}/privacy` },
 };
 
 const SECTIONS: { heading: string; body: string }[] = [

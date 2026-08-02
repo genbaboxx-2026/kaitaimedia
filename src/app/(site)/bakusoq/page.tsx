@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SITE_URL } from "@/lib/site-url";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "BAKUSOQ紹介",
   description:
     "解体工事の見積もり作成を支援するシステム BAKUSOQ の機能と導入メリットをご紹介します。",
+  alternates: { canonical: `${SITE_URL}/bakusoq` },
 };
 
 const FEATURES: { title: string; body: string }[] = [

@@ -28,10 +28,20 @@ export async function generateMetadata({
   const { slug } = await params;
   const category = await getCategoryBySlug(slug);
   if (!category) return { title: "カテゴリーが見つかりません" };
+  const url = `${SITE_URL}/category/${slug}`;
+  const title = `${category.name}の記事`;
+  const description =
+    category.description ||
+    `解体業界の「${category.name}」に関する実務記事一覧。`;
   return {
-    title: `${category.name}の記事`,
-    description: category.description,
-    alternates: { canonical: `${SITE_URL}/category/${slug}` },
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `${title} | 解体ナレッジ`,
+      description,
+      url,
+    },
   };
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLatestNews } from "@/lib/site-data";
+import { SITE_URL } from "@/lib/site-url";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
 import { NewsListItem } from "@/components/site/news-list-item";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
@@ -11,6 +12,13 @@ export const metadata: Metadata = {
   title: "ニュース",
   description:
     "解体・建設・産廃に関する業界ニュースを紹介しています。詳細ページから元記事も確認できます。",
+  alternates: { canonical: `${SITE_URL}/news` },
+  openGraph: {
+    title: "業界ニュース | 解体ナレッジ",
+    description:
+      "解体・建設・産廃に関する業界ニュースを紹介しています。詳細ページから元記事も確認できます。",
+    url: `${SITE_URL}/news`,
+  },
 };
 
 export default async function NewsPage() {

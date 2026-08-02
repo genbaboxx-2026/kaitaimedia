@@ -61,15 +61,19 @@ interface ArticleRow {
   article_type: ArticleType | null;
   excerpt: string | null;
   body: string | null;
+  seo_title: string | null;
+  meta_description: string | null;
   eyecatch_url: string | null;
   published_at: string | null;
   updated_at: string | null;
   source_urls: string[] | null;
+  tags: string[] | null;
+  related_article_ids: string[] | null;
   category: { slug: string } | null;
 }
 
 const ARTICLE_SELECT =
-  "slug,title,article_type,excerpt,body,eyecatch_url,published_at,updated_at,source_urls,category:categories(slug)";
+  "slug,title,article_type,excerpt,body,seo_title,meta_description,eyecatch_url,published_at,updated_at,source_urls,tags,related_article_ids,category:categories(slug)";
 
 function estimateReadingMinutes(body: string): number {
   const chars = body.replace(/\s/g, "").length;
@@ -84,12 +88,15 @@ function mapArticle(r: ArticleRow): Article {
     categorySlug: r.category?.slug ?? "news",
     articleType: r.article_type ?? "A",
     excerpt: r.excerpt ?? "",
+    seoTitle: r.seo_title?.trim() || undefined,
+    metaDescription: r.meta_description?.trim() || undefined,
     imageUrl: r.eyecatch_url ?? undefined,
     publishedAt: (r.published_at ?? "").slice(0, 10),
     updatedAt: r.updated_at ? r.updated_at.slice(0, 10) : undefined,
     readingMinutes: estimateReadingMinutes(body),
     sections: markdownToSections(body),
     sourceUrls: r.source_urls ?? undefined,
+    tags: r.tags && r.tags.length > 0 ? r.tags : undefined,
     relatedSlugs: [],
   };
 }
@@ -174,12 +181,75 @@ export async function getArticlesByCategory(slug: string): Promise<Article[]> {
   return [];
 }
 
-// 関連記事：同じカテゴリーの新着から自分を除いて最大3件（無ければダミー）
-export async function getRelatedArticles(article: Article): Promise<Article[]> {
-  const sameCat = await getArticlesByCategory(article.categorySlug);
-  const related = sameCat.filter((a) => a.slug !== article.slug).slice(0, 3);
-  if (related.length > 0) return related;
-  return dummyGetRelatedArticles(article);
+// 関連記事：手動指定 → 同カテゴリ → 新着で最大6件まで埋める（内部リンク強化）
+export async function getRelatedArticles(
+  article: Article,
+  limit = 6,
+): Promise<Article[]> {
+  const seen = new Set<string>([article.slug]);
+  const out: Article[] = [];
+
+  const push = (a: Article | undefined) => {
+    if (!a || seen.has(a.slug)) return;
+    seen.add(a.slug);
+    out.push(a);
+  };
+
+  // 手動指定（related_article_ids → slug 解決）
+  const idRows = await restSelect<{ id: string; related_article_ids: string[] | null }>(
+    `articles?select=id,related_article_ids&slug=eq.${encodeURIComponent(article.slug)}&status=eq.published&limit=1`,
+    REVALIDATE,
+  );
+  const relatedIds = idRows?.[0]?.related_article_ids ?? [];
+  if (relatedIds.length > 0) {
+    const idFilter = relatedIds
+      .slice(0, limit)
+      .map((id) => encodeURIComponent(id))
+      .join(",");
+    const manual = await restSelect<ArticleRow>(
+      `articles?select=${ARTICLE_SELECT}&status=eq.published&id=in.(${idFilter})`,
+      REVALIDATE,
+    );
+    for (const r of manual ?? []) push(mapArticle(r));
+  }
+
+  if (out.length < limit) {
+    const sameCat = await getArticlesByCategory(article.categorySlug);
+    for (const a of sameCat) {
+      if (out.length >= limit) break;
+      push(a);
+    }
+  }
+
+  if (out.length < limit) {
+    const latest = await getLatestArticles(limit * 2);
+    for (const a of latest) {
+      if (out.length >= limit) break;
+      push(a);
+    }
+  }
+
+  if (out.length > 0) return out.slice(0, limit);
+  return dummyGetRelatedArticles(article).slice(0, limit);
+}
+
+/** sitemap 用：公開ニュースの id と最終更新相当日時 */
+export async function getNewsSitemapEntries(
+  limit = 200,
+): Promise<{ id: string; lastModified: string }[]> {
+  const rows = await restSelect<{
+    id: string;
+    published_at: string | null;
+    fetched_at: string;
+  }>(
+    `news_items?select=id,published_at,fetched_at&is_visible=eq.true&order=published_at.desc.nullslast,fetched_at.desc&limit=${limit}`,
+    REVALIDATE,
+  );
+  if (!rows) return [];
+  return rows.map((r) => ({
+    id: r.id,
+    lastModified: r.published_at ?? r.fetched_at,
+  }));
 }
 
 export async function getAllArticleSlugs(): Promise<string[]> {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { searchArticles } from "@/lib/site-data";
+import { SITE_URL } from "@/lib/site-url";
 import { ArticleCard } from "@/components/site/article-card";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { SearchIcon } from "@/components/site/icons";
@@ -8,6 +9,8 @@ import { SearchIcon } from "@/components/site/icons";
 export const metadata: Metadata = {
   title: "記事検索",
   description: "解体業界の実務に役立つ記事をキーワードで検索します。",
+  alternates: { canonical: `${SITE_URL}/search` },
+  robots: { index: true, follow: true },
 };
 
 export default async function SearchPage({

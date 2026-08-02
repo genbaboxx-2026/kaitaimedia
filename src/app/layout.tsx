@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SITE_URL } from "@/lib/site-url";
-
-const DESCRIPTION =
-  "解体業界の実務者向け専門メディア。GENBABOXX が運営し、見積もり・原価管理・法改正など実務の判断に役立つ情報を発信します。";
+import { SITE_DESCRIPTION } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
+import { organizationWebSiteLd } from "@/lib/seo";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -18,18 +18,46 @@ export const metadata: Metadata = {
     default: "解体ナレッジ | GENBABOXX",
     template: "%s | 解体ナレッジ",
   },
-  description: DESCRIPTION,
+  description: SITE_DESCRIPTION,
+  keywords: [
+    "解体",
+    "解体工事",
+    "解体業",
+    "見積もり",
+    "産廃",
+    "アスベスト",
+    "建設リサイクル法",
+    "GENBABOXX",
+    "BAKUSOQ",
+  ],
+  authors: [{ name: "GENBABOXX", url: SITE_URL }],
+  creator: "GENBABOXX",
+  publisher: "GENBABOXX",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     type: "website",
     siteName: "解体ナレッジ",
     locale: "ja_JP",
     title: "解体ナレッジ | GENBABOXX",
-    description: DESCRIPTION,
+    description: SITE_DESCRIPTION,
     url: SITE_URL,
   },
   twitter: {
     card: "summary_large_image",
+    title: "解体ナレッジ | GENBABOXX",
+    description: SITE_DESCRIPTION,
   },
+  category: "business",
 };
 
 export default function RootLayout({
@@ -39,7 +67,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className="h-full">
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <JsonLd data={organizationWebSiteLd()} />
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getAllArticles } from "@/lib/site-data";
+import { SITE_URL } from "@/lib/site-url";
 import { ArticleCard } from "@/components/site/article-card";
 import { ArticleListItem } from "@/components/site/article-list-item";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
@@ -12,6 +13,13 @@ export const metadata: Metadata = {
   title: "記事一覧",
   description:
     "解体業界の実務に役立つ記事の一覧。見積もり・原価管理・工期・産廃・法改正・補助金などのテーマを扱います。",
+  alternates: { canonical: `${SITE_URL}/articles` },
+  openGraph: {
+    title: "記事一覧 | 解体ナレッジ",
+    description:
+      "解体業界の実務に役立つ記事の一覧。見積もり・原価管理・工期・産廃・法改正・補助金などのテーマを扱います。",
+    url: `${SITE_URL}/articles`,
+  },
 };
 
 const PAGE_SIZE = 6;

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { OPERATOR_NAME } from "@/lib/dummy-data";
+import { SITE_URL } from "@/lib/site-url";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "運営会社",
   description: `${OPERATOR_NAME}の会社概要・事業内容と、本メディアの編集方針をご紹介します。`,
+  alternates: { canonical: `${SITE_URL}/company` },
 };
 
 const COMPANY_PROFILE: { label: string; value: string }[] = [

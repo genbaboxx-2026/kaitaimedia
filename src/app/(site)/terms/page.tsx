@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { OPERATOR_NAME, SITE_NAME } from "@/lib/dummy-data";
+import { SITE_URL } from "@/lib/site-url";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 
 export const metadata: Metadata = {
   title: "利用規約",
   description: `${SITE_NAME}の利用規約。`,
+  alternates: { canonical: `${SITE_URL}/terms` },
 };
 
 const SECTIONS: { heading: string; body: string }[] = [

@@ -8,6 +8,7 @@ import {
   searchArticles,
 } from "@/lib/site-data";
 import { SITE_URL } from "@/lib/site-url";
+import { OPERATOR_NAME } from "@/lib/dummy-data";
 import { formatJaDateTime } from "@/lib/format";
 import {
   buildNewsBriefing,
@@ -18,6 +19,7 @@ import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ArticleCard } from "@/components/site/article-card";
 import { NewsEditorialBody } from "@/components/site/news-editorial-body";
 import { NewsListItem } from "@/components/site/news-list-item";
+import { JsonLd } from "@/components/site/json-ld";
 import type { Article } from "@/lib/types";
 
 export const revalidate = 300;
@@ -37,6 +39,7 @@ export async function generateMetadata({
     item.editorialBody?.replace(/[#*`>\-\[\]()]/g, "").slice(0, 120) ??
     item.summary ??
     briefing.lead.slice(0, 120);
+  const images = item.imageUrl ? [{ url: item.imageUrl }] : undefined;
   return {
     title: item.title,
     description,
@@ -46,7 +49,16 @@ export async function generateMetadata({
       title: item.title,
       description,
       url,
-      ...(item.imageUrl ? { images: [{ url: item.imageUrl }] } : {}),
+      siteName: "解体ナレッジ",
+      locale: "ja_JP",
+      publishedTime: item.publishedAt,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description,
+      images: item.imageUrl ? [item.imageUrl] : undefined,
     },
   };
 }
@@ -93,8 +105,57 @@ export default async function NewsDetailPage({
     .filter((n) => n.id !== item.id && !isSameNewsStory(n.title, item.title))
     .slice(0, 4);
 
+  const pageUrl = `${SITE_URL}/news/${item.id}`;
+  const newsDescription =
+    item.editorialBody?.replace(/[#*`>\-\[\]()]/g, "").slice(0, 160) ??
+    item.summary ??
+    briefing.lead.slice(0, 160);
+  const newsLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: item.title,
+    description: newsDescription,
+    datePublished: item.publishedAt,
+    dateModified: item.publishedAt,
+    mainEntityOfPage: pageUrl,
+    url: pageUrl,
+    inLanguage: "ja-JP",
+    image: item.imageUrl ? [item.imageUrl] : undefined,
+    author: {
+      "@type": "Organization",
+      name: displaySource || OPERATOR_NAME,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: OPERATOR_NAME,
+      url: SITE_URL,
+    },
+    isBasedOn: item.url,
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "ホーム", item: SITE_URL },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "ニュース",
+        item: `${SITE_URL}/news`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: item.title,
+        item: pageUrl,
+      },
+    ],
+  };
+
   return (
     <article className="mx-auto max-w-3xl md:px-4 md:py-6">
+      <JsonLd data={newsLd} />
+      <JsonLd data={breadcrumbLd} />
       <div className="hidden md:block">
         <Breadcrumbs
           items={[

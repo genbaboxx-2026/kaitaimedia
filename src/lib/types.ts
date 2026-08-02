@@ -37,6 +37,10 @@ export interface Article {
   categorySlug: string;
   articleType: ArticleType;
   excerpt: string;
+  /** 検索結果・OGP用タイトル（未設定時は title） */
+  seoTitle?: string;
+  /** 検索結果・OGP用説明（未設定時は excerpt） */
+  metaDescription?: string;
   /** アイキャッチ画像URL（実写真・AI生成PNG）。無ければイラストを表示 */
   imageUrl?: string;
   /** ISO日付 (YYYY-MM-DD) */
@@ -46,6 +50,8 @@ export interface Article {
   sections: ArticleSection[];
   /** 型Cの出典URL */
   sourceUrls?: string[];
+  /** キーワード・タグ（meta keywords / 関連記事の補助） */
+  tags?: string[];
   relatedSlugs: string[];
 }
 
