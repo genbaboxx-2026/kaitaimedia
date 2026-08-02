@@ -9,7 +9,7 @@ import {
   type AdminStatus,
 } from "@/lib/admin-data";
 import { StatusBadge } from "@/components/admin/status-badge";
-import { formatJaDate } from "@/lib/format";
+import { formatJaDateTime } from "@/lib/format";
 import {
   publishArticleAction,
   unpublishArticleAction,
@@ -205,7 +205,7 @@ export function ArticleTable({
             </p>
             <p className="mt-1.5 text-[11px] text-slate-400">
               品質 {passed}/3 · {a.charCount.toLocaleString()}字 ·{" "}
-              {formatJaDate(a.createdAt)}
+              {formatJaDateTime(a.createdAt)}
             </p>
             {a.failedChecks.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
@@ -321,7 +321,7 @@ export function ArticleTable({
             {a.charCount.toLocaleString()}
           </td>
           <td className="px-4 py-2.5 align-top whitespace-nowrap text-slate-500">
-            {formatJaDate(a.createdAt)}
+            {formatJaDateTime(a.createdAt)}
           </td>
           <td className="px-4 py-2.5 align-top text-right">
             <ActionMenu a={a} />

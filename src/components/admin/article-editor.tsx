@@ -32,7 +32,7 @@ export function ArticleEditor({ article }: { article: AdminArticle }) {
   const [metaDescription, setMetaDescription] = useState(article.metaDescription);
   const [status, setStatus] = useState<AdminStatus>(article.status);
   const [publishAt, setPublishAt] = useState(
-    `${article.publishedAt ?? article.createdAt}T09:00`,
+    `${(article.publishedAt ?? article.createdAt).slice(0, 10)}T09:00`,
   );
   const [showDiff, setShowDiff] = useState(false);
   const [checks, setChecks] = useState<CheckResult[] | null>(null);

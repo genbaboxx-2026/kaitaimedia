@@ -5,7 +5,7 @@ import { getCategoryName } from "@/lib/dummy-data";
 import { markdownToSections } from "@/lib/markdown-to-sections";
 import { ArticleBody } from "@/components/site/article-body";
 import { StatusBadge } from "@/components/admin/status-badge";
-import { formatJaDate } from "@/lib/format";
+import { formatJaDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +53,7 @@ export default async function AdminArticlePreviewPage({
           {article.title}
         </h1>
         <p className="mt-3 text-xs text-slate-400">
-          {formatJaDate(article.createdAt)}・{article.charCount.toLocaleString()} 文字
+          {formatJaDateTime(article.createdAt)}・{article.charCount.toLocaleString()} 文字
         </p>
 
         <div className="mt-6">

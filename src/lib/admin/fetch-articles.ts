@@ -55,7 +55,7 @@ function toAdmin(r: DbArticle): AdminArticle {
     seoTitle: r.seo_title ?? "",
     metaDescription: r.meta_description ?? "",
     tags: [],
-    createdAt: (r.created_at ?? "").slice(0, 10),
+    createdAt: r.created_at ?? "",
     publishedAt: r.published_at ? r.published_at.slice(0, 10) : null,
   };
 }
