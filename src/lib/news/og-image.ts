@@ -142,8 +142,9 @@ export async function resolveGoogleNewsPublisherUrl(
     if (!batchRes.ok) return null;
     const text = await batchRes.text();
     const m =
-      text.match(/garturlres","(https?:\\?\/\\?\/[^"]+)"/) ??
-      text.match(/garturlres","(https?:\/\/[^"]+)"/);
+      text.match(/garturlres\\?",\\?"(https?:\\?\/\\?\/[^"\\]+)/) ??
+      text.match(/garturlres","(https?:\/\/[^"]+)"/) ??
+      text.match(/garturlres","(https?:\\\/\\\/[^"]+)"/);
     if (!m?.[1]) return null;
     return m[1].replace(/\\\//g, "/");
   } catch {
