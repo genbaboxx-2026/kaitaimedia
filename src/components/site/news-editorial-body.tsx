@@ -1,0 +1,92 @@
+import type { ReactNode } from "react";
+import { markdownToSections } from "@/lib/markdown-to-sections";
+import type { ContentBlock } from "@/lib/types";
+
+const INLINE = /(\*\*[^*]+\*\*|==[^=]+==|\[[^\]]+\]\((?:https?:\/\/)?[^)]+\))/g;
+
+function renderInline(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let key = 0;
+  INLINE.lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = INLINE.exec(text)) !== null) {
+    if (m.index > last) nodes.push(text.slice(last, m.index));
+    const tok = m[0];
+    if (tok.startsWith("**")) {
+      nodes.push(<strong key={key++}>{tok.slice(2, -2)}</strong>);
+    } else if (tok.startsWith("==")) {
+      nodes.push(<mark key={key++}>{tok.slice(2, -2)}</mark>);
+    } else {
+      const mm = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(tok);
+      if (mm) {
+        nodes.push(
+          <a key={key++} href={mm[2]} target="_blank" rel="noopener noreferrer">
+            {mm[1]}
+          </a>,
+        );
+      } else {
+        nodes.push(tok);
+      }
+    }
+    last = m.index + tok.length;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
+
+function Block({ block }: { block: ContentBlock }) {
+  switch (block.type) {
+    case "paragraph":
+      return (
+        <p className="text-[16px] leading-8 text-slate-700">
+          {renderInline(block.text)}
+        </p>
+      );
+    case "heading3":
+      return (
+        <h3 className="mt-6 text-[17px] font-bold text-ink">{block.text}</h3>
+      );
+    case "callout":
+      return (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-[15px] leading-7 text-slate-600">
+          {renderInline(block.text)}
+        </div>
+      );
+    case "list":
+      return block.ordered ? (
+        <ol className="list-decimal space-y-2 pl-5 text-[16px] leading-8 text-slate-700">
+          {block.items.map((it, i) => (
+            <li key={i}>{renderInline(it)}</li>
+          ))}
+        </ol>
+      ) : (
+        <ul className="list-disc space-y-2 pl-5 text-[16px] leading-8 text-slate-700">
+          {block.items.map((it, i) => (
+            <li key={i}>{renderInline(it)}</li>
+          ))}
+        </ul>
+      );
+    default:
+      return null;
+  }
+}
+
+/** ニュース自社解説（Markdown）を表示。既定見出し「本文」は出さない */
+export function NewsEditorialBody({ markdown }: { markdown: string }) {
+  const sections = markdownToSections(markdown);
+  return (
+    <div className="space-y-4">
+      {sections.map((section) => (
+        <section key={section.id} className="space-y-4">
+          {section.heading !== "本文" ? (
+            <h2 className="text-[18px] font-bold text-ink">{section.heading}</h2>
+          ) : null}
+          {section.blocks.map((block, i) => (
+            <Block key={i} block={block} />
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}

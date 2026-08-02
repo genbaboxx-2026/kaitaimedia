@@ -1,5 +1,9 @@
 import { restUpsert } from "@/lib/supabase/rest";
 import { passesNewsFilter } from "@/lib/news/filter";
+import {
+  generateMissingEditorials,
+  type GenerateEditorialResult,
+} from "@/lib/news/generate-editorial";
 import { fillMissingImages } from "@/lib/news/og-image";
 import { fetchFeedXml, parseFeedXml } from "@/lib/news/parse-rss";
 import {
@@ -138,8 +142,13 @@ async function collectFromSource(source: NewsSource): Promise<{
   return { rows: toRows(filled), fetched: items.length };
 }
 
-/** 全ソースを取得して news_items に upsert */
-export async function fetchAndStoreNews(): Promise<FetchNewsResult[]> {
+export interface FetchAndStoreNewsResult {
+  sources: FetchNewsResult[];
+  editorial: GenerateEditorialResult;
+}
+
+/** 全ソースを取得して news_items に upsert し、未生成の自社解説を埋める */
+export async function fetchAndStoreNews(): Promise<FetchAndStoreNewsResult> {
   const sources = getEnabledNewsSources();
   console.log(
     `取得ソース: ${sources.map((s) => s.id).join(", ")}` +
@@ -208,5 +217,27 @@ export async function fetchAndStoreNews(): Promise<FetchNewsResult[]> {
     }
   }
 
-  return results;
+  let editorial: GenerateEditorialResult;
+  try {
+    editorial = await generateMissingEditorials();
+    console.log(
+      `[editorial] 完了 generated=${editorial.generated}/${editorial.attempted}` +
+        (editorial.skipped ? ` skipped=${editorial.skipReason ?? ""}` : "") +
+        (editorial.errors.length > 0
+          ? ` errors=${editorial.errors.length}`
+          : ""),
+    );
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error(`[editorial] 一括生成で例外: ${message}`);
+    editorial = {
+      attempted: 0,
+      generated: 0,
+      skipped: true,
+      skipReason: message,
+      errors: [message],
+    };
+  }
+
+  return { sources: results, editorial };
 }

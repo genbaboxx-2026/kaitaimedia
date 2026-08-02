@@ -68,4 +68,6 @@ export interface NewsItem {
   imageUrl?: string;
   /** RSSの短い要約（全文ではない） */
   summary?: string;
+  /** タイトル＋要約から生成した自社オリジナル解説（Markdown） */
+  editorialBody?: string;
 }

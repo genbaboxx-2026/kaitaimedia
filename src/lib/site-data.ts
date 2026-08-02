@@ -205,6 +205,7 @@ interface NewsRow {
   fetched_at: string;
   image_url: string | null;
   summary: string | null;
+  editorial_body: string | null;
 }
 
 function mapNews(r: NewsRow): NewsItem {
@@ -217,11 +218,12 @@ function mapNews(r: NewsRow): NewsItem {
     publishedAt: r.published_at ?? r.fetched_at,
     imageUrl: r.image_url ?? undefined,
     summary: r.summary ?? undefined,
+    editorialBody: r.editorial_body ?? undefined,
   };
 }
 
 const NEWS_SELECT =
-  "id,title,url,source_id,source_name,published_at,fetched_at,image_url,summary";
+  "id,title,url,source_id,source_name,published_at,fetched_at,image_url,summary,editorial_body";
 
 export async function getLatestNews(limit = 30): Promise<NewsItem[]> {
   const rows = await restSelect<NewsRow>(

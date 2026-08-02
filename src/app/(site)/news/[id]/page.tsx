@@ -15,6 +15,7 @@ import {
 } from "@/lib/news/briefing";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { ArticleCard } from "@/components/site/article-card";
+import { NewsEditorialBody } from "@/components/site/news-editorial-body";
 import { NewsListItem } from "@/components/site/news-list-item";
 import type { Article } from "@/lib/types";
 
@@ -31,7 +32,10 @@ export async function generateMetadata({
   const url = `${SITE_URL}/news/${item.id}`;
   const displaySource = item.sourceName.replace(/^Googleニュース\s*\/\s*/, "");
   const briefing = buildNewsBriefing(item.title, displaySource);
-  const description = item.summary ?? briefing.lead.slice(0, 120);
+  const description =
+    item.editorialBody?.replace(/[#*`>\-\[\]()]/g, "").slice(0, 120) ??
+    item.summary ??
+    briefing.lead.slice(0, 120);
   return {
     title: item.title,
     description,
@@ -149,43 +153,65 @@ export default async function NewsDetailPage({
       )}
 
       <div className="mt-6 space-y-8 px-4 md:px-0">
-        <section>
-          <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
-            解体ナレッジ編集部の読み方
-          </h2>
-          <p className="mt-2 text-[16px] leading-8 text-slate-700">
-            {briefing.lead}
-          </p>
-          <ul className="mt-4 space-y-2.5">
-            {briefing.points.map((p) => (
-              <li
-                key={p}
-                className="flex gap-2.5 text-[15px] leading-7 text-slate-700"
-              >
-                <span
-                  className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navy-600"
-                  aria-hidden
-                />
-                <span>{p}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {item.summary ? (
+        {item.editorialBody ? (
+          <section>
+            <p className="text-[13px] font-bold tracking-wide text-slate-500">
+              解体ナレッジ編集部の解説
+            </p>
+            <div className="mt-3">
+              <NewsEditorialBody markdown={item.editorialBody} />
+            </div>
+          </section>
+        ) : (
           <section>
             <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
-              配信元の概要
+              解体ナレッジ編集部の読み方
             </h2>
-            <p className="mt-2 text-[15px] leading-7 text-slate-600">
-              {item.summary}
+            <p className="mt-2 text-[16px] leading-8 text-slate-700">
+              {briefing.lead}
             </p>
+            <ul className="mt-4 space-y-2.5">
+              {briefing.points.map((p) => (
+                <li
+                  key={p}
+                  className="flex gap-2.5 text-[15px] leading-7 text-slate-700"
+                >
+                  <span
+                    className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navy-600"
+                    aria-hidden
+                  />
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {item.editorialBody && briefing.points.length > 0 ? (
+          <section>
+            <h2 className="text-[13px] font-bold tracking-wide text-slate-500">
+              実務の確認ポイント
+            </h2>
+            <ul className="mt-3 space-y-2.5">
+              {briefing.points.map((p) => (
+                <li
+                  key={p}
+                  className="flex gap-2.5 text-[15px] leading-7 text-slate-700"
+                >
+                  <span
+                    className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-navy-600"
+                    aria-hidden
+                  />
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
 
         <section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
           <p className="text-[13px] leading-relaxed text-slate-500">
-            当ページは各媒体のニュースを紹介するものであり、記事本文の転載ではありません。内容の正確性・最新性は元記事をご確認ください。
+            当ページの解説は解体ナレッジ編集部による独自の読み方であり、元記事本文の転載ではありません。内容の正確性・最新性は元記事をご確認ください。
           </p>
           <a
             href={item.url}

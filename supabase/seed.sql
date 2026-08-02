@@ -66,6 +66,8 @@ insert into public.settings (key, value, value_type, description) values
   ('check_title_similarity_enabled','false', 'boolean', '第2層: タイトル類似度チェック（テーマ選定で重複回避のため既定OFF）'),
   ('check_body_similarity_enabled','false',  'boolean', '第2層: 本文類似度チェック（矛盾なければ重複許容のため既定OFF）'),
   ('check_ai_quality_enabled',    'false',   'boolean', '第3層: AI定性評価チェック（運用方針により既定OFF）'),
+  ('news_editorial_enabled',      'true',    'boolean', 'ニュース自社解説文の自動生成'),
+  ('news_editorial_max_per_run',  '10',      'number',  '1回のfetch-newsで生成する解説の上限件数'),
   -- コスト制御・モデル
   ('monthly_ai_budget_limit',     '0',       'number',  '月間AI利用料の上限（円）。0=未設定（上限なし）'),
   ('ai_model',                    'claude-sonnet-5','string','記事生成に使用するAIモデル'),
@@ -138,5 +140,10 @@ E'以下の記事本文には品質チェックで不合格になった項目が
   ('quality', 1,
 E'次の記事本文を、以下の3観点のみで5段階評価してください。事実の正誤判定は行わないでください。\n\n本文: {{body}}\n\n観点:\n1. 文章として不自然な箇所がないか\n2. 論理の飛躍や矛盾がないか\n3. 実務者にとって具体性のある内容か\n\n出力は {"naturalness":n,"consistency":n,"specificity":n,"comment":"..."} のJSONのみ（nは1〜5）。',
    array['body'],
+   true, '初期版', 'seed'),
+
+  ('news_editorial', 1,
+E'あなたは解体業界の専門メディア「解体ナレッジ」の編集者です。次のニュース見出し（とあれば短い要約）だけを材料に、転載ではない独自の解説文をMarkdownで書いてください。\n\nニュース見出し: {{title}}\n出典: {{source_name}}\n配信元の短い要約（無い場合あり）: {{summary}}\n関連テーマの目安: {{topics}}\n\n要件:\n- 分量はおおよそ600〜1000字。\n- 元記事本文を想像で書き写さない。事実の断定は避け、「〜という報道がある」「元記事で確認する」など慎重な書き方にする。\n- 解体・建設・産廃の実務者向けに、読み方・確認ポイント・現場への示唆を中心に書く。\n- 金額（円・万円）、重量・容積（t・kg・m³）、単価、割合（%・割）、断定的な工期日数は一切書かない。\n- 外部URLは本文に書かない。\n- 出力は解説本文のMarkdownのみ（前置きや「以下が解説です」等は不要）。見出しを使う場合は ## / ### を使ってよい。',
+   array['title','source_name','summary','topics'],
    true, '初期版', 'seed')
 on conflict (step, version) do nothing;

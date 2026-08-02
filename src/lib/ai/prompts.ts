@@ -1,7 +1,13 @@
 import { restSelect } from "@/lib/supabase/rest";
 
 // プロンプトは prompts テーブルから取得する（コードに直書きしない — CLAUDE.md 規約2）。
-export type PromptStep = "structure" | "body" | "seo" | "fix" | "quality";
+export type PromptStep =
+  | "structure"
+  | "body"
+  | "seo"
+  | "fix"
+  | "quality"
+  | "news_editorial";
 
 interface PromptRow {
   content: string;

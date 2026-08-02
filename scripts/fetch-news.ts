@@ -19,14 +19,16 @@ async function main(): Promise<void> {
   }
 
   const { fetchAndStoreNews } = await import("../src/lib/news/fetch-news");
-  const results = await fetchAndStoreNews();
+  const { sources: results, editorial } = await fetchAndStoreNews();
   const failed = results.filter((r) => r.error);
   const totalAccepted = results.reduce((s, r) => s + r.accepted, 0);
   const totalUpserted = results.reduce((s, r) => s + r.upserted, 0);
   const totalWithImage = results.reduce((s, r) => s + r.withImage, 0);
 
   console.log(
-    `完了: accepted=${totalAccepted} withImage=${totalWithImage} upserted=${totalUpserted} errors=${failed.length}`,
+    `完了: accepted=${totalAccepted} withImage=${totalWithImage} upserted=${totalUpserted} errors=${failed.length}` +
+      ` / editorial generated=${editorial.generated}` +
+      (editorial.skipped ? ` (skip: ${editorial.skipReason ?? ""})` : ""),
   );
   // ソースが0件（全部無効）は設定ミスの可能性が高い
   if (results.length === 0) {

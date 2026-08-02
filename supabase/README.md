@@ -26,6 +26,7 @@ BAKUSOQ本番DBには絶対に流さないこと。MCP経由の `apply_migration
 | 10 | `migrations/20260802000004_relax_quality_checks.sql` | リンク/類似度/AI定性を既定OFF・URL非掲載プロンプト |
 | 11 | `migrations/20260802000005_clear_retired_quality_flags.sql` | 旧チェックの不合格バッジ掃除 |
 | 12 | `migrations/20260802000006_news_summary.sql` | ニュース詳細用の要約列 |
+| 13 | `migrations/20260802000007_news_editorial.sql` | ニュース自社解説文＋プロンプト |
 | - | `seed.sql` | 初期データ（冪等） |
 
 ## ニュース定期取得（本番）
@@ -36,6 +37,10 @@ GitHub Actions ワークフロー `.github/workflows/fetch-news.yml` が30分ご
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+
+任意の **Actions Secrets**:
+
+- `ANTHROPIC_API_KEY` … ニュース自社解説文の生成（未設定ならRSS保存のみ）
 
 任意の **Actions Variables**:
 

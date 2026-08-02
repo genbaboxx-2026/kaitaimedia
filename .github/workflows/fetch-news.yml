@@ -3,6 +3,8 @@ name: ニュースRSS取得
 # 必要な GitHub Secrets（Settings → Secrets and variables → Actions）:
 #   - NEXT_PUBLIC_SUPABASE_URL
 #   - SUPABASE_SERVICE_ROLE_KEY
+# 任意（自社解説文の生成に使用。未設定ならRSS保存のみ）:
+#   - ANTHROPIC_API_KEY
 # 任意の Variables:
 #   - NEWS_ENABLE_GOOGLE_NEWS … "false" で Googleニュース取得を止める（公式ソースのみ）
 
@@ -51,5 +53,6 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           # Variables で "false" を入れると Google をスキップ（未設定時は取得する）
           NEWS_ENABLE_GOOGLE_NEWS: ${{ vars.NEWS_ENABLE_GOOGLE_NEWS }}

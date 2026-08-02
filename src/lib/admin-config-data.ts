@@ -73,7 +73,13 @@ export const DEFAULT_SETTINGS: GenerationSettings = {
 };
 
 // ---------------- プロンプト管理 ----------------
-export type PromptStep = "structure" | "body" | "seo" | "fix" | "quality";
+export type PromptStep =
+  | "structure"
+  | "body"
+  | "seo"
+  | "fix"
+  | "quality"
+  | "news_editorial";
 
 export const PROMPT_STEP_LABEL: Record<PromptStep, string> = {
   structure: "構成生成",
@@ -81,6 +87,7 @@ export const PROMPT_STEP_LABEL: Record<PromptStep, string> = {
   seo: "SEO生成",
   fix: "自動修正",
   quality: "AI品質判定",
+  news_editorial: "ニュース自社解説",
 };
 
 export interface PromptVersion {
@@ -149,6 +156,20 @@ export const PROMPTS: PromptStepData[] = [
     activeVersion: 1,
     versions: [
       { version: 1, note: "初期版", createdAt: "2026-08-01", content: "本文を「自然さ」「論理の一貫性」「具体性」の3観点で1〜5点評価してください。事実の正誤判定は行わない。\n\n出力（JSON）: {\"naturalness\":n,\"consistency\":n,\"specificity\":n,\"comment\":\"...\"}" },
+    ],
+  },
+  {
+    step: "news_editorial",
+    variables: ["{{title}}", "{{source_name}}", "{{summary}}", "{{topics}}"],
+    activeVersion: 1,
+    versions: [
+      {
+        version: 1,
+        note: "初期版",
+        createdAt: "2026-08-02",
+        content:
+          "ニュース見出しと要約だけを材料に、転載ではない独自解説（600〜1000字）をMarkdownで書いてください。\n\n見出し: {{title}}\n出典: {{source_name}}\n要約: {{summary}}\nテーマ: {{topics}}\n\n金額・重量・単価・割合・断定的な工期日数は書かない。外部URLは書かない。",
+      },
     ],
   },
 ];
