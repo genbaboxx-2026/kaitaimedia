@@ -67,6 +67,10 @@ export async function fetchGenerationSettings(): Promise<GenerationSettings> {
     faqEnabled: b("faq_enabled", DEFAULT_SETTINGS.faqEnabled),
     maxAutoRevisions: n("max_auto_revisions", DEFAULT_SETTINGS.maxAutoRevisions),
     monthlyAiBudgetLimit: n("monthly_ai_budget_limit", DEFAULT_SETTINGS.monthlyAiBudgetLimit),
+    perArticleCostLimitUsd: n(
+      "per_article_cost_limit_usd",
+      DEFAULT_SETTINGS.perArticleCostLimitUsd,
+    ),
     aiModel: s("ai_model", DEFAULT_SETTINGS.aiModel),
     checks,
   };

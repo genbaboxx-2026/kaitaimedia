@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV = [
   { href: "/admin/articles", label: "記事管理" },
   { href: "/admin/published", label: "公開記事管理" },
+  { href: "/admin/sns-trends", label: "SNSトレンド" },
   { href: "/admin/generation", label: "生成条件" },
   { href: "/admin/logs", label: "生成履歴" },
 ];

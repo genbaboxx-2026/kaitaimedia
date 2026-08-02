@@ -1,3 +1,17 @@
+// 表示用の概算為替（USD→JPY）。実勢とずれる前提で「約」付きで使う。
+export const USD_JPY_RATE = 150;
+
+/** 米ドル概算を円に換算（四捨五入） */
+export function usdToJpy(usd: number, rate = USD_JPY_RATE): number {
+  return Math.round(usd * rate);
+}
+
+/** ログ表示用「$0.2449（約¥37）」 */
+export function formatCostUsdJpy(usd: number): string {
+  const jpy = usdToJpy(usd);
+  return `$${usd.toFixed(4)}（約¥${jpy.toLocaleString("ja-JP")}）`;
+}
+
 // モデル別の料金（$/100万トークン）。コスト概算に使用。
 // 参考: claude-api リファレンス（2026-06 時点）。新モデル追加時はここを更新する。
 const PRICING: Record<string, { input: number; output: number }> = {

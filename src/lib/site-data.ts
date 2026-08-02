@@ -1,4 +1,11 @@
-import type { Article, ArticleType, Category, NewsItem } from "@/lib/types";
+import type {
+  Article,
+  ArticleType,
+  Category,
+  NewsItem,
+  SnsTrendPost,
+  SnsTrendStatus,
+} from "@/lib/types";
 import {
   ALL_ARTICLES_NEWEST,
   ARTICLES,
@@ -242,4 +249,46 @@ export async function getNewsById(id: string): Promise<NewsItem | null> {
   );
   if (rows && rows.length > 0) return mapNews(rows[0]);
   return DUMMY_NEWS.find((n) => n.id === id) ?? null;
+}
+
+// ---- SNSトレンド（採用済みのみ公開） ----
+interface SnsTrendRow {
+  id: string;
+  post_url: string;
+  author_handle: string;
+  author_name: string | null;
+  text_snippet: string;
+  like_count: number;
+  posted_at: string | null;
+  relevance_note: string | null;
+  status: SnsTrendStatus;
+  fetched_at: string;
+}
+
+const SNS_TREND_SELECT =
+  "id,post_url,author_handle,author_name,text_snippet,like_count,posted_at,relevance_note,status,fetched_at";
+
+function mapSnsTrend(r: SnsTrendRow): SnsTrendPost {
+  return {
+    id: r.id,
+    postUrl: r.post_url,
+    authorHandle: r.author_handle,
+    authorName: r.author_name ?? undefined,
+    textSnippet: r.text_snippet,
+    likeCount: r.like_count,
+    postedAt: r.posted_at ?? undefined,
+    relevanceNote: r.relevance_note ?? undefined,
+    status: r.status,
+    fetchedAt: r.fetched_at,
+  };
+}
+
+/** 公開サイト用：採用済みをいいね順 */
+export async function getApprovedSnsTrends(limit = 8): Promise<SnsTrendPost[]> {
+  const rows = await restSelect<SnsTrendRow>(
+    `sns_trend_posts?select=${SNS_TREND_SELECT}&status=eq.approved&order=like_count.desc.nullslast,fetched_at.desc&limit=${limit}`,
+    REVALIDATE,
+  );
+  if (rows && rows.length > 0) return rows.map(mapSnsTrend);
+  return [];
 }

@@ -69,8 +69,12 @@ insert into public.settings (key, value, value_type, description) values
   ('news_editorial_enabled',      'true',    'boolean', 'ニュース自社解説文の自動生成'),
   ('news_editorial_max_per_run',  '5',       'number',  '1回のfetch-newsで生成する解説の上限件数'),
   ('news_editorial_model',        'claude-haiku-4-5-20251001','string','ニュース自社解説に使うAIモデル'),
+  ('sns_trends_model',            'grok-4-1-fast-reasoning', 'string', 'SNSトレンド取得に使うGrokモデル'),
+  ('sns_trends_min_likes',        '100',     'number',  'いいね数の目安（これ以上を優先）'),
+  ('sns_trends_max_candidates',   '15',      'number',  '1回の更新で取得する候補件数の上限'),
   -- コスト制御・モデル
   ('monthly_ai_budget_limit',     '0',       'number',  '月間AI利用料の上限（円）。0=未設定（上限なし）'),
+  ('per_article_cost_limit_usd',  '3',       'number',  '1記事あたりの推定コスト上限（USD）。0=上限なし。超過で生成中断'),
   ('ai_model',                    'claude-sonnet-5','string','記事生成に使用するAIモデル'),
   ('embedding_model',             'text-embedding-3-small','string','埋め込み生成モデル（次元は embedding_dimension と一致させる）'),
   ('embedding_dimension',         '1536',    'number',  '埋め込みベクトルの次元数（article_embeddings の列定義と一致させること）'),
@@ -146,5 +150,10 @@ E'次の記事本文を、以下の3観点のみで5段階評価してくださ�
   ('news_editorial', 1,
 E'あなたは解体業界の専門メディア「解体ナレッジ」の編集者です。次のニュース見出しと、あれば短い要約だけを材料にして、転載ではない独自の解説をMarkdownで出力してください。\n\nニュース見出し: {{title}}\n出典: {{source_name}}\n配信元の短い要約（無い場合あり）: {{summary}}\n関連テーマの目安: {{topics}}\n\n必ず次の3つの見出し（##）だけをこの順番で使い、それ以外の大見出しは作らないでください。\n\n## わかりやすく解説\n- 難しい話をかみ砕いて説明する。おおよそ5行（150〜250字程度）。\n- 専門用語は避け、現場の人がすぐ分かる言い回しにする。\n\n## 実務で確認できそうなこと\n- 解体・産廃・建設の実務者がチェックできそうなことを書く。\n- 箇条書き（3〜5項目）でも、短い段落（合計5行程度）でもよい。1項目だけでもよい。\n\n## 実際の内容\n- 提供された見出しと要約だけを材料に、元のニュースが伝えている内容を普通の記事要約としてまとめる。\n- 材料にない固有の事実・数字・固有名詞の詳細は創作しない。要約が薄い場合は見出しから分かる範囲だけ書く。\n- おおよそ4〜8文。\n\n共通の制約（違反厳禁）:\n- 金額（円・万円）、重量・容積（t・kg・m³）、単価、割合（%・割）、断定的な工期日数は一切書かない。\n- 外部URLは書かない。\n- 「以下が解説です」などの前置きは不要。Markdown本文のみを出力する。',
    array['title','source_name','summary','topics'],
-   true, '3部構成', 'seed')
+   true, '3部構成', 'seed'),
+
+  ('sns_trends', 1,
+E'あなたは解体・建設・産廃業界向けメディアの編集アシスタントです。X（旧Twitter）を検索し、解体工事会社・産廃業者・建設現場の担当者が実務上気になりそうな「いまバズっている話題」を拾ってください。\n\n条件:\n- 直近の投稿を対象にする（おおよそ {{from_date}} 以降）\n- いいねがおおよそ {{min_likes}} 以上の投稿を優先する（厳密でなくてよいが、明らかに低調なものは除外）\n- 解体・建設リサイクル・産廃・アスベスト・建設業法・現場安全・許可・行政指導などに関連するもの\n- 個人攻撃・デマ・露骨な宣伝・アダルト・無関係な炎上は除外\n- 最大 {{max_count}} 件\n\n出力は次のJSON配列のみ（前置き・コードフェンス禁止）:\n[\n  {\n    "post_url": "https://x.com/.../status/...",\n    "author_handle": "username",\n    "author_name": "表示名（任意）",\n    "text_snippet": "投稿本文の要約または抜粋（200字以内）",\n    "like_count": 123,\n    "posted_at": "2026-08-01T12:00:00Z",\n    "relevance_note": "なぜ業界向けか一行"\n  }\n]\n\npost_url は実在する投稿のURLであること。件数が足りなくても捏造しない。該当が無ければ空配列 [] を返す。',
+   array['from_date','min_likes','max_count'],
+   true, '初期版', 'seed')
 on conflict (step, version) do nothing;

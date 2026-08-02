@@ -21,6 +21,7 @@ export interface AdminArticle {
   articleType: ArticleType;
   status: AdminStatus;
   charCount: number;
+  viewCount: number;
   revisionCount: number;
   quality: { layer1: boolean; layer2: boolean; layer3: boolean };
   failedChecks: string[];
@@ -109,6 +110,7 @@ export const ADMIN_ARTICLES: AdminArticle[] = ARTICLES.map((a, i) => {
     articleType: a.articleType,
     status,
     charCount: CHAR_COUNTS[a.slug] ?? 3000,
+    viewCount: 0,
     revisionCount: o.revisionCount ?? 0,
     quality,
     failedChecks: o.failedChecks ?? [],

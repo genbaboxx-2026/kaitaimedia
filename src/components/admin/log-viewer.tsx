@@ -8,6 +8,7 @@ import {
   type GenLog,
   type GenLogStatus,
 } from "@/lib/admin-logs-data";
+import { formatCostUsdJpy } from "@/lib/ai/pricing";
 import { formatJaDateTime } from "@/lib/format";
 
 const STATUS_STYLE: Record<GenLogStatus, string> = {
@@ -38,8 +39,8 @@ function LogDetail({ log }: { log: GenLog }) {
         )}
         <p className="mt-3 text-xs text-slate-500">
           トークン：入力 {log.inputTokens.toLocaleString()} / 出力{" "}
-          {log.outputTokens.toLocaleString()}・推定コスト $
-          {log.costUsd.toFixed(4)}
+          {log.outputTokens.toLocaleString()}・推定コスト{" "}
+          {formatCostUsdJpy(log.costUsd)}
         </p>
         <Link
           href={`/admin/articles/${log.id}`}
@@ -141,8 +142,8 @@ export function LogViewer({ logs }: { logs?: GenLog[] }) {
                   </p>
                   <p className="mt-1 text-[11px] text-slate-400">
                     修正 {log.revisionCount}回 · トークン{" "}
-                    {(log.inputTokens + log.outputTokens).toLocaleString()} · $
-                    {log.costUsd.toFixed(4)}
+                    {(log.inputTokens + log.outputTokens).toLocaleString()} ·{" "}
+                    {formatCostUsdJpy(log.costUsd)}
                   </p>
                 </div>
               </button>
@@ -194,8 +195,8 @@ export function LogViewer({ logs }: { logs?: GenLog[] }) {
                     <td className="px-4 py-3 text-slate-500">
                       {(log.inputTokens + log.outputTokens).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-slate-500">
-                      ${log.costUsd.toFixed(4)}
+                    <td className="px-4 py-3 whitespace-nowrap text-slate-500">
+                      {formatCostUsdJpy(log.costUsd)}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-slate-500">
                       {formatJaDateTime(log.startedAt)}

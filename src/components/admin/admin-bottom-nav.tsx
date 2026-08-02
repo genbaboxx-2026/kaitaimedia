@@ -28,6 +28,13 @@ const ITEMS = [
     ActiveIcon: ArticleIcon,
   },
   {
+    href: "/admin/sns-trends",
+    label: "SNS",
+    match: (p: string) => p.startsWith("/admin/sns-trends"),
+    Icon: GridIcon,
+    ActiveIcon: GridIcon,
+  },
+  {
     href: "/admin/generation",
     label: "生成",
     match: (p: string) => p.startsWith("/admin/generation"),
@@ -40,14 +47,6 @@ const ITEMS = [
     match: (p: string) => p.startsWith("/admin/logs"),
     Icon: HistoryIcon,
     ActiveIcon: HistoryIcon,
-  },
-  {
-    href: "/",
-    label: "サイト",
-    match: () => false,
-    Icon: GridIcon,
-    ActiveIcon: GridIcon,
-    external: true,
   },
 ] as const;
 

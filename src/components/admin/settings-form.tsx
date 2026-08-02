@@ -97,6 +97,7 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
       { key: "faq_enabled", value: String(s.faqEnabled) },
       { key: "max_auto_revisions", value: String(s.maxAutoRevisions) },
       { key: "monthly_ai_budget_limit", value: String(s.monthlyAiBudgetLimit) },
+      { key: "per_article_cost_limit_usd", value: String(s.perArticleCostLimitUsd) },
       { key: "ai_model", value: s.aiModel },
       ...CHECK_ITEMS.map((c) => ({
         key: `check_${c.key}_enabled`,
@@ -211,6 +212,19 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
         <Section title="コスト制御">
           <Row label="月間AI利用料の上限（円）" hint="0で上限なし。超過で自動停止">
             <input type="number" min={0} value={s.monthlyAiBudgetLimit} onChange={(e) => set("monthlyAiBudgetLimit", Number(e.target.value))} className={num} />
+          </Row>
+          <Row
+            label="1記事あたりのコスト上限（USD）"
+            hint="0で上限なし。超過でその記事の生成を中断"
+          >
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={s.perArticleCostLimitUsd}
+              onChange={(e) => set("perArticleCostLimitUsd", Number(e.target.value))}
+              className={num}
+            />
           </Row>
           <Row label="使用するAIモデル">
             <select value={s.aiModel} onChange={(e) => set("aiModel", e.target.value)} className={sel}>

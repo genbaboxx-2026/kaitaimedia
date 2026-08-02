@@ -55,6 +55,22 @@ export const ARTICLE_TYPE_LABEL: Record<ArticleType, string> = {
   C: "一次情報",
 };
 
+/** SNSトレンド（採用済みのX投稿カード） */
+export type SnsTrendStatus = "pending" | "approved" | "rejected";
+
+export interface SnsTrendPost {
+  id: string;
+  postUrl: string;
+  authorHandle: string;
+  authorName?: string;
+  textSnippet: string;
+  likeCount: number;
+  postedAt?: string;
+  relevanceNote?: string;
+  status: SnsTrendStatus;
+  fetchedAt: string;
+}
+
 /** 外部RSSから集約した業界ニュース（自社詳細ページ＋元記事リンク） */
 export interface NewsItem {
   id: string;

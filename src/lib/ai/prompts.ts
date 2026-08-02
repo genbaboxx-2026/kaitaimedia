@@ -7,7 +7,8 @@ export type PromptStep =
   | "seo"
   | "fix"
   | "quality"
-  | "news_editorial";
+  | "news_editorial"
+  | "sns_trends";
 
 interface PromptRow {
   content: string;

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCategoryName } from "@/lib/dummy-data";
 import {
+  getApprovedSnsTrends,
   getCategories,
   getLatestArticles,
   getLatestNews,
@@ -11,6 +12,7 @@ import { getCategoryMeta } from "@/lib/categories-meta";
 import type { Article } from "@/lib/types";
 import { Eyecatch } from "@/components/site/eyecatch";
 import { NewsListItem } from "@/components/site/news-list-item";
+import { SnsTrendList } from "@/components/site/sns-trend-list";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
 import { ArrowIcon, CategoryIcon } from "@/components/site/icons";
 import { formatJaDate, formatRelativeJa } from "@/lib/format";
@@ -60,17 +62,20 @@ function SecondaryArticleCard({ article }: { article: Article }) {
 export const revalidate = 300; // ISR: 5分
 
 export default async function HomePage() {
-  const [news, articles, categories, pickup, ranking] = await Promise.all([
-    getLatestNews(12),
-    getLatestArticles(8),
-    getCategories(),
-    getPickupArticles(4),
-    getRankingArticles(5),
-  ]);
+  const [news, articles, categories, pickup, ranking, snsTrends] =
+    await Promise.all([
+      getLatestNews(12),
+      getLatestArticles(8),
+      getCategories(),
+      getPickupArticles(4),
+      getRankingArticles(5),
+      getApprovedSnsTrends(8),
+    ]);
 
   const [lead, ...rest] = articles;
   const secondary = rest.slice(0, 3);
   const newsRows = news.slice(0, 8);
+  const snsRows = snsTrends.slice(0, 6);
 
   return (
     <>
@@ -129,6 +134,13 @@ export default async function HomePage() {
             </Link>
           </div>
         </section>
+
+        {snsRows.length > 0 && (
+          <section className="border-b border-slate-100">
+            <FeedSectionHeader title="SNSトレンド" />
+            <SnsTrendList items={snsRows} />
+          </section>
+        )}
 
         <div className="px-4 py-5">
           <Link
@@ -251,20 +263,36 @@ export default async function HomePage() {
             )}
 
             <div className="mt-10">
-              <FeedSectionHeader title="今日のニュース" />
-              <div className="mt-2 grid gap-x-8 sm:grid-cols-2">
-                {newsRows.map((item) => (
-                  <NewsListItem key={item.id} item={item} />
-                ))}
-              </div>
-              <div className="mt-5 text-right">
-                <Link
-                  href="/news"
-                  className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-                >
-                  ニュースをもっと見る
-                  <ArrowIcon className="h-4 w-4" />
-                </Link>
+              <div
+                className={`grid gap-8 ${
+                  snsRows.length > 0 ? "lg:grid-cols-3" : ""
+                }`}
+              >
+                <div className={snsRows.length > 0 ? "lg:col-span-2" : undefined}>
+                  <FeedSectionHeader title="今日のニュース" />
+                  <div className="mt-2 grid gap-x-8 sm:grid-cols-2">
+                    {newsRows.map((item) => (
+                      <NewsListItem key={item.id} item={item} />
+                    ))}
+                  </div>
+                  <div className="mt-5 text-right">
+                    <Link
+                      href="/news"
+                      className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                    >
+                      ニュースをもっと見る
+                      <ArrowIcon className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </div>
+                {snsRows.length > 0 && (
+                  <aside>
+                    <FeedSectionHeader title="SNSトレンド" />
+                    <div className="mt-2">
+                      <SnsTrendList items={snsRows} compact />
+                    </div>
+                  </aside>
+                )}
               </div>
             </div>
 

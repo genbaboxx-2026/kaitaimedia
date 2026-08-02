@@ -19,12 +19,6 @@ const PRIMARY_CATEGORY_SLUGS = [
   "news",
 ];
 
-const TRENDING = [
-  { slug: "law", label: "#法改正" },
-  { slug: "subsidy", label: "#補助金" },
-  { slug: "asbestos", label: "#アスベスト" },
-];
-
 export function SiteHeader() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -186,18 +180,6 @@ export function SiteHeader() {
             >
               記事一覧
             </Link>
-
-            <div className="ml-auto flex items-center gap-2">
-              {TRENDING.map((t) => (
-                <Link
-                  key={t.slug}
-                  href={`/category/${t.slug}`}
-                  className="whitespace-nowrap text-sm font-bold text-amber-300 hover:underline"
-                >
-                  {t.label}
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
       </header>

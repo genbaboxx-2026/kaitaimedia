@@ -159,6 +159,9 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
   const bodyMinChars = getNumber(settings, "min_char_count", 3500);
   const bodyMaxChars = getNumber(settings, "max_char_count", 5000);
 
+  // 1記事あたりのコスト上限（USD）。0 は無効。超過でその記事を中断。
+  const perArticleCostLimit = getNumber(settings, "per_article_cost_limit_usd", 3);
+
   // 月間コスト上限チェック（超過で自動停止）。0 は無効。
   // 注: estimated_cost は USD 概算。上限の単位運用は着手時に確定する（要件13）。
   const budgetLimit = getNumber(settings, "monthly_ai_budget_limit", 0);
@@ -196,10 +199,18 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
   let inputTokens = 0;
   let outputTokens = 0;
   let cost = 0;
+  const assertCostUnderLimit = () => {
+    if (perArticleCostLimit > 0 && cost > perArticleCostLimit) {
+      throw new Error(
+        `1記事あたりのコスト上限（$${perArticleCostLimit}）を超えたため中断しました（概算 $${cost.toFixed(4)}）`,
+      );
+    }
+  };
   const track = (r: { inputTokens: number; outputTokens: number; costUsd: number }) => {
     inputTokens += r.inputTokens;
     outputTokens += r.outputTokens;
     cost += r.costUsd;
+    assertCostUnderLimit();
   };
 
   const [ngList, recommendedList, glossary, templates] = await Promise.all([
@@ -312,6 +323,7 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       inputTokens += aiImage.inputTokens;
       outputTokens += aiImage.outputTokens;
       cost += aiImage.costUsd;
+      assertCostUnderLimit();
     } else {
       png = await generateEyecatchPng(theme.title, categorySlug, categoryName);
     }
@@ -343,6 +355,12 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
     let promptFix = "";
 
     while (!report.passed && revision < maxRevisions) {
+      // 次の修正呼び出しで上限を確実に超える見込みでも、呼び出し前に打ち切る
+      if (perArticleCostLimit > 0 && cost >= perArticleCostLimit) {
+        throw new Error(
+          `1記事あたりのコスト上限（$${perArticleCostLimit}）に達したため修正を中断しました（概算 $${cost.toFixed(4)}）`,
+        );
+      }
       revision += 1;
       promptFix = interpolate(await getActivePrompt("fix"), {
         body,
@@ -448,6 +466,8 @@ export async function runGenerationPipeline(): Promise<PipelineResult> {
       ];
       // 後ろから挿入して index のズレを防ぐ（hint は元の並び順で割り当て）
       for (let k = picks.length - 1; k >= 0; k--) {
+        // 図版は任意のため、上限到達後は追加生成せず本文保存へ進む
+        if (perArticleCostLimit > 0 && cost >= perArticleCostLimit) break;
         const p = picks[k];
         const img = await generateAiEyecatchPng(p.text, categoryName, {
           quality: imageQuality,

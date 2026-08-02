@@ -112,18 +112,6 @@ export function Eyecatch({
         </>
       )}
 
-      {/* カテゴリー名チップ */}
-      <div className="relative z-10 p-3">
-        <span className="inline-flex items-center gap-1.5 rounded-sm bg-white px-2 py-0.5 text-xs font-bold text-navy-700 shadow-sm ring-1 ring-slate-200">
-          <span
-            aria-hidden
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: meta.accent }}
-          />
-          {categoryName}
-        </span>
-      </div>
-
       {/* タイトル（任意） */}
       {title && (
         <div className="relative z-10 mt-auto bg-gradient-to-t from-black/55 to-transparent px-4 pb-4 pt-10">

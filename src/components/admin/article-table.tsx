@@ -101,14 +101,13 @@ export function ArticleTable({
   const GROUPS: {
     key: string;
     label: string;
-    hint: string;
+    hint?: string;
     accent: string;
     match: (a: AdminArticle) => boolean;
   }[] = [
     {
       key: "review",
       label: "AI生成・確認待ち",
-      hint: "AIが作った下書き。生成に失敗した記事や公開を停止した記事もここに下書きとして入ります（バッジで状態が分かります）。確認して公開・編集、または削除してください。",
       accent: "bg-amber-400",
       match: (a) => a.status !== "published",
     },
@@ -201,7 +200,7 @@ export function ArticleTable({
     );
   }
 
-  function renderMobileCard(a: AdminArticle) {
+  function renderMobileCard(a: AdminArticle, order?: number) {
     const quality = qualityStatusLabel(a);
     const isOpen = expanded === a.id;
     return (
@@ -213,6 +212,11 @@ export function ArticleTable({
             className="min-w-0 flex-1 text-left active:opacity-70"
           >
             <div className="flex flex-wrap items-center gap-1.5">
+              {order !== undefined && (
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-navy-700 text-[11px] font-bold text-white">
+                  {order}
+                </span>
+              )}
               <StatusBadge status={a.status} />
               <span className="text-[11px] text-slate-400">{a.categoryName}</span>
             </div>
@@ -220,7 +224,7 @@ export function ArticleTable({
               {a.title}
             </p>
             <p className="mt-1.5 text-[11px] text-slate-400">
-              品質 {quality.label} · {a.charCount.toLocaleString()}字 ·{" "}
+              品質 {quality.label} · {a.charCount.toLocaleString()}字 · {a.viewCount.toLocaleString()}PV ·{" "}
               {formatJaDateTime(a.createdAt)}
             </p>
             {a.failedChecks.length > 0 && (
@@ -290,7 +294,7 @@ export function ArticleTable({
     );
   }
 
-  function renderRow(a: AdminArticle) {
+  function renderRow(a: AdminArticle, order?: number) {
     const quality = qualityStatusLabel(a);
     const isOpen = expanded === a.id;
     return (
@@ -298,6 +302,14 @@ export function ArticleTable({
         <tr className="hover:bg-slate-50">
           <td className="px-4 py-2.5 align-top">
             <div className="flex items-center gap-2">
+              {order !== undefined && (
+                <span
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-navy-700 text-[11px] font-bold text-white"
+                  title="公開される順番"
+                >
+                  {order}
+                </span>
+              )}
               <StatusBadge status={a.status} />
               <button
                 onClick={() => setExpanded(isOpen ? null : a.id)}
@@ -332,6 +344,9 @@ export function ArticleTable({
           <td className="px-4 py-2.5 align-top text-slate-500">
             {a.charCount.toLocaleString()}
           </td>
+          <td className="px-4 py-2.5 align-top text-slate-500">
+            {a.viewCount.toLocaleString()}
+          </td>
           <td className="px-4 py-2.5 align-top whitespace-nowrap text-slate-500">
             {formatJaDateTime(a.createdAt)}
           </td>
@@ -341,7 +356,7 @@ export function ArticleTable({
         </tr>
         {isOpen && (
           <tr className="bg-slate-50">
-            <td colSpan={6} className="px-6 py-4">
+            <td colSpan={7} className="px-6 py-4">
               <div className="grid gap-4 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                   <p className="text-xs font-semibold text-slate-500">本文冒頭</p>
@@ -379,7 +394,13 @@ export function ArticleTable({
         </div>
       )}
       {visibleGroups.map((g) => {
-        const items = list.filter(g.match);
+        // 確認待ちは「公開される順（上から）」で見せる＝古い順に並べ、番号を振る
+        const isReview = g.key === "review";
+        const items = isReview
+          ? [...list.filter(g.match)].sort((a, b) =>
+              a.createdAt < b.createdAt ? -1 : 1,
+            )
+          : list.filter(g.match);
         return (
           <section key={g.key}>
             <div className="flex items-baseline gap-2 px-1 md:px-0">
@@ -389,9 +410,16 @@ export function ArticleTable({
                 {items.length}
               </span>
             </div>
-            <p className="mt-1 hidden text-xs text-slate-400 md:block">
-              {g.hint}
-            </p>
+            {g.hint && (
+              <p className="mt-1 hidden text-xs text-slate-400 md:block">
+                {g.hint}
+              </p>
+            )}
+            {isReview && items.length > 0 && (
+              <p className="mt-1 text-xs text-navy-700 md:text-slate-500">
+                番号＝公開される順番（上から）。完全自動公開ONのときは、この順に自動で公開されていきます。
+              </p>
+            )}
 
             {/* モバイル：カードリスト */}
             <ul className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white md:hidden">
@@ -400,7 +428,9 @@ export function ArticleTable({
                   この括りに記事はありません。
                 </li>
               ) : (
-                items.map(renderMobileCard)
+                items.map((a, i) =>
+                  renderMobileCard(a, isReview ? i + 1 : undefined),
+                )
               )}
             </ul>
 
@@ -417,12 +447,15 @@ export function ArticleTable({
                       品質
                     </th>
                     <th className="px-4 py-2.5 font-semibold">文字数</th>
+                    <th className="whitespace-nowrap px-4 py-2.5 font-semibold">PV</th>
                     <th className="px-4 py-2.5 font-semibold">生成日</th>
                     <th className="px-4 py-2.5 text-right font-semibold">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {items.map(renderRow)}
+                  {items.map((a, i) =>
+                    renderRow(a, isReview ? i + 1 : undefined),
+                  )}
                   {items.length === 0 && (
                     <tr>
                       <td

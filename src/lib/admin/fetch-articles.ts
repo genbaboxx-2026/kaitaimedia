@@ -18,6 +18,7 @@ interface DbArticle {
   seo_title: string | null;
   meta_description: string | null;
   char_count: number | null;
+  view_count: number | null;
   revision_count: number | null;
   quality_layers_passed: number | null;
   quality_layers_total: number | null;
@@ -31,7 +32,7 @@ const STATUSES: AdminStatus[] = ["published", "draft", "unpublished", "failed"];
 
 const SELECT =
   "id,slug,title,status,article_type,body,excerpt,seo_title,meta_description," +
-  "char_count,revision_count,quality_layers_passed,quality_layers_total," +
+  "char_count,view_count,revision_count,quality_layers_passed,quality_layers_total," +
   "failed_check_items,created_at,published_at,category:categories(slug,name)";
 
 function toAdmin(r: DbArticle): AdminArticle {
@@ -49,6 +50,7 @@ function toAdmin(r: DbArticle): AdminArticle {
     articleType: r.article_type ?? "A",
     status,
     charCount: r.char_count ?? 0,
+    viewCount: r.view_count ?? 0,
     revisionCount: r.revision_count ?? 0,
     // 3層UIは廃止。互換のため同値で埋める
     quality: { layer1: allPass, layer2: allPass, layer3: allPass },

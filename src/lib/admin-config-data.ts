@@ -29,6 +29,8 @@ export interface GenerationSettings {
   seoTitleMaxLength: number;
   metaDescriptionMaxLength: number;
   monthlyAiBudgetLimit: number;
+  /** 1記事あたりの推定コスト上限（USD）。0=上限なし */
+  perArticleCostLimitUsd: number;
   aiModel: string;
   checks: Record<string, boolean>;
 }
@@ -68,6 +70,7 @@ export const DEFAULT_SETTINGS: GenerationSettings = {
   seoTitleMaxLength: 32,
   metaDescriptionMaxLength: 120,
   monthlyAiBudgetLimit: 0,
+  perArticleCostLimitUsd: 3,
   aiModel: "claude-sonnet-5",
   checks: Object.fromEntries(CHECK_ITEMS.map((c) => [c.key, true])),
 };
@@ -79,7 +82,8 @@ export type PromptStep =
   | "seo"
   | "fix"
   | "quality"
-  | "news_editorial";
+  | "news_editorial"
+  | "sns_trends";
 
 export const PROMPT_STEP_LABEL: Record<PromptStep, string> = {
   structure: "構成生成",
@@ -88,6 +92,7 @@ export const PROMPT_STEP_LABEL: Record<PromptStep, string> = {
   fix: "自動修正",
   quality: "AI品質判定",
   news_editorial: "ニュース自社解説",
+  sns_trends: "SNSトレンド取得",
 };
 
 export interface PromptVersion {
@@ -169,6 +174,20 @@ export const PROMPTS: PromptStepData[] = [
         createdAt: "2026-08-02",
         content:
           "見出しと要約だけを材料に、## わかりやすく解説 / ## 実務で確認できそうなこと / ## 実際の内容 の3部でMarkdown出力。\n\n見出し: {{title}}\n出典: {{source_name}}\n要約: {{summary}}\nテーマ: {{topics}}\n\n金額・重量・単価・割合・断定的な工期日数は書かない。外部URLは書かない。",
+      },
+    ],
+  },
+  {
+    step: "sns_trends",
+    variables: ["{{from_date}}", "{{min_likes}}", "{{max_count}}"],
+    activeVersion: 1,
+    versions: [
+      {
+        version: 1,
+        note: "初期版",
+        createdAt: "2026-08-02",
+        content:
+          "Xを検索し解体・産廃・建設の実務者が気になりそうなバズ投稿を最大{{max_count}}件、いいね目安{{min_likes}}以上、{{from_date}}以降。JSON配列のみ出力。",
       },
     ],
   },
