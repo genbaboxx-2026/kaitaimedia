@@ -29,6 +29,7 @@ BAKUSOQ本番DBには絶対に流さないこと。MCP経由の `apply_migration
 | 13 | `migrations/20260802000007_news_editorial.sql` | ニュース自社解説文＋プロンプト |
 | 14 | `migrations/20260802000008_news_editorial_haiku.sql` | ニュース解説モデルをHaikuに |
 | 15 | `migrations/20260802000009_news_editorial_3parts.sql` | 解説を3部構成に変更 |
+| 16 | `migrations/20260802000010_fix_news_editorial_enum.sql` | news_editorial enum 補完（00009の前に単独実行） |
 | - | `seed.sql` | 初期データ（冪等） |
 
 ## ニュース定期取得（本番）

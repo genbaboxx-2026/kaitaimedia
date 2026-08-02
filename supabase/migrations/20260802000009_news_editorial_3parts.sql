@@ -1,4 +1,6 @@
 -- ニュース解説を3部構成に変更（わかりやすく解説 / 実務確認 / 実際の内容）
+-- 前提: prompt_step に 'news_editorial' があること。
+-- 無い場合は先に 20260802000010_fix_news_editorial_enum.sql を単独実行する。
 
 update public.prompts
 set is_active = false
