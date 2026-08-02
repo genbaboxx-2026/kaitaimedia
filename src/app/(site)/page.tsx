@@ -114,6 +114,15 @@ export default async function HomePage() {
           </section>
         )}
 
+        <div className="px-4 py-4">
+          <Link
+            href="/articles"
+            className="flex h-11 items-center justify-center rounded-lg border border-slate-200 text-sm font-bold text-ink active:bg-slate-50"
+          >
+            記事一覧をすべて見る
+          </Link>
+        </div>
+
         <section className="border-b border-slate-100">
           <FeedSectionHeader title="今日のニュース" />
           <div className="mt-1">
@@ -137,15 +146,6 @@ export default async function HomePage() {
             <SnsTrendList items={snsRows} />
           </section>
         )}
-
-        <div className="px-4 py-5">
-          <Link
-            href="/articles"
-            className="flex h-11 items-center justify-center rounded-lg border border-slate-200 text-sm font-bold text-ink active:bg-slate-50"
-          >
-            記事一覧をすべて見る
-          </Link>
-        </div>
 
         <section className="border-t border-slate-100 px-4 py-5">
           <h2 className="text-[17px] font-black text-ink">注目ランキング</h2>
@@ -278,8 +278,18 @@ export default async function HomePage() {
           </aside>
         </div>
 
-        {/* ランキング下まで全幅：ニュース2列 + SNS */}
-        <section className="mt-10 border-t border-slate-100 pt-8">
+        {/* 記事エリアの下：記事一覧リンク → ニュース + SNS */}
+        <div className="mt-8 text-right">
+          <Link
+            href="/articles"
+            className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+          >
+            記事一覧をすべて見る
+            <ArrowIcon className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <section className="mt-6 border-t border-slate-100 pt-8">
           <div
             className={`grid gap-8 xl:gap-10 ${
               snsRows.length > 0 ? "lg:grid-cols-3" : ""
@@ -313,16 +323,6 @@ export default async function HomePage() {
                 </div>
               </aside>
             )}
-          </div>
-
-          <div className="mt-8 text-right">
-            <Link
-              href="/articles"
-              className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-            >
-              記事一覧をすべて見る
-              <ArrowIcon className="h-4 w-4" />
-            </Link>
           </div>
         </section>
       </div>
