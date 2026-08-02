@@ -68,14 +68,15 @@ export default async function HomePage() {
       getLatestArticles(8),
       getCategories(),
       getPickupArticles(4),
-      getRankingArticles(5),
+      getRankingArticles(3),
       getApprovedSnsTrends(8),
     ]);
 
   const [lead, ...rest] = articles;
   const secondary = rest.slice(0, 3);
   const newsRows = news.slice(0, 8);
-  const snsRows = snsTrends.slice(0, 6);
+  const snsRows = snsTrends.slice(0, 8);
+  const rankingRows = ranking.slice(0, 3);
 
   return (
     <>
@@ -154,14 +155,10 @@ export default async function HomePage() {
         <section className="border-t border-slate-100 px-4 py-5">
           <h2 className="text-[17px] font-black text-ink">注目ランキング</h2>
           <ol className="mt-3">
-            {ranking.map((a, i) => (
+            {rankingRows.map((a, i) => (
               <li key={a.slug} className="border-b border-slate-100">
                 <Link href={`/articles/${a.slug}`} className="flex gap-3 py-3">
-                  <span
-                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-sm font-bold text-white ${
-                      i < 3 ? "bg-accent" : "bg-slate-400"
-                    }`}
-                  >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-accent text-sm font-bold text-white">
                     {i + 1}
                   </span>
                   <span className="min-w-0">
@@ -204,8 +201,8 @@ export default async function HomePage() {
         </section>
       </div>
 
-      {/* ========== デスクトップ：最新記事 → 3列 → ニュース2列 ========== */}
-      <div className="mx-auto hidden max-w-6xl px-4 py-6 md:block">
+      {/* ========== デスクトップ：記事+ランキング → 全幅でニュース+SNS ========== */}
+      <div className="mx-auto hidden max-w-7xl px-4 py-6 md:block">
         <div className="grid gap-8 lg:grid-cols-3">
           <main className="lg:col-span-2">
             {lead && (
@@ -261,50 +258,6 @@ export default async function HomePage() {
                 </div>
               </div>
             )}
-
-            <div className="mt-10">
-              <div
-                className={`grid gap-8 ${
-                  snsRows.length > 0 ? "lg:grid-cols-3" : ""
-                }`}
-              >
-                <div className={snsRows.length > 0 ? "lg:col-span-2" : undefined}>
-                  <FeedSectionHeader title="今日のニュース" />
-                  <div className="mt-2 grid gap-x-8 sm:grid-cols-2">
-                    {newsRows.map((item) => (
-                      <NewsListItem key={item.id} item={item} />
-                    ))}
-                  </div>
-                  <div className="mt-5 text-right">
-                    <Link
-                      href="/news"
-                      className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-                    >
-                      ニュースをもっと見る
-                      <ArrowIcon className="h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
-                {snsRows.length > 0 && (
-                  <aside>
-                    <FeedSectionHeader title="SNSトレンド" />
-                    <div className="mt-2">
-                      <SnsTrendList items={snsRows} compact />
-                    </div>
-                  </aside>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-8 text-right">
-              <Link
-                href="/articles"
-                className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-              >
-                記事一覧をすべて見る
-                <ArrowIcon className="h-4 w-4" />
-              </Link>
-            </div>
           </main>
 
           <aside className="space-y-8">
@@ -353,17 +306,13 @@ export default async function HomePage() {
             <div>
               <SectionTitle>RANKING</SectionTitle>
               <ol className="mt-1">
-                {ranking.map((a, i) => (
+                {rankingRows.map((a, i) => (
                   <li key={a.slug} className="border-b border-slate-200">
                     <Link
                       href={`/articles/${a.slug}`}
                       className="group flex gap-3 py-3"
                     >
-                      <span
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-sm font-bold text-white ${
-                          i < 3 ? "bg-accent" : "bg-slate-400"
-                        }`}
-                      >
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-bold text-white">
                         {i + 1}
                       </span>
                       <span className="flex flex-col">
@@ -381,6 +330,54 @@ export default async function HomePage() {
             </div>
           </aside>
         </div>
+
+        {/* ランキング下まで全幅：ニュース2列 + SNS */}
+        <section className="mt-10 border-t border-slate-100 pt-8">
+          <div
+            className={`grid gap-8 xl:gap-10 ${
+              snsRows.length > 0 ? "lg:grid-cols-3" : ""
+            }`}
+          >
+            <div className={snsRows.length > 0 ? "lg:col-span-2" : undefined}>
+              <FeedSectionHeader title="今日のニュース" />
+              <div className="mt-2 grid gap-x-10 sm:grid-cols-2">
+                {newsRows.map((item) => (
+                  <NewsListItem key={item.id} item={item} />
+                ))}
+              </div>
+              <div className="mt-5 text-right">
+                <Link
+                  href="/news"
+                  className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                >
+                  ニュースをもっと見る
+                  <ArrowIcon className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+            {snsRows.length > 0 && (
+              <aside className="lg:border-l lg:border-slate-100 lg:pl-8">
+                <FeedSectionHeader
+                  title="SNSトレンド"
+                  subtitle="いいね順 · タップで投稿を表示"
+                />
+                <div className="mt-2">
+                  <SnsTrendList items={snsRows} compact />
+                </div>
+              </aside>
+            )}
+          </div>
+
+          <div className="mt-8 text-right">
+            <Link
+              href="/articles"
+              className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+            >
+              記事一覧をすべて見る
+              <ArrowIcon className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
 
         <section id="categories-desktop" className="mt-14">
           <SectionTitle>カテゴリーから探す</SectionTitle>
