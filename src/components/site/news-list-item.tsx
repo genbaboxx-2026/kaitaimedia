@@ -26,9 +26,8 @@ function toneFor(seed: string): string {
 export function NewsListItem({ item }: { item: NewsItem }) {
   const tone = toneFor(`${item.sourceId}:${item.sourceName}`);
   const displaySource = item.sourceName.replace(/^Googleニュース\s*\/\s*/, "");
-  const initialSrc = item.imageUrl || `/api/news/${item.id}/thumb`;
+  const src = item.imageUrl || `/api/news/${item.id}/thumb`;
   const [failed, setFailed] = useState(false);
-  const [src, setSrc] = useState(initialSrc);
 
   return (
     <article className="border-b border-slate-100">
