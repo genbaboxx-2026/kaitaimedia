@@ -1,21 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/site-url";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const DESCRIPTION =
+  "解体業界の実務者向け専門メディア。GENBABOXX が運営し、見積もり・原価管理・法改正など実務の判断に役立つ情報を発信します。";
 
 export const metadata: Metadata = {
-  title: "解体業界特化メディア | GENBABOXX",
-  description:
-    "解体業界の実務者向け専門メディア。GENBABOXX が運営し、実務の判断に役立つ情報を発信します。",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "解体業界特化メディア | GENBABOXX",
+    template: "%s | 解体業界特化メディア",
+  },
+  description: DESCRIPTION,
+  openGraph: {
+    type: "website",
+    siteName: "解体業界特化メディア",
+    locale: "ja_JP",
+    title: "解体業界特化メディア | GENBABOXX",
+    description: DESCRIPTION,
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({
@@ -24,11 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ja"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="ja" className="h-full">
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

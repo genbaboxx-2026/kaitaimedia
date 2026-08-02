@@ -1,0 +1,81 @@
+import "server-only";
+import { restSelect } from "@/lib/supabase/rest";
+import type { AdminArticle, AdminStatus } from "@/lib/admin-data";
+import type { ArticleType } from "@/lib/types";
+
+interface DbArticle {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
+  article_type: ArticleType;
+  body: string | null;
+  excerpt: string | null;
+  seo_title: string | null;
+  meta_description: string | null;
+  char_count: number | null;
+  revision_count: number | null;
+  quality_layers_passed: number | null;
+  quality_layers_total: number | null;
+  failed_check_items: string[] | null;
+  created_at: string;
+  published_at: string | null;
+  category: { slug: string; name: string } | null;
+}
+
+const STATUSES: AdminStatus[] = ["published", "draft", "unpublished", "failed"];
+
+const SELECT =
+  "id,slug,title,status,article_type,body,excerpt,seo_title,meta_description," +
+  "char_count,revision_count,quality_layers_passed,quality_layers_total," +
+  "failed_check_items,created_at,published_at,category:categories(slug,name)";
+
+function toAdmin(r: DbArticle): AdminArticle {
+  const passed = r.quality_layers_passed ?? 3;
+  const total = r.quality_layers_total ?? 3;
+  const allPass = passed >= total;
+  const status = (STATUSES.includes(r.status as AdminStatus)
+    ? r.status
+    : "draft") as AdminStatus;
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.title,
+    categorySlug: r.category?.slug ?? "news",
+    categoryName: r.category?.name ?? "未分類",
+    articleType: r.article_type ?? "A",
+    status,
+    charCount: r.char_count ?? 0,
+    revisionCount: r.revision_count ?? 0,
+    quality: { layer1: allPass, layer2: allPass, layer3: allPass },
+    failedChecks: r.failed_check_items ?? [],
+    excerpt: r.excerpt ?? "",
+    body: r.body ?? "",
+    firstDraftBody: r.body ?? "",
+    seoTitle: r.seo_title ?? "",
+    metaDescription: r.meta_description ?? "",
+    tags: [],
+    createdAt: (r.created_at ?? "").slice(0, 10),
+    publishedAt: r.published_at ? r.published_at.slice(0, 10) : null,
+  };
+}
+
+// 記事一覧をDBから取得。接続不可（service role未設定など）は null を返し、呼び出し側でダミーにフォールバック。
+export async function fetchAdminArticles(): Promise<AdminArticle[] | null> {
+  const rows = await restSelect<DbArticle>(
+    `articles?select=${SELECT}&order=created_at.desc`,
+    0,
+  );
+  if (!rows) return null;
+  return rows.map(toAdmin);
+}
+
+// 単一記事をIDで取得（編集画面用）。
+export async function fetchAdminArticle(id: string): Promise<AdminArticle | null> {
+  const rows = await restSelect<DbArticle>(
+    `articles?select=${SELECT}&id=eq.${id}&limit=1`,
+    0,
+  );
+  if (!rows || rows.length === 0) return null;
+  return toAdmin(rows[0]);
+}

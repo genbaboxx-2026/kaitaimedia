@@ -19,7 +19,7 @@
 | スタイリング | Tailwind CSS |
 | DB | Supabase（PostgreSQL + pgvector） |
 | 認証（管理画面） | Supabase Auth |
-| ホスティング | Cloudflare Pages |
+| ホスティング | Vercel |
 | 定時実行 | GitHub Actions（cron） |
 | AI | Anthropic API または OpenAI API |
 | 画像生成 | satori + resvg（Node.js内で完結） |

@@ -41,7 +41,6 @@ insert into public.settings (key, value, value_type, description) values
   -- 記事生成ルール
   ('min_char_count',              '3000',    'number',  '本文の下限文字数'),
   ('max_char_count',              '4000',    'number',  '本文の上限文字数'),
-  ('target_reader',               '見積担当','string',  '対象読者（経営者/見積担当/現場管理者）'),
   ('writing_style',               'desu_masu','string', '文体（desu_masu=です・ます / dearu=だ・である）'),
   ('expertise_level',             'intermediate','string','専門用語のレベル（beginner/intermediate/advanced）'),
   ('heading_count',               '5',       'number',  '見出し数（H2）の目安'),
@@ -59,8 +58,8 @@ insert into public.settings (key, value, value_type, description) values
   ('check_char_count_enabled',    'true',    'boolean', '第1層: 文字数チェック'),
   ('check_heading_enabled',       'true',    'boolean', '第1層: 見出し階層チェック'),
   ('check_ng_expression_enabled', 'true',    'boolean', '第1層: 禁止表現チェック'),
-  ('check_cta_enabled',           'true',    'boolean', '第1層: CTA有無チェック'),
-  ('check_image_enabled',         'true',    'boolean', '第1層: アイキャッチ有無チェック'),
+  ('check_cta_enabled',           'false',   'boolean', '第1層: CTA有無チェック（CTA機能は廃止のため既定OFF）'),
+  ('check_image_enabled',         'false',   'boolean', '第1層: アイキャッチ有無チェック（公開サイトはSVGで自動表示のため既定OFF）'),
   ('check_seo_length_enabled',    'true',    'boolean', '第1層: SEOタイトル/メタ文字数チェック'),
   ('check_link_alive_enabled',    'true',    'boolean', '第1層: リンク死活チェック'),
   ('check_source_url_enabled',    'true',    'boolean', '第1層: 出典URLチェック（型Cのみ）'),
@@ -117,18 +116,18 @@ where not exists (
 -- -------------------------------------------------------------
 insert into public.prompts (step, version, content, variables, is_active, note, created_by) values
   ('structure', 1,
-E'あなたは解体業界の専門メディアの編集者です。以下のテーマについて、記事の見出し構成をJSONで出力してください。\n\nテーマ: {{theme}}\nカテゴリー: {{category}}\n記事型: {{article_type}}\n狙うキーワード: {{target_keyword}}\n対象読者: {{target_reader}}\n見出し数の目安: {{heading_count}}\n参照マスタ: {{masters}}\n\n制約:\n- 具体的な単価・金額・重量・容積・割合・断定的な工期日数は絶対に含めない。\n- H2/H3の階層で構成する。\n- 出力は {"headings":[{"level":2,"text":"..."},...]} のJSONのみ。',
-   array['theme','category','article_type','target_keyword','target_reader','heading_count','masters'],
+E'あなたは解体業界の専門メディアの編集者です。以下のテーマについて、記事の見出し構成をJSONで出力してください。\n\nテーマ: {{theme}}\nカテゴリー: {{category}}\n記事型: {{article_type}}\n狙うキーワード: {{target_keyword}}\n見出し数の目安: H2見出しを{{heading_count}}個程度\n参照マスタ: {{masters}}\n\n制約:\n- 狙うキーワード（{{target_keyword}}）を意識した構成にする。\n- 具体的な単価・金額・重量・容積・割合・断定的な工期日数は絶対に含めない。\n- H2/H3の階層で構成する。\n- 出力は {"headings":[{"level":2,"text":"..."},...]} のJSONのみ。',
+   array['theme','category','article_type','target_keyword','heading_count','masters'],
    true, '初期版', 'seed'),
 
   ('body', 1,
-E'あなたは解体業界の専門メディアのライターです。以下の見出し構成に沿って本文をMarkdownで書いてください。\n\n見出し構成: {{structure}}\n記事型: {{article_type}}\n文体: {{writing_style}}\n対象読者: {{target_reader}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\n\n最重要の制約（違反厳禁）:\n- 金額（円・万円）、重量・容積（t・kg・m³）、単価（円/t 等）、割合（%・割）、断定的な工期日数を一切書かない。\n- 数量は読者が自分の現場の値を入れる前提で、計算式・考え方・確認項目として示す。\n- 事実と異なる数値を創作しない。不確かな数値は書かない。\n- 型Cの場合は出典URLを併記する。',
-   array['structure','article_type','writing_style','target_reader','min_char_count','max_char_count','ng_expressions','recommended_expressions','masters'],
+E'あなたは解体業界の専門メディアのライターです。以下の見出し構成に沿って本文をMarkdownで書いてください。\n\n見出し構成: {{structure}}\n記事型: {{article_type}}\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要の制約（違反厳禁）:\n- 金額（円・万円）、重量・容積（t・kg・m³）、単価（円/t 等）、割合（%・割）、断定的な工期日数を一切書かない。\n- 数量は読者が自分の現場の値を入れる前提で、計算式・考え方・確認項目として示す。\n- 事実と異なる数値を創作しない。不確かな数値は書かない。\n- 禁止表現（{{ng_expressions}}）は使わない。\n- 型Cの場合は出典URLを併記する。',
+   array['structure','article_type','writing_style','expertise_level','min_char_count','max_char_count','ng_expressions','recommended_expressions','faq_section','masters'],
    true, '初期版', 'seed'),
 
   ('seo', 1,
-E'次の記事のSEOタイトルとメタディスクリプションを作成してください。\n\n記事タイトル: {{title}}\n本文冒頭: {{body_excerpt}}\n\n制約:\n- SEOタイトルは全角{{seo_title_max_length}}文字以内。\n- メタディスクリプションは全角{{meta_description_max_length}}文字以内。\n- 数値の断定表現は含めない。\n- 出力は {"seo_title":"...","meta_description":"..."} のJSONのみ。',
-   array['title','body_excerpt','seo_title_max_length','meta_description_max_length'],
+E'次の記事のSEOタイトルとメタディスクリプションを作成してください。\n\n記事タイトル: {{title}}\n狙うキーワード: {{target_keyword}}\n本文冒頭: {{body_excerpt}}\n\n制約:\n- SEOタイトルは全角32文字以内。狙うキーワード（{{target_keyword}}）を自然に含める。\n- メタディスクリプションは全角120文字以内。\n- 数値の断定表現は含めない。\n- 出力は {"seo_title":"...","meta_description":"..."} のJSONのみ。',
+   array['title','target_keyword','body_excerpt'],
    true, '初期版', 'seed'),
 
   ('fix', 1,
