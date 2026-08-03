@@ -41,7 +41,13 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SecondaryArticleCard({ article }: { article: Article }) {
+function SecondaryArticleCard({
+  article,
+  afterImage,
+}: {
+  article: Article;
+  afterImage?: React.ReactNode;
+}) {
   const categoryName = getCategoryName(article.categorySlug);
   const meta = getCategoryMeta(article.categorySlug);
 
@@ -56,7 +62,10 @@ function SecondaryArticleCard({ article }: { article: Article }) {
             className="aspect-video"
           />
         </div>
-        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
+      </Link>
+      {afterImage}
+      <Link href={`/articles/${article.slug}`} className="group mt-2.5 block">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
           <span
             aria-hidden
             className="h-1.5 w-1.5 rounded-full"
@@ -249,8 +258,24 @@ export default async function HomePage() {
               <div className="mt-8">
                 <SectionTitle>注目の記事</SectionTitle>
                 <div className="mt-4 grid gap-5 sm:grid-cols-3">
-                  {secondary.map((a) => (
-                    <SecondaryArticleCard key={a.slug} article={a} />
+                  {secondary.map((a, i) => (
+                    <SecondaryArticleCard
+                      key={a.slug}
+                      article={a}
+                      afterImage={
+                        i === secondary.length - 1 ? (
+                          <div className="mt-2 text-right">
+                            <Link
+                              href="/articles"
+                              className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                            >
+                              記事一覧をすべて見る
+                              <ArrowIcon className="h-4 w-4" />
+                            </Link>
+                          </div>
+                        ) : undefined
+                      }
+                    />
                   ))}
                 </div>
               </div>
@@ -289,17 +314,6 @@ export default async function HomePage() {
               </ol>
             </div>
           </aside>
-        </div>
-
-        {/* 記事エリアの下：記事一覧リンク → ニュース + SNS */}
-        <div className="mt-8 text-right">
-          <Link
-            href="/articles"
-            className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-          >
-            記事一覧をすべて見る
-            <ArrowIcon className="h-4 w-4" />
-          </Link>
         </div>
 
         <section className="mt-6 border-t border-slate-100 pt-8">
