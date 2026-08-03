@@ -139,12 +139,6 @@ export function SiteHeader() {
               >
                 お問い合わせ
               </Link>
-              <Link
-                href="/bakusoq"
-                className="rounded bg-navy-700 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-navy-600"
-              >
-                BAKUSOQ
-              </Link>
             </div>
           </div>
         </div>
