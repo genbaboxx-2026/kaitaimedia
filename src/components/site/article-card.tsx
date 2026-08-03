@@ -15,7 +15,7 @@ export function ArticleCard({ article }: { article: Article }) {
           categorySlug={article.categorySlug}
           categoryName={categoryName}
           imageUrl={article.imageUrl}
-          className="aspect-[16/10]"
+          className="aspect-video"
         />
       </Link>
 

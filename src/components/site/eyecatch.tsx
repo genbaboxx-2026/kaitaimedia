@@ -79,7 +79,7 @@ export function Eyecatch({
   imageUrl,
   title,
   titleAs: TitleTag = "p",
-  className = "aspect-[16/10]",
+  className = "aspect-video",
   titleClassName = "text-base sm:text-lg",
   children,
 }: EyecatchProps) {
@@ -90,8 +90,9 @@ export function Eyecatch({
       className={`relative flex flex-col overflow-hidden border-b border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 ${className}`}
     >
       {imageUrl ? (
+        // 図解サムネは上部にタイトル帯があるため、切れる場合は上基準で残す
         <div
-          className="absolute inset-0 bg-cover bg-center"
+          className="absolute inset-0 bg-cover bg-top"
           style={{ backgroundImage: `url(${imageUrl})` }}
           role="img"
           aria-label={categoryName}

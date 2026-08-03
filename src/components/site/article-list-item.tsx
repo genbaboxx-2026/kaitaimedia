@@ -51,13 +51,13 @@ export function ArticleListItem({ article }: { article: Article }) {
           </div>
         </div>
 
-        <div className="relative mt-0.5 aspect-[16/10] w-[104px] shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-slate-100 to-slate-200 sm:w-28">
+        <div className="relative mt-0.5 aspect-video w-[104px] shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-slate-100 to-slate-200 sm:w-28">
           {article.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={article.imageUrl}
               alt=""
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover object-top"
             />
           ) : (
             <span className="flex h-full w-full items-center justify-center">

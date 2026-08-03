@@ -16,6 +16,10 @@ import { NewsListItem } from "@/components/site/news-list-item";
 import { SnsTrendList } from "@/components/site/sns-trend-list";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
 import { ArrowIcon } from "@/components/site/icons";
+import {
+  BakusoqSidebarBanner,
+  NinkuboxxSidebarBanner,
+} from "@/components/site/sidebar-promo-banners";
 import { formatJaDate, formatRelativeJa } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -49,7 +53,7 @@ function SecondaryArticleCard({ article }: { article: Article }) {
             categorySlug={article.categorySlug}
             categoryName={categoryName}
             imageUrl={article.imageUrl}
-            className="aspect-[16/10]"
+            className="aspect-video"
           />
         </div>
         <span className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
@@ -101,7 +105,7 @@ export default async function HomePage() {
                   categorySlug={lead.categorySlug}
                   categoryName={getCategoryName(lead.categorySlug)}
                   imageUrl={lead.imageUrl}
-                  className="aspect-[16/10]"
+                  className="aspect-video"
                 />
               </div>
               <h2 className="mt-3 text-[18px] font-black leading-snug text-ink">
@@ -162,7 +166,7 @@ export default async function HomePage() {
                         {a.title}
                       </span>
                     </span>
-                    <span className="relative h-16 w-24 shrink-0 overflow-hidden rounded-md border border-slate-200">
+                    <span className="relative aspect-video w-[7.5rem] shrink-0 overflow-hidden rounded-md border border-slate-200">
                       <Eyecatch
                         categorySlug={a.categorySlug}
                         categoryName={getCategoryName(a.categorySlug)}
@@ -208,7 +212,7 @@ export default async function HomePage() {
                     categorySlug={lead.categorySlug}
                     categoryName={getCategoryName(lead.categorySlug)}
                     imageUrl={lead.imageUrl}
-                    className="aspect-[16/10]"
+                    className="aspect-video"
                   />
                 </Link>
                 <div>
@@ -254,23 +258,9 @@ export default async function HomePage() {
           </main>
 
           <aside className="space-y-8">
-            <div className="rounded-lg border border-slate-200 p-5">
-              <p className="inline-flex rounded-sm bg-navy-50 px-2 py-0.5 text-xs font-bold text-navy-700">
-                解体見積もりシステム
-              </p>
-              <p className="mt-3 font-serif text-lg font-bold leading-snug text-slate-900">
-                見積もり作成を、もっと速く正確に。
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                拾い出しから内訳作成までの手戻りを減らし、担当者ごとのばらつきを抑えます。
-              </p>
-              <Link
-                href="/bakusoq"
-                className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-700"
-              >
-                資料を見る
-                <ArrowIcon className="h-4 w-4" />
-              </Link>
+            <div className="space-y-4">
+              <BakusoqSidebarBanner />
+              <NinkuboxxSidebarBanner />
             </div>
 
             <div>
