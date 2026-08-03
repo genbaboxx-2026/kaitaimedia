@@ -128,7 +128,7 @@ export function SiteHeader() {
                 {SITE_NAME}
               </span>
               <span className="block text-[10px] tracking-widest text-slate-500">
-                運営：GENBABOXX
+                Sponsored by ゲンバボックス
               </span>
             </Link>
 
