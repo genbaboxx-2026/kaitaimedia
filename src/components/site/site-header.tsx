@@ -128,7 +128,7 @@ export function SiteHeader() {
                 {SITE_NAME}
               </span>
               <span className="block text-[10px] tracking-widest text-slate-500">
-                Sponsored by ゲンバボックス
+                運営：株式会社GENBA&nbsp;BOXX
               </span>
             </Link>
 
@@ -144,7 +144,7 @@ export function SiteHeader() {
         </div>
 
         <div className="bg-navy-700 text-white">
-          <div className="mx-auto flex h-11 max-w-6xl items-center gap-1 overflow-x-auto px-4">
+          <div className="mx-auto flex h-11 max-w-6xl items-center justify-center gap-1 overflow-x-auto px-4">
             <Link
               href="/"
               className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-bold hover:bg-white/10"
