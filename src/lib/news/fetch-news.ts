@@ -69,6 +69,24 @@ function toRows(
   }));
 }
 
+/**
+ * PostgREST は同一リクエスト内のオブジェクトキー集合が一致しないと
+ * PGRST102 ("All object keys must match") で拒否する。
+ * image_url / summary を任意送信するため、キー集合ごとにバッチ分割する。
+ */
+function groupByObjectKeys(
+  rows: Record<string, unknown>[],
+): Record<string, unknown>[][] {
+  const groups = new Map<string, Record<string, unknown>[]>();
+  for (const row of rows) {
+    const signature = Object.keys(row).sort().join("\0");
+    const list = groups.get(signature);
+    if (list) list.push(row);
+    else groups.set(signature, [row]);
+  }
+  return [...groups.values()];
+}
+
 async function collectFromSource(source: NewsSource): Promise<{
   rows: NewsItemRow[];
   fetched: number;
@@ -177,12 +195,14 @@ export async function fetchAndStoreNews(): Promise<FetchAndStoreNewsResult> {
           if (r.summary) base.summary = r.summary;
           return base;
         });
-        const saved = await restUpsert<NewsItemRow>(
-          "news_items",
-          payload,
-          "url",
-        );
-        upserted = saved.length;
+        for (const batch of groupByObjectKeys(payload)) {
+          const saved = await restUpsert<NewsItemRow>(
+            "news_items",
+            batch,
+            "url",
+          );
+          upserted += saved.length;
+        }
       }
       results.push({
         sourceId: source.id,

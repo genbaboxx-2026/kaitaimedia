@@ -35,7 +35,8 @@ async function main(): Promise<void> {
     console.error("有効なニュースソースがありません。NEWS_ENABLE_GOOGLE_NEWS 等を確認してください。");
     process.exit(1);
   }
-  if (failed.length === results.length) {
+  // 一部ソースでも保存失敗したら Actions を失敗扱いにする（握りつぶさない）
+  if (failed.length > 0) {
     process.exit(1);
   }
 }
