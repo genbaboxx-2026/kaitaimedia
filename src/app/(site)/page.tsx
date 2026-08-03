@@ -43,10 +43,10 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function SecondaryArticleCard({
   article,
-  afterImage,
+  footer,
 }: {
   article: Article;
-  afterImage?: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const categoryName = getCategoryName(article.categorySlug);
   const meta = getCategoryMeta(article.categorySlug);
@@ -62,10 +62,7 @@ function SecondaryArticleCard({
             className="aspect-video"
           />
         </div>
-      </Link>
-      {afterImage}
-      <Link href={`/articles/${article.slug}`} className="group mt-2.5 block">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
+        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
           <span
             aria-hidden
             className="h-1.5 w-1.5 rounded-full"
@@ -80,6 +77,7 @@ function SecondaryArticleCard({
           {formatRelativeJa(article.publishedAt)}
         </p>
       </Link>
+      {footer}
     </article>
   );
 }
@@ -262,9 +260,9 @@ export default async function HomePage() {
                     <SecondaryArticleCard
                       key={a.slug}
                       article={a}
-                      afterImage={
+                      footer={
                         i === secondary.length - 1 ? (
-                          <div className="mt-2 text-right">
+                          <div className="mt-3 text-right">
                             <Link
                               href="/articles"
                               className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
