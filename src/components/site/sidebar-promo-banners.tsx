@@ -7,10 +7,7 @@ const NINKUBOXX_URL = "https://genbaboxx.co.jp/ninkuboxx";
 export function BakusoqSidebarBanner() {
   return (
     <div className="rounded-lg border border-slate-200 p-5">
-      <p className="inline-flex rounded-sm bg-navy-50 px-2 py-0.5 text-xs font-bold text-navy-700">
-        解体見積もりシステム
-      </p>
-      <p className="mt-3 font-serif text-lg font-bold leading-snug text-slate-900">
+      <p className="font-serif text-lg font-bold leading-snug text-slate-900">
         見積もり作成を、もっと速く正確に。
       </p>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">
@@ -31,10 +28,7 @@ export function BakusoqSidebarBanner() {
 export function NinkuboxxSidebarBanner() {
   return (
     <div className="rounded-lg border border-slate-200 p-5">
-      <p className="inline-flex rounded-sm bg-navy-50 px-2 py-0.5 text-xs font-bold text-navy-700">
-        等級・評価制度サポート
-      </p>
-      <p className="mt-3 font-serif text-lg font-bold leading-snug text-slate-900">
+      <p className="font-serif text-lg font-bold leading-snug text-slate-900">
         解体屋の等級制度・評価制度にお困りではないですか？
       </p>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">
