@@ -7,7 +7,6 @@ import {
   GridIcon,
   HomeIcon,
   HomeIconFilled,
-  PlayCircleIcon,
   UserIcon,
 } from "@/components/site/nav-icons";
 
@@ -34,13 +33,6 @@ const ITEMS = [
     ActiveIcon: ArticleIcon,
   },
   {
-    href: "/bakusoq",
-    label: "BAKUSOQ",
-    match: (p: string) => p.startsWith("/bakusoq"),
-    Icon: PlayCircleIcon,
-    ActiveIcon: PlayCircleIcon,
-  },
-  {
     href: "/contact",
     label: "お問合せ",
     match: (p: string) =>
@@ -59,7 +51,7 @@ export function SiteBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="メインメニュー"
     >
-      <ul className="mx-auto grid h-14 max-w-lg grid-cols-5">
+      <ul className="mx-auto grid h-14 max-w-lg grid-cols-4">
         {ITEMS.map((item) => {
           const active = item.match(pathname);
           const Icon = active && item.ActiveIcon ? item.ActiveIcon : item.Icon;
