@@ -4,7 +4,7 @@ import type { Article, Category, Cta, NewsItem } from "@/lib/types";
 // 数値不使用ポリシー（金額・重量・単価・割合・断定的な工期日数を書かない）に準拠。
 
 export const SITE_NAME = "解体ナレッジ";
-export const OPERATOR_NAME = "GENBABOXX";
+export const OPERATOR_NAME = "GENBA BOXX";
 
 // 7カテゴリーに統合（旧17項目を吸収）
 export const CATEGORIES: Category[] = [
