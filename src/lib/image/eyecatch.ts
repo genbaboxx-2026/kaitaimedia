@@ -12,9 +12,8 @@ export interface AiImageResult {
   costUsd: number;
 }
 
-// アイキャッチ画像生成（satori で SVG → resvg で PNG）。要件定義書 第10章。
-// 日本語フォントが必要。EYECATCH_FONT_PATH か assets/fonts/NotoSansJP-Bold.{otf,ttf} に配置する。
-// フォントが無ければ null を返し、パイプラインはアイキャッチ無しとして扱う。
+// フォールバック用アイキャッチ（satori グラデ）。YouTube風生成失敗時に使う。
+// 日本語フォントが必要。EYECATCH_FONT_PATH か assets/fonts/NotoSansJP-Bold.{otf,ttf}。
 
 let fontCache: Buffer | null = null;
 let fontMissing = false;
@@ -26,6 +25,7 @@ function loadFont(): Buffer | null {
     process.env.EYECATCH_FONT_PATH,
     "assets/fonts/NotoSansJP-Bold.otf",
     "assets/fonts/NotoSansJP-Bold.ttf",
+    "assets/fonts/NotoSansJP-Black.otf",
   ].filter((p): p is string => Boolean(p));
   for (const path of candidates) {
     try {
@@ -87,18 +87,27 @@ export async function generateEyecatchPng(
   return Buffer.from(png);
 }
 
-// OpenAI 画像モデル（gpt-image-1）でアイキャッチPNGを生成する。
-// トーン：写実的な現場写真は避け、抽象・図解・フラットベクター調（専門性を損なわないため）。
-// 文字は入れない（画像モデルは日本語を崩すため）。OPENAI_API_KEY 未設定・失敗時は null。
 export interface AiImageOptions {
   quality?: "low" | "medium" | "high";
   /** 画像ごとに構図を変えて重複を避けるためのヒント */
   variantHint?: string;
   /** 記事ごとに変える絵柄（イラスト／写真風など） */
   style?: string;
+  /**
+   * eyecatch: 非推奨（generateDiagramEyecatchPng / Nano Banana を使う）
+   * figure: 本文中の説明図（写実禁止・イラスト図解固定 / gpt-image-1）
+   */
+  role?: "eyecatch" | "figure";
 }
 
-// 記事ごとにランダムで選ぶ絵柄（毎回テイストが変わるように）
+/** 本文中図版専用：写実・フォトリアルを含めない説明イラスト */
+export const INBODY_IMAGE_STYLES: string[] = [
+  "flat editorial infographic illustration, clean geometric shapes, soft isometric or simple 2D panels, generous negative space",
+  "hand-drawn explanatory line illustration with limited flat color (navy/gray/cream) and one red accent, textbook diagram feel",
+  "modern flat vector process diagram, icon-like workers and machines, clear visual hierarchy like a how-to board",
+];
+
+/** @deprecated 表紙は YouTube 風パイプラインへ移行。互換のため残置 */
 export const IMAGE_STYLES: string[] = [
   "refined modern flat vector illustration, crisp clean edges, generous negative space, editorial tone",
   "realistic editorial photograph, natural soft lighting, shallow depth of field, documentary feel",
@@ -112,6 +121,38 @@ export function pickImageStyle(): string {
   return IMAGE_STYLES[Math.floor(Math.random() * IMAGE_STYLES.length)];
 }
 
+export function pickInBodyImageStyle(): string {
+  return INBODY_IMAGE_STYLES[
+    Math.floor(Math.random() * INBODY_IMAGE_STYLES.length)
+  ];
+}
+
+function buildFigurePrompt(
+  subject: string,
+  categoryName: string,
+  opts?: AiImageOptions,
+): string {
+  const style = opts?.style ?? INBODY_IMAGE_STYLES[0];
+  return [
+    "Explanatory illustration figure for a Japanese B2B demolition-industry media article.",
+    "Goal: teach a concept like a textbook diagram or infographic — NOT a photo, NOT cinematic realism.",
+    `Category: ${categoryName}. Concept to explain: ${subject}.`,
+    opts?.variantHint
+      ? `Diagram composition (must differ from other figures in the same article): ${opts.variantHint}.`
+      : "",
+    `Art style: ${style}.`,
+    "Use simplified icon-like people, machines, and buildings. Prefer multi-panel layouts, flow arrows, check/X marks, or numbered steps as visual symbols.",
+    "Palette: deep navy, slate gray, cream or soft white background, one muted red accent. Flat or lightly shaded — no photoreal skin, no camera DOF, no stock-photo look.",
+    "STRICT: no Japanese text, no words, no logos, no watermark, no brand marks. Simple digits (1 2 3) and arrows are OK as diagram symbols only. Avoid identifiable real people.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/**
+ * 本文中図版（role=figure）向け。gpt-image-1 のまま維持。
+ * 表紙サムネは generateDiagramEyecatchPng（Nano Banana）を使うこと。
+ */
 export async function generateAiEyecatchPng(
   subject: string,
   categoryName: string,
@@ -121,20 +162,7 @@ export async function generateAiEyecatchPng(
   if (!key) return null;
 
   const quality = opts?.quality ?? "high";
-  const style = opts?.style ?? IMAGE_STYLES[0];
-  const prompt = [
-    "High-quality cover/figure image for a Japanese B2B media about the building demolition industry.",
-    `Category: ${categoryName}. This specific image represents: ${subject}.`,
-    opts?.variantHint
-      ? `Composition for THIS image (make it clearly different from other figures in the article): ${opts.variantHint}.`
-      : "",
-    `Art style: ${style}.`,
-    "Overall palette leans deep navy and slate grays with a single red accent; balanced, professional editorial look.",
-    "Depict the concept concretely with distinct, non-repeating subjects relevant to the specific image above.",
-    "STRICT: no text, no words, no letters, no numbers, no logos, no watermark. Avoid identifiable real people or brand marks.",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const prompt = buildFigurePrompt(subject, categoryName, opts);
 
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {
@@ -175,8 +203,10 @@ export async function generateAiEyecatchPng(
   }
 }
 
+export { generateYoutubeEyecatchPng } from "@/lib/image/youtube-eyecatch";
+export { generateDiagramEyecatchPng } from "@/lib/image/diagram-eyecatch";
+
 // Supabase Storage の公開バケット 'eyecatch' にアップロードし公開URLを返す。
-// バケットが無い・service key 未設定なら null。
 export async function uploadEyecatch(
   png: Buffer,
   slug: string,

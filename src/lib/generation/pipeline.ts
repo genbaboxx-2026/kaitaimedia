@@ -9,7 +9,8 @@ import { restInsert, restRpc, restSelect, restUpdate } from "@/lib/supabase/rest
 import {
   generateEyecatchPng,
   generateAiEyecatchPng,
-  pickImageStyle,
+  generateYoutubeEyecatchPng,
+  pickInBodyImageStyle,
   uploadEyecatch,
 } from "@/lib/image/eyecatch";
 import { notifySlack } from "@/lib/notify/slack";
@@ -437,23 +438,20 @@ export async function runGenerationPipeline(opts?: {
     const seoTitle = seoRes.data.seo_title ?? theme.title;
     const metaDescription = seoRes.data.meta_description ?? excerptFrom(body);
 
-    // アイキャッチ生成：AI画像（gpt-image-1）を優先し、そのトークン/コストも同じ記事に合算。
-    // AIが使えない（キー未設定・課金停止など）ときは satori のSVGにフォールバック。
+    // アイキャッチ（表紙1枚目）：Nano Banana 図解サムネ。
+    // 本文図版（2枚目以降）は従来どおり gpt-image-1 図解イラスト。
+    // AIが使えないときは satori グラデにフォールバック。
     const slug = slugify(categorySlug);
-    // 記事ごとに絵柄をランダムに選ぶ（サムネと本文中図版で統一）
-    const artStyle = pickImageStyle();
     let png: Buffer | null = null;
-    const aiImage = await generateAiEyecatchPng(theme.title, categoryName, {
+    const cover = await generateYoutubeEyecatchPng(theme.title, categoryName, {
       quality: imageQuality,
-      style: artStyle,
-      variantHint:
-        "記事全体を象徴するヒーロー表紙構図。主役モチーフを大きく中央に配置し、他の図版と重複しない独自の絵にする",
+      categorySlug,
     });
-    if (aiImage) {
-      png = aiImage.png;
-      inputTokens += aiImage.inputTokens;
-      outputTokens += aiImage.outputTokens;
-      cost += aiImage.costUsd;
+    if (cover) {
+      png = cover.png;
+      inputTokens += cover.inputTokens;
+      outputTokens += cover.outputTokens;
+      cost += cover.costUsd;
       assertCostUnderLimit();
     } else {
       png = await generateEyecatchPng(theme.title, categorySlug, categoryName);
@@ -588,13 +586,14 @@ export async function runGenerationPipeline(opts?: {
           picks.push(candidates[i]);
         }
       }
-      // 図版ごとに構図を変えて重複を防ぐ
+      // 図版ごとに構図を変えて重複を防ぐ（説明イラスト前提）
       const figHints = [
-        "手順を表す横方向のフロー図。番号付きのステップを矢印でつなぐ",
-        "1つの主要オブジェクトを中心に据えたシンプルな概念アイコン図",
-        "対比・チェックリスト風の2カラム構図",
-        "俯瞰の現場レイアウト図。建物・重機・区画を配置",
+        "横方向の手順フロー：アイコン化した作業員・書類・車両を矢印でつなぐ説明図",
+        "2×2パネルの教科書風イラスト：良い例／悪い例を対比し、赤い×印などで注意を示す",
+        "等角（アイソメ）の工程図：ステップ記号と矢印で概念を説明するフラット図解",
+        "チェックリスト風の図解：確認項目をアイコンとマークで並べた説明ボード",
       ];
+      const inBodyStyle = pickInBodyImageStyle();
       // 後ろから挿入して index のズレを防ぐ（hint は元の並び順で割り当て）
       for (let k = picks.length - 1; k >= 0; k--) {
         // 図版は任意のため、上限到達後は追加生成せず本文保存へ進む
@@ -602,7 +601,8 @@ export async function runGenerationPipeline(opts?: {
         const p = picks[k];
         const img = await generateAiEyecatchPng(p.text, categoryName, {
           quality: imageQuality,
-          style: artStyle,
+          role: "figure",
+          style: inBodyStyle,
           variantHint: figHints[k % figHints.length],
         });
         if (!img) continue;

@@ -75,17 +75,18 @@ export const revalidate = 300; // ISR: 5分
 
 export default async function HomePage() {
   const [news, articles, ranking, snsTrends] = await Promise.all([
-    getLatestNews(12),
-    getLatestArticles(8),
+    getLatestNews(10),
+    getLatestArticles(11),
     getRankingArticles(3),
-    getApprovedSnsTrends(8),
+    getApprovedSnsTrends(10),
   ]);
 
   const [lead, ...rest] = articles;
   const secondary = rest.slice(0, 3);
-  const newsRows = news.slice(0, 8);
-  const snsRows = snsTrends.slice(0, 8);
+  const newsRows = news.slice(0, 10);
+  const snsRows = snsTrends.slice(0, 10);
   const rankingRows = ranking.slice(0, 3);
+  const articleFeed = rest.slice(0, 10); // モバイル「記事」セクション：最新記事の次から公開順に最大10件
 
   return (
     <>
@@ -117,27 +118,18 @@ export default async function HomePage() {
           </section>
         )}
 
-        {secondary.length > 0 && (
-          <section className="border-b border-slate-100 px-4 py-5">
-            <h2 className="text-[17px] font-black text-ink">注目の記事</h2>
-            <div className="mt-3 grid grid-cols-1 gap-4">
-              {secondary.map((a) => (
-                <SecondaryArticleCard key={a.slug} article={a} />
-              ))}
-            </div>
-          </section>
-        )}
-
+        {/* 記事一覧を見る */}
         <div className="px-4 py-4">
           <Link
             href="/articles"
             className="flex h-11 items-center justify-center rounded-lg border border-slate-200 text-sm font-bold text-ink active:bg-slate-50"
           >
-            記事一覧をすべて見る
+            記事一覧を見る
           </Link>
         </div>
 
-        <section className="border-b border-slate-100">
+        {/* ニュース（最大10件） */}
+        <section className="border-t border-slate-100">
           <FeedSectionHeader title="今日のニュース" />
           <div className="mt-1">
             {newsRows.map((item) => (
@@ -154,35 +146,52 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* 記事（公開した順に最大10件） */}
+        {articleFeed.length > 0 && (
+          <section className="border-t border-slate-100">
+            <FeedSectionHeader title="記事" />
+            <ul className="mt-1">
+              {articleFeed.map((a) => (
+                <li key={a.slug} className="border-b border-slate-100">
+                  <Link href={`/articles/${a.slug}`} className="flex gap-3 px-4 py-3.5 active:bg-slate-50">
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[11px] font-semibold text-slate-400">
+                        {getCategoryName(a.categorySlug)} · {formatRelativeJa(a.publishedAt)}
+                      </span>
+                      <span className="mt-0.5 line-clamp-2 text-[14px] font-bold leading-snug text-ink">
+                        {a.title}
+                      </span>
+                    </span>
+                    <span className="relative h-16 w-24 shrink-0 overflow-hidden rounded-md border border-slate-200">
+                      <Eyecatch
+                        categorySlug={a.categorySlug}
+                        categoryName={getCategoryName(a.categorySlug)}
+                        imageUrl={a.imageUrl}
+                        className="h-full w-full"
+                      />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="px-4 py-5">
+              <Link
+                href="/articles"
+                className="flex h-11 items-center justify-center rounded-lg border border-slate-200 text-sm font-bold text-ink active:bg-slate-50"
+              >
+                記事をもっと見る
+              </Link>
+            </div>
+          </section>
+        )}
+
+        {/* SNS（最大10件） */}
         {snsRows.length > 0 && (
-          <section className="border-b border-slate-100">
+          <section className="border-t border-slate-100">
             <FeedSectionHeader title="SNSトレンド" />
             <SnsTrendList items={snsRows} />
           </section>
         )}
-
-        <section className="border-t border-slate-100 px-4 py-5">
-          <h2 className="text-[17px] font-black text-ink">注目ランキング</h2>
-          <ol className="mt-3">
-            {rankingRows.map((a, i) => (
-              <li key={a.slug} className="border-b border-slate-100">
-                <Link href={`/articles/${a.slug}`} className="flex gap-3 py-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-accent text-sm font-bold text-white">
-                    {i + 1}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[11px] font-semibold text-slate-400">
-                      {getCategoryName(a.categorySlug)}
-                    </span>
-                    <span className="mt-0.5 line-clamp-2 text-[14px] font-bold leading-snug text-ink">
-                      {a.title}
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
       </div>
 
       {/* ========== デスクトップ：記事+ランキング → 全幅でニュース+SNS ========== */}
