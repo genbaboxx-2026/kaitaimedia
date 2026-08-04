@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORIES, SITE_NAME } from "@/lib/dummy-data";
 import { SearchIcon } from "@/components/site/icons";
 import { BellIcon, MenuIcon } from "@/components/site/nav-icons";
 import { SiteMenuDrawer } from "@/components/site/site-menu-drawer";
+import { SiteLogo } from "@/components/site/site-logo";
 
 const PRIMARY_CATEGORY_SLUGS = [
   "estimate",
@@ -54,14 +54,7 @@ export function SiteHeader() {
           </div>
 
           <Link href="/" className="min-w-0 px-1" aria-label={SITE_NAME}>
-            <Image
-              src="/logo-kaitai-knowledge.png"
-              alt={SITE_NAME}
-              width={394}
-              height={112}
-              className="mx-auto h-8 w-auto max-w-[200px] object-contain"
-              priority
-            />
+            <SiteLogo compact className="mx-auto" />
           </Link>
 
           <div className="flex w-20 items-center justify-end gap-0.5">
@@ -132,16 +125,9 @@ export function SiteHeader() {
             <Link
               href="/"
               className="justify-self-center"
-              aria-label={SITE_NAME}
+              aria-label={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
             >
-              <Image
-                src="/logo-kaitai-knowledge.png"
-                alt={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
-                width={394}
-                height={112}
-                className="h-11 w-auto max-w-[280px] object-contain"
-                priority
-              />
+              <SiteLogo />
             </Link>
 
             <div className="flex items-center justify-self-end gap-2">

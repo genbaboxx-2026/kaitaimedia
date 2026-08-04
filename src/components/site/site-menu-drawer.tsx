@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CATEGORIES, SITE_NAME } from "@/lib/dummy-data";
+import { CATEGORIES } from "@/lib/dummy-data";
 import { CloseIcon } from "@/components/site/nav-icons";
+import { SiteLogo } from "@/components/site/site-logo";
 
 const LINKS = [
   { href: "/news", label: "ニュース" },
@@ -42,9 +43,7 @@ export function SiteMenuDrawer({
         aria-label="サイトメニュー"
       >
         <div className="flex h-14 items-center justify-between border-b border-slate-100 px-4">
-          <span className="text-[15px] font-bold tracking-wide text-ink">
-            {SITE_NAME}
-          </span>
+          <SiteLogo compact />
           <button
             type="button"
             onClick={onClose}
