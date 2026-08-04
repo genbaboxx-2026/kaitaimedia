@@ -87,13 +87,13 @@ export const revalidate = 300; // ISR: 5分
 export default async function HomePage() {
   const [news, articles, ranking, snsTrends] = await Promise.all([
     getLatestNews(10),
-    getLatestArticles(11),
+    getLatestArticles(13),
     getRankingArticles(3),
     getApprovedSnsTrends(10),
   ]);
 
   const [lead, ...rest] = articles;
-  const secondary = rest.slice(0, 3);
+  const secondary = rest.slice(0, 6); // 注目の記事：3列×2行
   const newsRows = news.slice(0, 10);
   const snsRows = snsTrends.slice(0, 10);
   const rankingRows = ranking.slice(0, 3);
@@ -262,25 +262,18 @@ export default async function HomePage() {
               <div className="mt-8">
                 <SectionTitle>注目の記事</SectionTitle>
                 <div className="mt-4 grid gap-5 sm:grid-cols-3">
-                  {secondary.map((a, i) => (
-                    <SecondaryArticleCard
-                      key={a.slug}
-                      article={a}
-                      footer={
-                        i === secondary.length - 1 ? (
-                          <div className="mt-3 text-right">
-                            <Link
-                              href="/articles"
-                              className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-                            >
-                              記事一覧をすべて見る
-                              <ArrowIcon className="h-4 w-4" />
-                            </Link>
-                          </div>
-                        ) : undefined
-                      }
-                    />
+                  {secondary.map((a) => (
+                    <SecondaryArticleCard key={a.slug} article={a} />
                   ))}
+                </div>
+                <div className="mt-4 text-right">
+                  <Link
+                    href="/articles"
+                    className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                  >
+                    記事一覧をすべて見る
+                    <ArrowIcon className="h-4 w-4" />
+                  </Link>
                 </div>
               </div>
             )}
