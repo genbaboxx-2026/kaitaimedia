@@ -7,7 +7,6 @@ import {
   getLatestNews,
   getRankingArticles,
 } from "@/lib/site-data";
-import { getCategoryMeta } from "@/lib/categories-meta";
 import { SITE_URL } from "@/lib/site-url";
 import { SITE_DESCRIPTION } from "@/lib/seo";
 import type { Article } from "@/lib/types";
@@ -209,16 +208,7 @@ export default async function HomePage() {
                       className="aspect-[21/9] sm:aspect-[2.4/1]"
                     />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-6 pb-5 pt-16">
-                      <span
-                        className="inline-flex rounded-md px-2.5 py-1 text-[11px] font-bold text-white"
-                        style={{
-                          backgroundColor: getCategoryMeta(lead.categorySlug)
-                            .accent,
-                        }}
-                      >
-                        {getCategoryName(lead.categorySlug)}
-                      </span>
-                      <h1 className="mt-2.5 max-w-3xl text-xl font-bold leading-snug text-white sm:text-2xl">
+                      <h1 className="max-w-3xl text-xl font-bold leading-snug text-white sm:text-2xl">
                         {lead.title}
                       </h1>
                       <p className="mt-2 max-w-2xl line-clamp-2 text-sm leading-relaxed text-white/85">

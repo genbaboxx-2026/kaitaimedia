@@ -106,11 +106,11 @@ export function SiteHeader() {
       <SiteMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       {/* ========== デスクトップ：ポータル風ヘッダー ========== */}
-      <header className="sticky top-0 z-30 hidden border-b border-slate-200/80 bg-white/95 backdrop-blur md:block">
+      <header className="sticky top-0 z-50 hidden border-b border-slate-200/80 bg-white md:block">
         <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-6 px-4 lg:px-6">
           <Link
             href="/"
-            className="shrink-0"
+            className="relative z-10 shrink-0"
             aria-label={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
           >
             <SiteLogo />
@@ -119,7 +119,7 @@ export function SiteHeader() {
           <form
             action="/search"
             method="get"
-            className="mx-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition-colors focus-within:border-navy-600 focus-within:bg-white"
+            className="relative z-10 mx-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition-colors focus-within:border-navy-600 focus-within:bg-white"
           >
             <SearchIcon className="h-4 w-4 shrink-0 text-slate-400" />
             <input
@@ -133,7 +133,7 @@ export function SiteHeader() {
 
           <Link
             href="/contact"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700"
+            className="relative z-10 inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700"
           >
             <MailIcon className="h-4 w-4" />
             お問い合わせ
@@ -141,10 +141,10 @@ export function SiteHeader() {
         </div>
 
         <nav
-          className="border-t border-slate-100"
+          className="relative z-10 border-t border-slate-100 bg-white"
           aria-label="メインナビゲーション"
         >
-          <div className="mx-auto flex h-12 max-w-7xl items-stretch gap-0.5 overflow-x-auto px-4 lg:px-6">
+          <div className="mx-auto flex h-12 max-w-7xl items-stretch justify-between gap-0 px-3 lg:px-6">
             <DesktopNavLink href="/" active={isTop}>
               トップ
             </DesktopNavLink>
@@ -182,7 +182,7 @@ function DesktopNavLink({
   return (
     <Link
       href={href}
-      className={`relative flex shrink-0 items-center px-3 text-[13px] whitespace-nowrap transition-colors lg:px-3.5 lg:text-sm ${
+      className={`relative z-10 flex flex-1 cursor-pointer items-center justify-center px-1 text-[12px] whitespace-nowrap transition-colors lg:px-2 lg:text-[13px] ${
         active
           ? "font-bold text-navy-800"
           : "font-medium text-slate-500 hover:text-navy-700"
@@ -192,7 +192,7 @@ function DesktopNavLink({
       {active && (
         <span
           aria-hidden
-          className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-navy-700"
+          className="pointer-events-none absolute inset-x-1 bottom-0 h-[3px] rounded-full bg-navy-700"
         />
       )}
     </Link>

@@ -22,24 +22,20 @@ export function SiteMenuDrawer({
   open: boolean;
   onClose: () => void;
 }) {
+  // 閉じているときは DOM から外し、ナビへのクリックを遮らない
+  if (!open) return null;
+
   return (
-    <div
-      className={`fixed inset-0 z-50 md:hidden ${open ? "" : "pointer-events-none"}`}
-      aria-hidden={!open}
-    >
+    <div className="fixed inset-0 z-50 md:hidden" aria-hidden={false}>
       <button
         type="button"
         aria-label="メニューを閉じる"
         onClick={onClose}
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${
-          open ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 bg-black/40"
       />
 
       <nav
-        className={`absolute inset-y-0 left-0 flex w-[86%] max-w-sm flex-col bg-white shadow-xl transition-transform duration-200 ease-out ${
-          open ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className="absolute inset-y-0 left-0 flex w-[86%] max-w-sm flex-col bg-white shadow-xl"
         aria-label="サイトメニュー"
       >
         <div className="flex h-14 items-center justify-between border-b border-slate-100 px-4">
