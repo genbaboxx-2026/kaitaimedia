@@ -1,6 +1,6 @@
 /**
  * Nano Banana 図解サムネのレイアウト／パレット多様化。
- * 同じ「紺ヘッダー＋クリーム＋横矢印4コマ」に固定しない。
+ * カテゴリで色を寄せない。毎回フル候補から独立に抽選する。
  */
 
 export interface DiagramPalette {
@@ -17,53 +17,72 @@ export interface DiagramLayout {
   titlePlacement: string;
 }
 
-/** 見た目が大きく違うパレット群 */
+/** 見た目が大きく違うパレット群（カテゴリバイアスなし） */
 export const DIAGRAM_PALETTES: DiagramPalette[] = [
   {
     id: "ink-paper",
     brief:
-      "Near-white paper background, charcoal ink typography, single vivid orange accent. Clean newspaper/editorial feel. Avoid navy header bars and cream panels.",
+      "STRICT COLORS: near-white paper background, charcoal ink typography, ONE vivid orange accent only. Editorial newspaper. No navy bars, no cream panels, no dark charcoal canvas.",
   },
   {
     id: "charcoal-amber",
     brief:
-      "Charcoal (#1f2937) canvas, warm amber/gold accents, soft gray cards. Dark modern dashboard feel. No cream yellow body.",
+      "STRICT COLORS: charcoal (#1f2937) canvas, warm amber/gold accents, soft gray cards. Dark dashboard. No cream yellow body, no sky blue.",
   },
   {
     id: "slate-cyan",
     brief:
-      "Cool slate blue-gray background, white cards, cyan accent lines. Tech-editorial. No red arrows, no navy title bar.",
+      "STRICT COLORS: cool slate blue-gray background, white cards, cyan (#06b6d4) accent lines. Tech-editorial. No orange, no amber, no navy title bar.",
   },
   {
     id: "forest-ivory",
     brief:
-      "Deep forest green header or side band, ivory body, muted gold accents. Calm professional. Avoid bright red arrows.",
+      "STRICT COLORS: deep forest green bands, ivory body, muted gold accents. Calm professional. No orange, no cyan, no black canvas.",
   },
   {
     id: "construction-hi-vis",
     brief:
-      "Matte black background, high-vis yellow and white type, bold safety-sign geometry. High contrast. Not a soft cream infographic.",
+      "STRICT COLORS: matte black background, high-vis yellow (#facc15) and white type only. Safety-sign geometry. No orange-amber soft cards, no navy.",
   },
   {
     id: "burgundy-warm",
     brief:
-      "Deep burgundy / wine tones with warm ivory panels and soft gold rules. Magazine feature look. Avoid flowchart red arrows.",
+      "STRICT COLORS: deep burgundy / wine background or bands, warm ivory panels, soft gold rules. Magazine feature. No cyan, no charcoal-amber dashboard look.",
   },
   {
     id: "sky-white",
     brief:
-      "Soft sky-blue gradient background, white content cards, navy text. Airy and light. No dense cream flowchart strip.",
+      "STRICT COLORS: soft sky-blue gradient background, white content cards, navy text. Airy and light. No dark charcoal, no amber icons, no cream flowchart strip.",
   },
   {
     id: "mono-coral",
     brief:
-      "Warm off-white background, black typography, single coral accent for emphasis. Minimal Swiss poster. Large empty space OK.",
+      "STRICT COLORS: warm off-white background, black typography, single coral (#f43f5e) accent. Minimal Swiss poster. Large empty space. No navy, no amber gold.",
+  },
+  {
+    id: "lilac-ink",
+    brief:
+      "STRICT COLORS: soft lilac / lavender background, deep ink purple typography, white cards. Gentle editorial. No orange, no charcoal black canvas.",
+  },
+  {
+    id: "mint-graphite",
+    brief:
+      "STRICT COLORS: mint (#a7f3d0) and soft teal accents on light graphite-white. Fresh modern. No amber, no burgundy, no hi-vis yellow.",
+  },
+  {
+    id: "sand-terracotta",
+    brief:
+      "STRICT COLORS: warm sand / beige background, terracotta (#c2410c) accents, off-white cards. Earthy. No cyan, no navy header, no neon yellow.",
+  },
+  {
+    id: "electric-magenta",
+    brief:
+      "STRICT COLORS: near-black background, electric magenta (#e879f9) and white type. Bold poster. No amber gold, no soft cream, no forest green.",
   },
 ];
 
 /**
- * 構図ファミリー。矢印プロセスは少数派にする。
- * 毎回同じ「上タイトル＋横4コマ」に寄せない。
+ * 構図ファミリー。カテゴリで寄せない。毎回フル候補から抽選。
  */
 export const DIAGRAM_LAYOUTS: DiagramLayout[] = [
   {
@@ -177,30 +196,6 @@ COMPOSITION: THREE FLOATING CALLOUT CARDS over a subtle abstract site/blueprint 
   },
 ];
 
-/** カテゴリーで少し寄せたいレイアウト優先（強制はしない） */
-const CATEGORY_LAYOUT_BIAS: Record<string, string[]> = {
-  industry: ["split-compare", "type-poster", "big-number", "diagonal-bands"],
-  management: ["split-compare", "stack-checklist", "big-number", "hub-spoke"],
-  field: ["stack-checklist", "before-after", "hub-spoke", "process-3"],
-  estimate: ["stack-checklist", "grid-2x2", "big-number", "stat-callouts"],
-  schedule: ["process-3", "stack-checklist", "grid-2x2"],
-  law: ["stack-checklist", "type-poster", "grid-2x2", "split-compare"],
-  waste: ["before-after", "hub-spoke", "grid-2x2"],
-  asbestos: ["before-after", "stack-checklist", "type-poster"],
-  safety: ["stack-checklist", "before-after", "hub-spoke", "type-poster"],
-};
-
-const CATEGORY_PALETTE_BIAS: Record<string, string[]> = {
-  industry: ["ink-paper", "burgundy-warm", "charcoal-amber", "mono-coral"],
-  management: ["charcoal-amber", "slate-cyan", "ink-paper"],
-  field: ["slate-cyan", "forest-ivory", "sky-white"],
-  estimate: ["ink-paper", "mono-coral", "sky-white"],
-  law: ["ink-paper", "slate-cyan", "forest-ivory"],
-  waste: ["forest-ivory", "slate-cyan", "mono-coral"],
-  asbestos: ["construction-hi-vis", "burgundy-warm", "charcoal-amber"],
-  safety: ["construction-hi-vis", "charcoal-amber", "forest-ivory"],
-};
-
 export function hashSeed(input: string): number {
   let h = 2166136261;
   for (let i = 0; i < input.length; i++) {
@@ -221,18 +216,8 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function pickFrom<T extends { id: string }>(
-  items: T[],
-  rng: () => number,
-  preferredIds?: string[],
-): T {
-  const preferred = preferredIds
-    ?.map((id) => items.find((x) => x.id === id))
-    .filter((x): x is T => Boolean(x));
-  // カテゴリ寄せは弱め（毎回同じトンマナに固定しない）
-  const pool =
-    preferred && preferred.length > 0 && rng() < 0.4 ? preferred : items;
-  return pool[Math.floor(rng() * pool.length)] ?? items[0];
+function pickUniform<T>(items: T[], rng: () => number): T {
+  return items[Math.floor(rng() * items.length)] ?? items[0];
 }
 
 export interface PickedDiagramStyle {
@@ -241,6 +226,10 @@ export interface PickedDiagramStyle {
   seed: number;
 }
 
+/**
+ * 構図・色をカテゴリに寄せず、毎回フル候補から独立抽選。
+ * seed 未指定時はタイトル＋時刻で都度変わる（再生成でも色が固定されない）。
+ */
 export function pickDiagramStyle(opts: {
   title: string;
   categorySlug?: string;
@@ -248,30 +237,12 @@ export function pickDiagramStyle(opts: {
 }): PickedDiagramStyle {
   const seed =
     opts.seed ??
-    hashSeed(`${opts.title}|${opts.categorySlug ?? ""}|eyecatch-v2`);
-  const rng = mulberry32(seed);
-  const slug = opts.categorySlug ?? "";
+    (hashSeed(`${opts.title}|eyecatch-v3`) ^ (Date.now() >>> 0) ^
+      ((Math.random() * 0x100000000) >>> 0));
+  const rng = mulberry32(seed || 1);
 
-  // safety の誤った layout bias を除去した正しいバイアス
-  const layoutBias = CATEGORY_LAYOUT_BIAS[slug]?.filter((id) =>
-    DIAGRAM_LAYOUTS.some((l) => l.id === id),
-  );
-  const paletteBias = CATEGORY_PALETTE_BIAS[slug];
-
-  const layout = pickFrom(DIAGRAM_LAYOUTS, rng, layoutBias);
-  // レイアウトと独立にパレットを振って「構図は違うのに色が全部同じ」を減らす
-  let palette = pickFrom(DIAGRAM_PALETTES, rng, paletteBias);
-  if (DIAGRAM_PALETTES.length > 1) {
-    // seed 上位ビットでもう一段ずらし、同カテゴリ連投での色被りを緩和
-    const alt =
-      DIAGRAM_PALETTES[(seed >>> 11) % DIAGRAM_PALETTES.length] ?? palette;
-    if (alt.id === palette.id) {
-      palette =
-        DIAGRAM_PALETTES[(seed >>> 5) % DIAGRAM_PALETTES.length] ?? palette;
-    } else if (rng() < 0.5) {
-      palette = alt;
-    }
-  }
+  const layout = pickUniform(DIAGRAM_LAYOUTS, rng);
+  const palette = pickUniform(DIAGRAM_PALETTES, rng);
 
   return { layout, palette, seed };
 }

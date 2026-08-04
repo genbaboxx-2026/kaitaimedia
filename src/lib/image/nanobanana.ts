@@ -69,11 +69,15 @@ ${layout.titlePlacement}
 LAYOUT (follow strictly — this must NOT look like a navy-top + cream body + 4 red-arrow panels unless this layout explicitly asks for a short process)
 ${layout.brief}
 
-COLOR / TONE
+COLOR / TONE (MANDATORY — ignore category habits and your default demolition-infographic look)
+- Palette id: ${palette.id}
 ${palette.brief}
+- Use ONLY this palette. Do NOT fall back to charcoal + amber/orange icons just because the topic is demolition.
+- If this palette is light (sky/ink-paper/mint/sand/lilac/coral), the whole image must stay light. Do not darken it.
 
 HARD BAN (critical for variety)
 - Do NOT default to: full-width deep navy header + soft cream body + 4 equal panels + red arrows
+- Do NOT default to: dark charcoal canvas + orange/amber icons (unless palette id is explicitly charcoal-amber)
 - Do NOT reuse the same four labels 情報共有 / 安全確認 / 状況把握 / 成果
 - Do NOT draw English words (no Step, Category, Before, After in Latin letters — use Japanese 改善前/改善後 if needed)
 - No people, no faces, no photoreal workers, no logos, no watermarks, no URLs, no character-count notes
