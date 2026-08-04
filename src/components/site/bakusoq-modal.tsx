@@ -347,13 +347,13 @@ export function BakusoqSidebarBanner() {
         type="button"
         onClick={() => setOpen(true)}
         className="block w-full overflow-hidden text-left shadow-md transition-opacity hover:opacity-95"
-        aria-label="解体企業向け BAKUSOQ の資料を見る"
+        aria-label="BAKUSOQ の資料を見る"
       >
         <Image
           src="/promo/bakusoq.png"
-          alt="解体企業向け BAKUSOQ — 解体見積に根拠を。そして爆速に。"
-          width={1024}
-          height={1536}
+          alt="BAKUSOQ — 解体見積に根拠を。そして爆速に。"
+          width={819}
+          height={1024}
           className="h-auto w-full"
           sizes="(max-width: 768px) 100vw, 360px"
         />

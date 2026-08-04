@@ -13,13 +13,13 @@ export function NinkuboxxSidebarBanner() {
       target="_blank"
       rel="noopener noreferrer"
       className="block w-full overflow-hidden shadow-md transition-opacity hover:opacity-95"
-      aria-label="解体企業向け NiNKU BOXX を見る"
+      aria-label="NiNKU BOXX を見る"
     >
       <Image
         src="/promo/ninkuboxx.png"
-        alt="解体企業向け NiNKU BOXX — 解体業に特化したブルーカラー人事部"
-        width={1024}
-        height={1536}
+        alt="NiNKU BOXX — 人財の定着と成長を両立させる、未来志向の組織設計"
+        width={819}
+        height={1024}
         className="h-auto w-full"
         sizes="(max-width: 768px) 100vw, 360px"
       />
