@@ -10,6 +10,7 @@ import {
 } from "@/lib/admin-data";
 import { detectNumbers } from "@/lib/number-detection";
 import { renderMarkdownToHtml } from "@/lib/markdown";
+import { excerptFrom } from "@/lib/excerpt";
 import { updateArticleAction } from "@/app/admin/(app)/articles/actions";
 
 // SEO 上限（本番は settings テーブルから取得する）
@@ -136,7 +137,7 @@ export function ArticleEditor({ article }: { article: AdminArticle }) {
         slug,
         categorySlug,
         body,
-        excerpt: body.replace(/[#*>\-\n]/g, " ").trim().slice(0, 120),
+        excerpt: excerptFrom(body),
         seoTitle,
         metaDescription,
         status,

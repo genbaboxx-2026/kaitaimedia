@@ -19,6 +19,7 @@ import {
 } from "@/lib/image/figure-prompt";
 import { notifySlack } from "@/lib/notify/slack";
 import { USD_JPY_RATE } from "@/lib/ai/pricing";
+import { excerptFrom } from "@/lib/excerpt";
 import type { ArticleType } from "@/lib/types";
 
 interface ThemeRow {
@@ -67,15 +68,6 @@ export interface ManualThemeInput {
 
 function slugify(categorySlug: string): string {
   return `${categorySlug}-${Date.now().toString(36)}`;
-}
-
-function excerptFrom(body: string): string {
-  const firstPara =
-    body
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .find((l) => l && !l.startsWith("#") && !l.startsWith("-")) ?? "";
-  return firstPara.slice(0, 120);
 }
 
 type QueuedThemeRow = {

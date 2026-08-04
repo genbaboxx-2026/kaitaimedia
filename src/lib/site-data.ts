@@ -19,6 +19,7 @@ import {
 import { restSelect } from "@/lib/supabase/rest";
 import { markdownToSections } from "@/lib/markdown-to-sections";
 import { dedupeNewsByStory } from "@/lib/news/title-key";
+import { excerptFrom } from "@/lib/excerpt";
 
 // 公開サイトのデータ層。
 // Supabase（service_role, REST）から公開記事を取得し、未接続・空・失敗時はダミーへフォールバックする。
@@ -87,7 +88,8 @@ function mapArticle(r: ArticleRow): Article {
     title: r.title,
     categorySlug: r.category?.slug ?? "news",
     articleType: r.article_type ?? "A",
-    excerpt: r.excerpt ?? "",
+    // DBの旧excerpt（途中切れ・Markdown残存）を避け、本文から都度生成
+    excerpt: body ? excerptFrom(body) : (r.excerpt ?? ""),
     seoTitle: r.seo_title?.trim() || undefined,
     metaDescription: r.meta_description?.trim() || undefined,
     imageUrl: r.eyecatch_url ?? undefined,

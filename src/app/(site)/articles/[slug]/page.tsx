@@ -153,11 +153,6 @@ export default async function ArticleDetailPage({
         </div>
       </header>
 
-      {/* リード文 */}
-      <p className="mt-5 text-[15px] font-medium leading-relaxed text-slate-600 md:mt-6 md:border-l-4 md:border-navy-700 md:bg-slate-50 md:px-5 md:py-4 md:text-[1.05rem] md:text-slate-700">
-        {article.excerpt}
-      </p>
-
       {/* 本文 ＋ サイドバー（目次・CTA） */}
       <div className="mt-8 grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
