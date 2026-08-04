@@ -28,12 +28,14 @@ export async function generateDiagramEyecatchPng(
     model?: string;
     categorySlug?: string;
     seed?: number;
+    paletteId?: string;
   },
 ): Promise<DiagramEyecatchResult | null> {
   const style = pickDiagramStyle({
     title,
     categorySlug: opts?.categorySlug,
     seed: opts?.seed,
+    paletteId: opts?.paletteId,
   });
   const styleId = `${style.layout.id}/${style.palette.id}`;
   console.log(

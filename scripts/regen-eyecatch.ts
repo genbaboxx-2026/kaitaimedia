@@ -1,15 +1,35 @@
 /**
  * 公開記事の表紙サムネを作り直してアップロードし、キャッシュを破棄する。
  *   npx tsx scripts/regen-eyecatch.ts <slug> [slug...]
+ *   npx tsx scripts/regen-eyecatch.ts --palette=sky-white <slug>
+ *   npx tsx scripts/regen-eyecatch.ts --bright <slug>   # 明るいパレットからランダム
  */
 import { loadEnvLocal } from "./load-env-local";
 
 loadEnvLocal();
 
 async function main(): Promise<void> {
-  const slugs = process.argv.slice(2).filter(Boolean);
+  const args = process.argv.slice(2).filter(Boolean);
+  let paletteId: string | undefined;
+  let brightOnly = false;
+  const slugs: string[] = [];
+
+  for (const a of args) {
+    if (a === "--bright") {
+      brightOnly = true;
+      continue;
+    }
+    if (a.startsWith("--palette=")) {
+      paletteId = a.slice("--palette=".length);
+      continue;
+    }
+    slugs.push(a);
+  }
+
   if (slugs.length === 0) {
-    console.error("Usage: npx tsx scripts/regen-eyecatch.ts <slug> [slug...]");
+    console.error(
+      "Usage: npx tsx scripts/regen-eyecatch.ts [--bright|--palette=ID] <slug> [slug...]",
+    );
     process.exit(1);
   }
 
@@ -20,6 +40,13 @@ async function main(): Promise<void> {
   const { requestPublicRevalidate } = await import(
     "../src/lib/request-public-revalidate"
   );
+  const { DIAGRAM_PALETTES } = await import("../src/lib/image/diagram-styles");
+
+  if (brightOnly && !paletteId) {
+    const light = DIAGRAM_PALETTES.filter((p) => p.tone === "light");
+    paletteId = light[Math.floor(Math.random() * light.length)]?.id;
+    console.log(`[regen] forced bright palette=${paletteId}`);
+  }
 
   for (const slug of slugs) {
     const rows = await restSelect<{
@@ -38,21 +65,25 @@ async function main(): Promise<void> {
 
     const categoryName = article.category?.name ?? "";
     const categorySlug = article.category?.slug ?? "news";
-    // 再生成のたびに違う構図になるよう時刻を混ぜる
-    const seed = (Date.now() ^ slug.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) >>> 0;
+    const seed =
+      (Date.now() ^
+        slug.split("").reduce((a, c) => a + c.charCodeAt(0), 0)) >>>
+      0;
 
     console.log(`[regen] ${slug} — ${article.title}`);
     const cover = await generateYoutubeEyecatchPng(article.title, categoryName, {
       categorySlug,
       seed,
+      paletteId,
     });
     if (!cover) {
       console.error(`[fail] generate: ${slug}`);
       continue;
     }
-    console.log(`[regen] style=${cover.styleId ?? "?"} cost≈$${cover.costUsd.toFixed(3)}`);
+    console.log(
+      `[regen] style=${cover.styleId ?? "?"} cost≈$${cover.costUsd.toFixed(3)}`,
+    );
 
-    // Versioned path for cache-bust; also upsert canonical `${slug}.png`.
     const versionedName = `${slug}-${seed.toString(36)}`;
     const url = await uploadEyecatch(cover.png, versionedName);
     if (!url) {

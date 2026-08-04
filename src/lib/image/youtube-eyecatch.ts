@@ -22,11 +22,13 @@ export async function generateYoutubeEyecatchPng(
     quality?: "low" | "medium" | "high";
     categorySlug?: string;
     seed?: number;
+    paletteId?: string;
   },
 ): Promise<YoutubeEyecatchResult | null> {
   const result = await generateDiagramEyecatchPng(title, categoryName, {
     categorySlug: opts?.categorySlug,
     seed: opts?.seed,
+    paletteId: opts?.paletteId,
   });
   if (!result) return null;
 

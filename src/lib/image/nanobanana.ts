@@ -70,10 +70,11 @@ LAYOUT (follow strictly — this must NOT look like a navy-top + cream body + 4 
 ${layout.brief}
 
 COLOR / TONE (MANDATORY — ignore category habits and your default demolition-infographic look)
-- Palette id: ${palette.id}
+- Palette id: ${palette.id} (tone=${palette.tone})
 ${palette.brief}
 - Use ONLY this palette. Do NOT fall back to charcoal + amber/orange icons just because the topic is demolition.
-- If this palette is light (sky/ink-paper/mint/sand/lilac/coral), the whole image must stay light. Do not darken it.
+- If tone=light: the MAJORITY of the canvas MUST be bright (white / pastel / pale). Dark charcoal/navy fills are forbidden.
+- If tone=dark: keep it dark as specified — still do not invent amber unless the brief says amber.
 
 HARD BAN (critical for variety)
 - Do NOT default to: full-width deep navy header + soft cream body + 4 equal panels + red arrows
