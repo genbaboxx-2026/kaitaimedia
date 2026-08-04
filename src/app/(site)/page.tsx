@@ -229,18 +229,7 @@ export default async function HomePage() {
                   />
                 </Link>
                 <div>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-navy-700">
-                    <span
-                      aria-hidden
-                      className="h-2 w-2 rounded-full"
-                      style={{
-                        backgroundColor: getCategoryMeta(lead.categorySlug)
-                          .accent,
-                      }}
-                    />
-                    {getCategoryName(lead.categorySlug)}
-                  </span>
-                  <h1 className="mt-2 font-serif text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">
+                  <h1 className="font-serif text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">
                     <Link
                       href={`/articles/${lead.slug}`}
                       className="decoration-navy-600 decoration-2 underline-offset-4 hover:underline"
