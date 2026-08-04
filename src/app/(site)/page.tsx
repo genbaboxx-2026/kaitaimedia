@@ -338,20 +338,20 @@ export default async function HomePage() {
                 ))}
               </ol>
             </div>
+
+            {snsRows.length > 0 && (
+              <div>
+                <SectionTitle>SNSトレンド</SectionTitle>
+                <p className="mt-1 text-[11px] text-slate-400">
+                  いいね順 · タップで投稿を表示
+                </p>
+                <div className="mt-1">
+                  <SnsTrendList items={snsRows} compact />
+                </div>
+              </div>
+            )}
           </aside>
         </div>
-
-        {snsRows.length > 0 && (
-          <section className="mt-8 border-t border-slate-100 pt-8">
-            <FeedSectionHeader
-              title="SNSトレンド"
-              subtitle="いいね順 · タップで投稿を表示"
-            />
-            <div className="mt-2">
-              <SnsTrendList items={snsRows} compact />
-            </div>
-          </section>
-        )}
       </div>
     </>
   );
