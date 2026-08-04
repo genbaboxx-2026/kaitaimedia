@@ -287,7 +287,7 @@ export default async function HomePage() {
 
             {/* サイドバーが高くても左が空かないよう、ニュースを記事直下へ */}
             {newsRows.length > 0 && (
-              <section className="mt-8 border-t border-slate-100 pt-8">
+              <section className="mt-5 border-t border-slate-100 pt-5">
                 <FeedSectionHeader title="今日のニュース" />
                 <div className="mt-2 grid gap-x-10 sm:grid-cols-2">
                   {newsRows.map((item) => (
