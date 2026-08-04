@@ -10,9 +10,13 @@ import {
   generateEyecatchPng,
   generateAiEyecatchPng,
   generateYoutubeEyecatchPng,
-  pickInBodyImageStyle,
   uploadEyecatch,
 } from "@/lib/image/eyecatch";
+import {
+  extractSectionExcerpt,
+  pickFigureComposition,
+  pickFigureStyle,
+} from "@/lib/image/figure-prompt";
 import { notifySlack } from "@/lib/notify/slack";
 import type { ArticleType } from "@/lib/types";
 
@@ -570,43 +574,62 @@ export async function runGenerationPipeline(opts?: {
 
     // 合格 or「不合格でも下書き保存」。不合格は必ず下書き（自動公開しない）＋不合格バッジ付き。
     // プレミアム：本文中の図版を生成して挿入（合格時のみ。不合格の下書きには画像コストをかけない）。
+    // 見出しだけでなく、直後の本文抜粋を渡して節の内容に沿った図にする。
     if (inBodyImageCount > 0 && report.passed) {
       const headingRe = /^##\s+(.+)$/gm;
-      const headings: { text: string; index: number }[] = [];
+      const headings: { text: string; index: number; lineStart: number }[] = [];
       let hm: RegExpExecArray | null;
       while ((hm = headingRe.exec(body)) !== null) {
-        headings.push({ text: hm[1].trim(), index: hm.index + hm[0].length });
+        headings.push({
+          text: hm[1].trim(),
+          index: hm.index + hm[0].length,
+          lineStart: hm.index,
+        });
       }
       // 先頭と末尾（まとめ/FAQ）を避け、均等に最大 inBodyImageCount 箇所へ
       const candidates = headings.slice(1, Math.max(1, headings.length - 1));
-      const picks: { text: string; index: number }[] = [];
+      const picks: {
+        text: string;
+        index: number;
+        lineStart: number;
+        headingPos: number;
+      }[] = [];
       if (candidates.length > 0) {
         const step = Math.max(1, Math.floor(candidates.length / inBodyImageCount));
         for (let i = 0; i < candidates.length && picks.length < inBodyImageCount; i += step) {
-          picks.push(candidates[i]);
+          const c = candidates[i];
+          const headingPos = headings.findIndex((h) => h.lineStart === c.lineStart);
+          picks.push({ ...c, headingPos });
         }
       }
-      // 図版ごとに構図を変えて重複を防ぐ（説明イラスト前提）
-      const figHints = [
-        "横方向の手順フロー：アイコン化した作業員・書類・車両を矢印でつなぐ説明図",
-        "2×2パネルの教科書風イラスト：良い例／悪い例を対比し、赤い×印などで注意を示す",
-        "等角（アイソメ）の工程図：ステップ記号と矢印で概念を説明するフラット図解",
-        "チェックリスト風の図解：確認項目をアイコンとマークで並べた説明ボード",
-      ];
-      const inBodyStyle = pickInBodyImageStyle();
-      // 後ろから挿入して index のズレを防ぐ（hint は元の並び順で割り当て）
+      const styleSeed = Date.now() % 97;
+      // 後ろから挿入して index のズレを防ぐ
       for (let k = picks.length - 1; k >= 0; k--) {
-        // 図版は任意のため、上限到達後は追加生成せず本文保存へ進む
         if (perArticleCostLimit > 0 && cost >= perArticleCostLimit) break;
         const p = picks[k];
+        const nextHeading = headings[p.headingPos + 1];
+        const sectionEnd = nextHeading?.lineStart ?? body.length;
+        const sectionExcerpt = extractSectionExcerpt(body, p.index, sectionEnd);
+        const composition = pickFigureComposition(k, styleSeed);
+        const style = pickFigureStyle(k, styleSeed);
+        console.log(
+          `[figure] #${k + 1} heading="${p.text.slice(0, 40)}" excerpt=${sectionExcerpt.slice(0, 80)}…`,
+        );
         const img = await generateAiEyecatchPng(p.text, categoryName, {
           quality: imageQuality,
           role: "figure",
-          style: inBodyStyle,
-          variantHint: figHints[k % figHints.length],
+          articleTitle: theme.title,
+          sectionExcerpt,
+          figureIndex: k,
+          figureCount: picks.length,
+          style,
+          variantHint: composition,
         });
         if (!img) continue;
-        const url = await uploadEyecatch(img.png, `${slug}-fig${k + 1}`);
+        const url = await uploadEyecatch(
+          img.png,
+          `${slug}-fig${k + 1}-${styleSeed.toString(36)}`,
+        );
         inputTokens += img.inputTokens;
         outputTokens += img.outputTokens;
         cost += img.costUsd;

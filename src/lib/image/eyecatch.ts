@@ -4,6 +4,12 @@ import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 import { getCategoryMeta } from "@/lib/categories-meta";
 import { estimateImageCostUsd } from "@/lib/ai/pricing";
+import {
+  FIGURE_STYLES,
+  buildContentAwareFigurePrompt,
+  pickFigureComposition,
+  pickFigureStyle,
+} from "@/lib/image/figure-prompt";
 
 export interface AiImageResult {
   png: Buffer;
@@ -98,14 +104,16 @@ export interface AiImageOptions {
    * figure: 本文中の説明図（写実禁止・イラスト図解固定 / gpt-image-1）
    */
   role?: "eyecatch" | "figure";
+  /** 記事タイトル（内容連動用） */
+  articleTitle?: string;
+  /** 見出し直後の本文抜粋（内容連動用） */
+  sectionExcerpt?: string;
+  figureIndex?: number;
+  figureCount?: number;
 }
 
-/** 本文中図版専用：写実・フォトリアルを含めない説明イラスト */
-export const INBODY_IMAGE_STYLES: string[] = [
-  "flat editorial infographic illustration, clean geometric shapes, soft isometric or simple 2D panels, generous negative space",
-  "hand-drawn explanatory line illustration with limited flat color (navy/gray/cream) and one red accent, textbook diagram feel",
-  "modern flat vector process diagram, icon-like workers and machines, clear visual hierarchy like a how-to board",
-];
+/** @deprecated figure-prompt の FIGURE_STYLES を使う */
+export const INBODY_IMAGE_STYLES: string[] = FIGURE_STYLES;
 
 /** @deprecated 表紙は YouTube 風パイプラインへ移行。互換のため残置 */
 export const IMAGE_STYLES: string[] = [
@@ -121,37 +129,14 @@ export function pickImageStyle(): string {
   return IMAGE_STYLES[Math.floor(Math.random() * IMAGE_STYLES.length)];
 }
 
-export function pickInBodyImageStyle(): string {
-  return INBODY_IMAGE_STYLES[
-    Math.floor(Math.random() * INBODY_IMAGE_STYLES.length)
-  ];
-}
-
-function buildFigurePrompt(
-  subject: string,
-  categoryName: string,
-  opts?: AiImageOptions,
-): string {
-  const style = opts?.style ?? INBODY_IMAGE_STYLES[0];
-  return [
-    "Explanatory illustration figure for a Japanese B2B demolition-industry media article.",
-    "Goal: teach a concept like a textbook diagram or infographic — NOT a photo, NOT cinematic realism.",
-    `Category: ${categoryName}. Concept to explain: ${subject}.`,
-    opts?.variantHint
-      ? `Diagram composition (must differ from other figures in the same article): ${opts.variantHint}.`
-      : "",
-    `Art style: ${style}.`,
-    "Use simplified icon-like people, machines, and buildings. Prefer multi-panel layouts, flow arrows, check/X marks, or numbered steps as visual symbols.",
-    "Palette: deep navy, slate gray, cream or soft white background, one muted red accent. Flat or lightly shaded — no photoreal skin, no camera DOF, no stock-photo look.",
-    "STRICT: no Japanese text, no words, no logos, no watermark, no brand marks. Simple digits (1 2 3) and arrows are OK as diagram symbols only. Avoid identifiable real people.",
-  ]
-    .filter(Boolean)
-    .join(" ");
+export function pickInBodyImageStyle(index = 0, seed = 0): string {
+  return pickFigureStyle(index, seed);
 }
 
 /**
  * 本文中図版（role=figure）向け。gpt-image-1 のまま維持。
  * 表紙サムネは generateDiagramEyecatchPng（Nano Banana）を使うこと。
+ * subject = 見出し。本文抜粋は opts.sectionExcerpt で渡す。
  */
 export async function generateAiEyecatchPng(
   subject: string,
@@ -162,7 +147,21 @@ export async function generateAiEyecatchPng(
   if (!key) return null;
 
   const quality = opts?.quality ?? "high";
-  const prompt = buildFigurePrompt(subject, categoryName, opts);
+  const figureIndex = opts?.figureIndex ?? 0;
+  const prompt = buildContentAwareFigurePrompt(
+    {
+      articleTitle: opts?.articleTitle ?? subject,
+      heading: subject,
+      sectionExcerpt: opts?.sectionExcerpt ?? "",
+      categoryName,
+      figureIndex,
+      figureCount: opts?.figureCount ?? 1,
+    },
+    {
+      composition: opts?.variantHint ?? pickFigureComposition(figureIndex),
+      style: opts?.style ?? pickFigureStyle(figureIndex),
+    },
+  );
 
   try {
     const res = await fetch("https://api.openai.com/v1/images/generations", {
