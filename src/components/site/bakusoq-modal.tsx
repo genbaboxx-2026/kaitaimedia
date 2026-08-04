@@ -346,7 +346,7 @@ export function BakusoqSidebarBanner() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="block w-full max-w-[280px] overflow-hidden text-left shadow-md transition-opacity hover:opacity-95 md:max-w-[260px]"
+        className="block w-full overflow-hidden text-left shadow-md transition-opacity hover:opacity-95"
         aria-label="BAKUSOQ の資料を見る"
       >
         <Image
@@ -355,7 +355,7 @@ export function BakusoqSidebarBanner() {
           width={819}
           height={1024}
           className="h-auto w-full"
-          sizes="280px"
+          sizes="(max-width: 768px) 100vw, 360px"
         />
       </button>
 
