@@ -15,6 +15,7 @@ import {
 } from "@/lib/seo";
 import { formatJaDate } from "@/lib/format";
 import { ArticleBody } from "@/components/site/article-body";
+import { Eyecatch } from "@/components/site/eyecatch";
 import { ViewBeacon } from "@/components/site/view-beacon";
 import { TableOfContents } from "@/components/site/table-of-contents";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
@@ -150,6 +151,15 @@ export default async function ArticleDetailPage({
           )}
           <span aria-hidden>·</span>
           <span>約{article.readingMinutes}分</span>
+        </div>
+
+        <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 md:mt-6">
+          <Eyecatch
+            categorySlug={article.categorySlug}
+            categoryName={categoryName}
+            imageUrl={article.imageUrl}
+            className="aspect-video"
+          />
         </div>
       </header>
 
