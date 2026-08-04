@@ -27,9 +27,9 @@ export function NinkuboxxSidebarBanner() {
       <PrBadge />
       <Image
         src="/promo/ninkuboxx.png"
-        alt="NiNKU BOXX — 人財の定着と成長を両立させる、未来志向の組織設計"
-        width={819}
-        height={1024}
+        alt="NiNKU BOXX — 属人経営を卒業する。解体会社のための人事制度。"
+        width={1024}
+        height={1536}
         className="h-auto w-full"
         sizes="(max-width: 768px) 100vw, 360px"
       />
