@@ -211,7 +211,7 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* ========== デスクトップ：記事+ランキング → 全幅でニュース+SNS ========== */}
+      {/* ========== デスクトップ：記事+ニュース | サイドバー → SNS ========== */}
       <div className="mx-auto hidden max-w-7xl px-4 py-6 md:block">
         <div className="grid gap-8 lg:grid-cols-3">
           <main className="lg:col-span-2">
@@ -284,6 +284,27 @@ export default async function HomePage() {
                 </div>
               </div>
             )}
+
+            {/* サイドバーが高くても左が空かないよう、ニュースを記事直下へ */}
+            {newsRows.length > 0 && (
+              <section className="mt-8 border-t border-slate-100 pt-8">
+                <FeedSectionHeader title="今日のニュース" />
+                <div className="mt-2 grid gap-x-10 sm:grid-cols-2">
+                  {newsRows.map((item) => (
+                    <NewsListItem key={item.id} item={item} />
+                  ))}
+                </div>
+                <div className="mt-5 text-right">
+                  <Link
+                    href="/news"
+                    className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                  >
+                    ニュースをもっと見る
+                    <ArrowIcon className="h-4 w-4" />
+                  </Link>
+                </div>
+              </section>
+            )}
           </main>
 
           <aside className="space-y-8">
@@ -320,42 +341,17 @@ export default async function HomePage() {
           </aside>
         </div>
 
-        <section className="mt-6 border-t border-slate-100 pt-8">
-          <div
-            className={`grid gap-8 xl:gap-10 ${
-              snsRows.length > 0 ? "lg:grid-cols-3" : ""
-            }`}
-          >
-            <div className={snsRows.length > 0 ? "lg:col-span-2" : undefined}>
-              <FeedSectionHeader title="今日のニュース" />
-              <div className="mt-2 grid gap-x-10 sm:grid-cols-2">
-                {newsRows.map((item) => (
-                  <NewsListItem key={item.id} item={item} />
-                ))}
-              </div>
-              <div className="mt-5 text-right">
-                <Link
-                  href="/news"
-                  className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-                >
-                  ニュースをもっと見る
-                  <ArrowIcon className="h-4 w-4" />
-                </Link>
-              </div>
+        {snsRows.length > 0 && (
+          <section className="mt-8 border-t border-slate-100 pt-8">
+            <FeedSectionHeader
+              title="SNSトレンド"
+              subtitle="いいね順 · タップで投稿を表示"
+            />
+            <div className="mt-2">
+              <SnsTrendList items={snsRows} compact />
             </div>
-            {snsRows.length > 0 && (
-              <aside className="lg:border-l lg:border-slate-100 lg:pl-8">
-                <FeedSectionHeader
-                  title="SNSトレンド"
-                  subtitle="いいね順 · タップで投稿を表示"
-                />
-                <div className="mt-2">
-                  <SnsTrendList items={snsRows} compact />
-                </div>
-              </aside>
-            )}
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </>
   );
