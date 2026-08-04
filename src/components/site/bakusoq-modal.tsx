@@ -337,35 +337,30 @@ function Modal({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** サイドバー：BAKUSOQ 案内（PR枠。押下で紹介モーダル） */
+/** サイドバー：BAKUSOQ 案内（左上 PR バッジ。押下で紹介モーダル） */
 export function BakusoqSidebarBanner() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
-          <span className="text-[10px] font-bold tracking-[0.16em] text-slate-400">
-            PR
-          </span>
-          <span className="text-[10px] text-slate-400">広告</span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="block w-full overflow-hidden text-left transition-opacity hover:opacity-95"
-          aria-label="BAKUSOQ の資料を見る"
-        >
-          <Image
-            src="/promo/bakusoq.png"
-            alt="BAKUSOQ — 解体見積に根拠を。そして爆速に。"
-            width={819}
-            height={1024}
-            className="h-auto w-full"
-            sizes="(max-width: 768px) 100vw, 360px"
-          />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="relative block w-full overflow-hidden rounded-xl text-left shadow-sm transition-opacity hover:opacity-95"
+        aria-label="BAKUSOQ の資料を見る"
+      >
+        <span className="pointer-events-none absolute left-2.5 top-2.5 z-10 rounded-md bg-navy-800 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white shadow-sm">
+          PR
+        </span>
+        <Image
+          src="/promo/bakusoq.png"
+          alt="BAKUSOQ — 解体見積に根拠を。そして爆速に。"
+          width={819}
+          height={1024}
+          className="h-auto w-full"
+          sizes="(max-width: 768px) 100vw, 360px"
+        />
+      </button>
 
       {open && <Modal onClose={() => setOpen(false)} />}
     </>
