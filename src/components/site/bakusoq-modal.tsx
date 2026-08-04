@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowIcon } from "@/components/site/icons";
 
@@ -336,7 +337,7 @@ function Modal({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** サイドバー：BAKUSOQ 案内（押下で紹介モーダルを表示） */
+/** サイドバー：BAKUSOQ 案内（提供画像をそのまま表示。押下で紹介モーダル） */
 export function BakusoqSidebarBanner() {
   const [open, setOpen] = useState(false);
 
@@ -345,40 +346,17 @@ export function BakusoqSidebarBanner() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="group relative block w-full overflow-hidden rounded-xl border border-cyan-400/25 bg-[#07111f] p-5 text-left shadow-[0_0_24px_rgba(34,211,238,0.12)] transition-transform hover:-translate-y-0.5"
+        className="block w-full overflow-hidden rounded-xl text-left shadow-md transition-opacity hover:opacity-95"
+        aria-label="BAKUSOQ の資料を見る"
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(34,211,238,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.08) 1px, transparent 1px)",
-            backgroundSize: "18px 18px",
-          }}
+        <Image
+          src="/promo/bakusoq.png"
+          alt="BAKUSOQ — 解体見積に根拠を。そして爆速に。"
+          width={819}
+          height={1024}
+          className="h-auto w-full"
+          sizes="(max-width: 768px) 100vw, 320px"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-cyan-400/20 blur-2xl"
-        />
-
-        <div className="relative">
-          <div className="flex items-center gap-1.5">
-            <BoltIcon className="h-4 w-4 text-cyan-300" />
-            <span className="text-[11px] font-bold tracking-[0.16em] text-cyan-300">
-              BAKUSOQ
-            </span>
-          </div>
-          <p className="mt-2 text-[17px] font-black leading-snug tracking-tight text-white">
-            一瞬で見積もりに。
-          </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-slate-300">
-            拾い出しから内訳作成まで。根拠ある見積を、爆速で。
-          </p>
-          <span className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-cyan-400 to-teal-300 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-[0_0_16px_rgba(34,211,238,0.35)] group-hover:brightness-110">
-            資料を見る
-            <ArrowIcon className="h-4 w-4" />
-          </span>
-        </div>
       </button>
 
       {open && <Modal onClose={() => setOpen(false)} />}
