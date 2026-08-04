@@ -7,7 +7,6 @@ import {
   getLatestNews,
   getRankingArticles,
 } from "@/lib/site-data";
-import { getCategoryMeta } from "@/lib/categories-meta";
 import { SITE_URL } from "@/lib/site-url";
 import { SITE_DESCRIPTION } from "@/lib/seo";
 import type { Article } from "@/lib/types";
@@ -39,25 +38,16 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 function SecondaryArticleCard({ article }: { article: Article }) {
-  const categoryName = getCategoryName(article.categorySlug);
-  const meta = getCategoryMeta(article.categorySlug);
-
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md">
       <Link href={`/articles/${article.slug}`} className="group block">
-        <div className="relative overflow-hidden">
+        <div className="overflow-hidden">
           <Eyecatch
             categorySlug={article.categorySlug}
-            categoryName={categoryName}
+            categoryName={getCategoryName(article.categorySlug)}
             imageUrl={article.imageUrl}
             className="aspect-[16/10]"
           />
-          <span
-            className="absolute left-2.5 top-2.5 rounded-md px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
-            style={{ backgroundColor: meta.accent }}
-          >
-            {categoryName}
-          </span>
         </div>
         <div className="px-3.5 py-3.5">
           <h3 className="line-clamp-3 text-[16px] font-bold leading-snug text-slate-900 group-hover:text-navy-700">
