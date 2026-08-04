@@ -12,7 +12,7 @@ export function NinkuboxxSidebarBanner() {
       href={NINKUBOXX_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="mx-auto block w-full max-w-[240px] overflow-hidden rounded-xl shadow-md transition-opacity hover:opacity-95 md:max-w-[220px]"
+      className="mx-auto block w-full max-w-[240px] overflow-hidden shadow-md transition-opacity hover:opacity-95 md:max-w-[220px]"
       aria-label="NiNKU BOXX を見る"
     >
       <Image

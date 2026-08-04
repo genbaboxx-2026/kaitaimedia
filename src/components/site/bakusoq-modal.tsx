@@ -346,7 +346,7 @@ export function BakusoqSidebarBanner() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mx-auto block w-full max-w-[240px] overflow-hidden rounded-xl text-left shadow-md transition-opacity hover:opacity-95 md:max-w-[220px]"
+        className="mx-auto block w-full max-w-[240px] overflow-hidden text-left shadow-md transition-opacity hover:opacity-95 md:max-w-[220px]"
         aria-label="BAKUSOQ の資料を見る"
       >
         <Image
