@@ -1,7 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { restSelect, restUpdate, restDelete } from "@/lib/supabase/rest";
+import { revalidateAfterArticleChange } from "@/lib/revalidate-public";
 
 export type ActionResult = { ok: boolean; error?: string };
 
@@ -52,9 +52,7 @@ export async function updateArticleAction(
       published_at: publishedAt,
       updated_at: new Date().toISOString(),
     });
-    revalidatePath("/admin/articles");
-    revalidatePath("/admin/published");
-    revalidatePath(`/admin/articles/${id}`);
+    revalidateAfterArticleChange([payload.slug], [id]);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -64,12 +62,16 @@ export async function updateArticleAction(
 // 記事を公開する
 export async function publishArticleAction(id: string): Promise<ActionResult> {
   try {
+    const rows = await restSelect<{ slug: string }>(
+      `articles?select=slug&id=eq.${encodeURIComponent(id)}&limit=1`,
+      0,
+    );
+    const slug = rows?.[0]?.slug ?? "";
     await restUpdate(`articles?id=eq.${id}`, {
       status: "published",
       published_at: new Date().toISOString(),
     });
-    revalidatePath("/admin/articles");
-    revalidatePath("/admin/published");
+    revalidateAfterArticleChange(slug ? [slug] : [], [id]);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -79,12 +81,16 @@ export async function publishArticleAction(id: string): Promise<ActionResult> {
 // 記事を公開停止する（下書きに戻す）
 export async function unpublishArticleAction(id: string): Promise<ActionResult> {
   try {
+    const rows = await restSelect<{ slug: string }>(
+      `articles?select=slug&id=eq.${encodeURIComponent(id)}&limit=1`,
+      0,
+    );
+    const slug = rows?.[0]?.slug ?? "";
     await restUpdate(`articles?id=eq.${id}`, {
       status: "unpublished",
       published_at: null,
     });
-    revalidatePath("/admin/articles");
-    revalidatePath("/admin/published");
+    revalidateAfterArticleChange(slug ? [slug] : [], [id]);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -94,9 +100,13 @@ export async function unpublishArticleAction(id: string): Promise<ActionResult> 
 // 記事を削除する
 export async function deleteArticleAction(id: string): Promise<ActionResult> {
   try {
+    const rows = await restSelect<{ slug: string }>(
+      `articles?select=slug&id=eq.${encodeURIComponent(id)}&limit=1`,
+      0,
+    );
+    const slug = rows?.[0]?.slug ?? "";
     await restDelete(`articles?id=eq.${id}`);
-    revalidatePath("/admin/articles");
-    revalidatePath("/admin/published");
+    revalidateAfterArticleChange(slug ? [slug] : [], [id]);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };

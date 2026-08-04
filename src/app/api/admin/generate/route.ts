@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateAfterArticleChange } from "@/lib/revalidate-public";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { runGenerationBatch } from "@/lib/generation/run-batch";
 import type { ManualThemeInput } from "@/lib/generation/pipeline";
@@ -103,11 +103,7 @@ export async function POST(req: Request) {
       message: "結果が空です",
     };
 
-    revalidatePath("/admin/articles");
-    revalidatePath("/admin/published");
-    revalidatePath("/admin/logs");
-    revalidatePath("/admin/generation");
-    revalidatePath("/");
+    revalidateAfterArticleChange(result.slug ? [result.slug] : []);
 
     const ok =
       result.status === "draft" ||

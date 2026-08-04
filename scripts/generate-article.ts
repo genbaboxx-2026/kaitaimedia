@@ -41,7 +41,18 @@ async function main(): Promise<void> {
   const { runGenerationBatch } = await import(
     "../src/lib/generation/run-batch"
   );
+  const { requestPublicRevalidate } = await import(
+    "../src/lib/request-public-revalidate"
+  );
   const { results, publishedDrafts } = await runGenerationBatch();
+
+  const publishedSlugs = results
+    .filter((r) => r.status === "published" && r.slug)
+    .map((r) => r.slug as string);
+
+  if (publishedDrafts > 0 || publishedSlugs.length > 0) {
+    await requestPublicRevalidate(publishedSlugs);
+  }
 
   if (publishedDrafts > 0) {
     console.log(`下書き在庫を消化しました（${publishedDrafts}件公開）。`);
