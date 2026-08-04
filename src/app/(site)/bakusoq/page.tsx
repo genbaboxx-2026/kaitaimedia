@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { SITE_URL } from "@/lib/site-url";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 
@@ -96,20 +95,20 @@ export default function BakusoqPage() {
       {/* 資料請求導線 */}
       <section className="mt-10 rounded-lg border border-brand-100 bg-brand-50 p-6 text-center">
         <p className="text-lg font-bold text-slate-900">
-          BAKUSOQの資料請求・お問い合わせ
+          BAKUSOQの資料請求・導入相談
         </p>
         <p className="mt-2 text-sm leading-relaxed text-slate-700">
-          導入のご相談や資料のご請求は、お問い合わせフォームより承ります。
+          導入のご相談や資料のご請求は、メールにて承ります。
         </p>
-        <Link
-          href="/contact"
+        <a
+          href="mailto:support@genbaboxx.co.jp"
           className="mt-4 inline-flex items-center rounded-md bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
         >
-          お問い合わせ・資料請求
+          メールで相談する
           <span aria-hidden className="ml-1">
             →
           </span>
-        </Link>
+        </a>
       </section>
     </div>
   );

@@ -4,7 +4,6 @@ import { CATEGORIES, OPERATOR_NAME, SITE_NAME } from "@/lib/dummy-data";
 const NAV_LINKS = [
   { href: "/articles", label: "記事一覧" },
   { href: "/company", label: "運営会社" },
-  { href: "/contact", label: "お問い合わせ" },
   { href: "/privacy", label: "プライバシーポリシー" },
   { href: "/terms", label: "利用規約" },
 ];

@@ -10,7 +10,6 @@ const LINKS = [
   { href: "/articles", label: "記事一覧" },
   { href: "/bakusoq", label: "BAKUSOQ紹介" },
   { href: "/company", label: "運営会社" },
-  { href: "/contact", label: "お問い合わせ" },
   { href: "/privacy", label: "プライバシーポリシー" },
   { href: "/terms", label: "利用規約" },
 ];

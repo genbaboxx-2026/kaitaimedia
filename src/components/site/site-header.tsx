@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORIES, SITE_NAME } from "@/lib/dummy-data";
-import { MailIcon, SearchIcon } from "@/components/site/icons";
+import { SearchIcon } from "@/components/site/icons";
 import { BellIcon, MenuIcon } from "@/components/site/nav-icons";
 import { SiteMenuDrawer } from "@/components/site/site-menu-drawer";
 import { SiteLogo } from "@/components/site/site-logo";
@@ -119,7 +119,7 @@ export function SiteHeader() {
           <form
             action="/search"
             method="get"
-            className="relative z-10 mx-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition-colors focus-within:border-navy-600 focus-within:bg-white"
+            className="relative z-10 ml-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition-colors focus-within:border-navy-600 focus-within:bg-white"
           >
             <SearchIcon className="h-4 w-4 shrink-0 text-slate-400" />
             <input
@@ -130,14 +130,6 @@ export function SiteHeader() {
               className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
             />
           </form>
-
-          <Link
-            href="/contact"
-            className="relative z-10 inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700"
-          >
-            <MailIcon className="h-4 w-4" />
-            お問い合わせ
-          </Link>
         </div>
 
         <nav

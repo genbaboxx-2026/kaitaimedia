@@ -33,10 +33,9 @@ const ITEMS = [
     ActiveIcon: ArticleIcon,
   },
   {
-    href: "/contact",
-    label: "お問合せ",
-    match: (p: string) =>
-      p.startsWith("/contact") || p.startsWith("/company"),
+    href: "/company",
+    label: "運営会社",
+    match: (p: string) => p.startsWith("/company"),
     Icon: UserIcon,
     ActiveIcon: UserIcon,
   },

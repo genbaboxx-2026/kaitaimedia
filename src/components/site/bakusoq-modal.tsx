@@ -295,14 +295,14 @@ function Modal({ onClose }: { onClose: () => void }) {
           </section>
 
           <div className="mt-8 hidden gap-3 sm:flex">
-            <Link
-              href="/contact"
+            <a
+              href="mailto:support@genbaboxx.co.jp"
               className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-4 text-sm font-bold text-white shadow-md shadow-sky-500/25 transition-colors hover:bg-sky-400"
             >
               <BoltIcon className="h-4 w-4" />
-              無料で相談・お問い合わせ
+              メールで相談する
               <ArrowIcon className="h-4 w-4" />
-            </Link>
+            </a>
             <Link
               href="/bakusoq"
               className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50"
@@ -317,13 +317,13 @@ function Modal({ onClose }: { onClose: () => void }) {
         {/* スマホ固定CTA */}
         <div className="relative z-10 shrink-0 border-t border-sky-100 bg-white/95 px-4 py-3 backdrop-blur-sm sm:hidden">
           <div className="flex gap-2">
-            <Link
-              href="/contact"
+            <a
+              href="mailto:support@genbaboxx.co.jp"
               className="inline-flex h-11 flex-1 items-center justify-center gap-1 rounded-xl bg-sky-500 text-sm font-bold text-white shadow-sm shadow-sky-500/30"
             >
               <BoltIcon className="h-3.5 w-3.5" />
-              無料で相談
-            </Link>
+              メールで相談
+            </a>
             <Link
               href="/bakusoq"
               className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800"
