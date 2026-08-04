@@ -120,36 +120,25 @@ function Sparkle({
   );
 }
 
+/** 稲妻なし・切れないワードマーク */
 function BrandMark({
   className = "",
   compact = false,
 }: {
   className?: string;
-  /** 見出し内など小さめ用途 */
   compact?: boolean;
 }) {
   return (
     <span
-      className={`inline-flex items-center ${compact ? "gap-1.5" : "gap-2"} ${className}`}
+      className={`inline-block overflow-visible pb-[0.12em] pr-[0.08em] ${className}`}
     >
       <span
-        aria-hidden
-        className={`inline-flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#1565C0] shadow-md shadow-sky-500/35 ${
-          compact ? "h-6 w-6" : "h-8 w-8 sm:h-9 sm:w-9"
+        className={`inline-block font-black not-italic tracking-[0.06em] text-[#0A4D9C] ${
+          compact ? "leading-[1.2]" : "leading-[1.2]"
         }`}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className={compact ? "h-3.5 w-3.5" : "h-5 w-5"}
-          fill="white"
-        >
-          <path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z" />
-        </svg>
-      </span>
-      <span
-        className={`font-black italic tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-[#0B4F9C] via-[#1677E6] to-[#38BDF8] ${
-          compact ? "text-[1.05em] leading-none" : "leading-none"
-        }`}
+        style={{
+          textShadow: "0 1px 0 rgba(14,165,233,0.15)",
+        }}
       >
         BAKUSOQ
       </span>
@@ -230,8 +219,8 @@ function Modal({ onClose }: { onClose: () => void }) {
         </button>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <header className="border-b border-sky-100 px-5 pb-5 pt-5 sm:px-10 sm:pt-7">
-            <BrandMark className="text-[28px] sm:text-[34px]" />
+          <header className="overflow-visible border-b border-sky-100 px-5 pb-5 pt-5 sm:px-10 sm:pt-7">
+            <BrandMark className="text-[30px] sm:text-[38px]" />
             <h2 className="baku-fade mt-4 text-[26px] font-black leading-tight tracking-tight text-slate-900 sm:text-[34px]">
               こんな悩み、ありませんか？
             </h2>
@@ -365,79 +354,79 @@ function Modal({ onClose }: { onClose: () => void }) {
               ))}
             </ul>
 
-            <div className="mt-6 grid gap-4 rounded-2xl bg-[#EAF4FF] p-4 sm:grid-cols-2 sm:p-5">
-              <a
-                href={BAKUSOQ_LINE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="baku-card group flex items-center gap-4 rounded-xl border-2 border-[#1677E6]/25 bg-[#F0FDF4] p-4 transition-colors hover:border-[#06C755]"
-              >
-                <div className="min-w-0 flex-1">
-                  <span className="inline-flex rounded-full bg-[#06C755] px-3 py-1 text-[12px] font-bold text-white">
-                    今すぐ情報を手に入れよう！
-                  </span>
-                  <p className="mt-2.5 text-[17px] font-black leading-snug text-slate-800 sm:text-[18px]">
-                    <span className="text-[#06C755]">LINE登録</span>
-                    で限定資料や最新情報をお届け！
-                  </p>
-                  <span className="mt-2.5 inline-flex rounded-full bg-slate-200/80 px-3 py-1 text-[12px] font-bold text-slate-600">
-                    登録は30秒で完了！
+            <div className="mt-6 grid gap-4 rounded-2xl bg-[#EAF4FF] p-4 sm:grid-cols-2 sm:gap-5 sm:p-5">
+              {/* LINE */}
+              <div className="flex flex-col rounded-2xl border-2 border-[#06C755]/40 bg-white p-4 shadow-sm sm:p-5">
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-bold text-[#059669]">
+                      STEP 1 · まずはここから
+                    </p>
+                    <p className="mt-1 text-[18px] font-black leading-snug text-slate-900 sm:text-[20px]">
+                      LINEで最新情報・限定資料を受け取る
+                    </p>
+                    <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-slate-600">
+                      友だち追加は約30秒。登録後すぐに案内が届きます。
+                    </p>
+                  </div>
+                  <span className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
+                    <Image
+                      src={`${ILLUST}/cta-phone.png`}
+                      alt=""
+                      fill
+                      className="object-contain"
+                      sizes="96px"
+                    />
                   </span>
                 </div>
-                <span className="relative h-24 w-24 shrink-0">
-                  <Image
-                    src={`${ILLUST}/cta-phone.png`}
-                    alt=""
-                    fill
-                    className="object-contain"
-                    sizes="96px"
-                  />
-                </span>
-              </a>
+                <a
+                  href={BAKUSOQ_LINE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#06C755] text-[16px] font-black text-white shadow-md shadow-emerald-500/30 transition hover:bg-[#05b34c] active:scale-[0.99]"
+                >
+                  LINEで友だち追加する
+                  <ArrowIcon className="h-4 w-4" />
+                </a>
+              </div>
 
-              <a
-                href={BAKUSOQ_HP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="baku-card flex items-center gap-4 rounded-xl border-2 border-[#93C5FD] bg-white p-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-bold text-[#1677E6]">
-                    詳しいサービス内容はこちら
-                  </p>
-                  <p className="mt-1.5 flex items-center gap-2 text-[17px] font-black text-[#1677E6] sm:text-[18px]">
-                    <span
-                      aria-hidden
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#1677E6] text-white"
-                    >
-                      <svg
-                        viewBox="0 0 24 24"
-                        className="h-3.5 w-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <circle cx="12" cy="12" r="9" />
-                        <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
-                      </svg>
-                    </span>
-                    BAKUSOQ 公式HP
-                  </p>
-                  <span className="mt-2.5 inline-flex max-w-full items-center gap-1 truncate rounded-full border border-[#93C5FD] bg-white px-3.5 py-1.5 text-[13px] font-bold text-[#1677E6]">
-                    <span className="truncate">{BAKUSOQ_HP_URL}</span>
-                    <ArrowIcon className="h-4 w-4 shrink-0" />
+              {/* HP */}
+              <div className="flex flex-col rounded-2xl border-2 border-[#1677E6]/35 bg-white p-4 shadow-sm sm:p-5">
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13px] font-bold text-[#1677E6]">
+                      STEP 2 · 詳しく知りたい方へ
+                    </p>
+                    <p className="mt-1 text-[18px] font-black leading-snug text-slate-900 sm:text-[20px]">
+                      BAKUSOQ 公式サイトを見る
+                    </p>
+                    <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-slate-600">
+                      機能・料金・デモ体験は公式HPで確認できます。
+                    </p>
+                  </div>
+                  <span className="relative h-16 w-24 shrink-0 sm:h-20 sm:w-28">
+                    <Image
+                      src={`${ILLUST}/cta-dash.png`}
+                      alt=""
+                      fill
+                      className="object-contain"
+                      sizes="112px"
+                    />
                   </span>
                 </div>
-                <span className="relative h-20 w-28 shrink-0">
-                  <Image
-                    src={`${ILLUST}/cta-dash.png`}
-                    alt=""
-                    fill
-                    className="object-contain"
-                    sizes="112px"
-                  />
-                </span>
-              </a>
+                <a
+                  href={BAKUSOQ_HP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1677E6] text-[16px] font-black text-white shadow-md shadow-sky-500/30 transition hover:bg-[#1366c9] active:scale-[0.99]"
+                >
+                  公式HPを開く
+                  <ArrowIcon className="h-4 w-4" />
+                </a>
+                <p className="mt-2 truncate text-center text-[12px] text-slate-500">
+                  {BAKUSOQ_HP_URL}
+                </p>
+              </div>
             </div>
           </div>
         </div>
