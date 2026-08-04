@@ -116,13 +116,20 @@ export function SiteHeader() {
             <SiteLogo />
           </Link>
 
-          <Link
-            href="/search"
-            className="mx-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm text-slate-400 transition-colors hover:border-navy-600 hover:bg-white"
+          <form
+            action="/search"
+            method="get"
+            className="mx-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition-colors focus-within:border-navy-600 focus-within:bg-white"
           >
-            <SearchIcon className="h-4 w-4 shrink-0" />
-            <span>記事を検索</span>
-          </Link>
+            <SearchIcon className="h-4 w-4 shrink-0 text-slate-400" />
+            <input
+              type="search"
+              name="q"
+              placeholder="記事を検索"
+              aria-label="記事を検索"
+              className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+            />
+          </form>
 
           <Link
             href="/contact"
