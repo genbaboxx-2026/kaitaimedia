@@ -5,8 +5,8 @@ import {
 } from "@/lib/ai/settings";
 import { restSelect, restUpsert } from "@/lib/supabase/rest";
 
-/** GitHub Actions のポーリング間隔（分）。cron と揃える。 */
-export const SCHEDULE_POLL_MINUTES = 15;
+/** 朝の固定枠＋毎時追い上げを想定した表示用（実際の間隔は workflow 側） */
+export const SCHEDULE_POLL_MINUTES = 60;
 
 const LAST_RUN_KEY = "last_scheduled_generation_date";
 
@@ -55,7 +55,6 @@ function parseGenerationTime(raw: string): number | null {
 
 /**
  * いまの JST が、generation_time を含むポーリング枠内か。
- * 例: 23:54 → 23:45〜23:59 の枠（15分間隔のとき）
  * @deprecated 追い上げ判定には hasReachedGenerationTime を使う
  */
 export function isInGenerationWindow(
@@ -91,7 +90,8 @@ export interface ScheduleGateResult {
 
 /**
  * 定時トリガー時に「今すぐバッチを回してよいか」を判定する。
- * generation_time 以降で未生成なら実行（cron が15分枠を飛ばしても当日中に追いつく）。
+ * generation_time 以降で、当日まだ記事が作られていなければ実行する。
+ * 失敗ログだけではスキップしない（翌日まで止まり続けない）。
  */
 export async function evaluateScheduleGate(
   now = new Date(),
@@ -129,16 +129,17 @@ export async function evaluateScheduleGate(
     };
   }
 
-  // 保険: 本日の生成ログがあれば二重実行しない
+  // 記事が実際にできたログだけを「生成済み」とみなす。
+  // 失敗・中断ログ（article_id なし）ではスキップしない。
   const dayStartUtc = jstDayStartUtcIso(jst.date);
   const logs = await restSelect<{ id: string }>(
-    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}&limit=1`,
+    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}&article_id=not.is.null&limit=1`,
     0,
   );
   if (logs && logs.length > 0) {
     return {
       run: false,
-      reason: `本日すでに生成ログあり（${jst.date}）`,
+      reason: `本日すでに記事生成済み（${jst.date}）`,
       jstDate: jst.date,
       generationTime,
     };
@@ -160,13 +161,27 @@ function jstDayStartUtcIso(jstDate: string): string {
   return new Date(`${jstDate}T00:00:00+09:00`).toISOString();
 }
 
-/** 定時バッチを試行した日を記録（成功・スキップ結果を問わず二重起動防止） */
+/** 定時バッチ開始時の二重起動防止ロック（成功時はそのまま残す） */
 export async function markScheduledGenerationDate(jstDate: string): Promise<void> {
   await restUpsert(
     "settings",
     {
       key: LAST_RUN_KEY,
       value: jstDate,
+      value_type: "string",
+      description: "定時生成を最後に実行した日付（JST YYYY-MM-DD）",
+    },
+    "key",
+  );
+}
+
+/** 失敗時にロックを外し、次の cron で再試行できるようにする */
+export async function clearScheduledGenerationDate(): Promise<void> {
+  await restUpsert(
+    "settings",
+    {
+      key: LAST_RUN_KEY,
+      value: "",
       value_type: "string",
       description: "定時生成を最後に実行した日付（JST YYYY-MM-DD）",
     },

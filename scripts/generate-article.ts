@@ -5,7 +5,7 @@
  *
  * GitHub Actions 定時起動時は GENERATE_SCHEDULED=1 を付与する。
  * その場合、settings.generation_time（JST）以降かつ当日未生成なら本実行する
- * （cron 遅延で枠を逃しても当日中に追いつく）。
+ * （朝を厚く起こし、以降は毎時追い上げ。失敗時はロック解除して再試行）。
  * UI の時刻変更が Actions の YAML 修正なしで効くようにする。
  */
 import { loadEnvLocal } from "./load-env-local";
@@ -14,9 +14,10 @@ loadEnvLocal();
 
 async function main(): Promise<void> {
   const scheduled = process.env.GENERATE_SCHEDULED === "1";
+  let scheduledJstDate: string | null = null;
 
   // 定時ポーリングは枠外が多い。APIキー未設定でも枠外スキップは成功終了にする
-  // （Secrets 欠落時に Actions が毎15分 red にならないようにする）
+  // （Secrets 欠落時に Actions が毎時 red にならないようにする）
   if (scheduled) {
     const {
       evaluateScheduleGate,
@@ -27,14 +28,21 @@ async function main(): Promise<void> {
     if (!gate.run) {
       process.exit(0);
     }
-    // 二重起動防止のため、バッチ前に本日分を記録
+    // 二重起動防止のロック。失敗時は外して次の cron で再試行する
     await markScheduledGenerationDate(gate.jstDate);
+    scheduledJstDate = gate.jstDate;
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
     console.error(
       "ANTHROPIC_API_KEY が未設定です。ローカルは .env.local、GitHub Actions は Repository secrets を確認してください。",
     );
+    if (scheduled && scheduledJstDate) {
+      const { clearScheduledGenerationDate } = await import(
+        "../src/lib/generation/schedule-gate"
+      );
+      await clearScheduledGenerationDate();
+    }
     process.exit(1);
   }
 
@@ -49,6 +57,18 @@ async function main(): Promise<void> {
   const publishedSlugs = results
     .filter((r) => r.status === "published" && r.slug)
     .map((r) => r.slug as string);
+  const producedArticle = results.some((r) => Boolean(r.articleId));
+  const ok = producedArticle || publishedDrafts > 0;
+
+  if (scheduled && scheduledJstDate && !ok) {
+    const { clearScheduledGenerationDate } = await import(
+      "../src/lib/generation/schedule-gate"
+    );
+    await clearScheduledGenerationDate();
+    console.error(
+      "[schedule] 記事を残せなかったためロック解除。次の定時/追い上げで再試行します。",
+    );
+  }
 
   if (publishedDrafts > 0 || publishedSlugs.length > 0) {
     await requestPublicRevalidate(publishedSlugs);
@@ -65,6 +85,10 @@ async function main(): Promise<void> {
     if (result.status === "skipped") {
       console.log("これ以上生成できないため打ち切りました。");
     }
+  }
+
+  if (scheduled && !ok) {
+    process.exit(1);
   }
 }
 
