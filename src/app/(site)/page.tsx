@@ -196,6 +196,12 @@ export default async function HomePage() {
           </section>
         )}
 
+        {/* 広告：BAKUSOQ / NiNKUBOXX（記事一覧の下・SNSの前） */}
+        <section className="space-y-4 border-t border-slate-100 px-4 py-5">
+          <BakusoqSidebarBanner />
+          <NinkuboxxSidebarBanner />
+        </section>
+
         {/* SNS（最大10件） */}
         {snsRows.length > 0 && (
           <section className="border-t border-slate-100">

@@ -1,28 +1,9 @@
-import Link from "next/link";
 import { ArrowIcon } from "@/components/site/icons";
 
 const NINKUBOXX_URL = "https://genbaboxx.co.jp/ninkuboxx";
 
-/** サイドバー：BAKUSOQ 案内 */
-export function BakusoqSidebarBanner() {
-  return (
-    <div className="rounded-lg border border-slate-200 p-5">
-      <p className="font-serif text-lg font-bold leading-snug text-slate-900">
-        見積もり作成を、もっと速く正確に。
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-slate-600">
-        拾い出しから内訳作成までの手戻りを減らし、担当者ごとのばらつきを抑えます。
-      </p>
-      <Link
-        href="/bakusoq"
-        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded bg-brand-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-700"
-      >
-        資料を見る
-        <ArrowIcon className="h-4 w-4" />
-      </Link>
-    </div>
-  );
-}
+/** サイドバー：BAKUSOQ 案内（押下で紹介モーダルを表示） */
+export { BakusoqSidebarBanner } from "@/components/site/bakusoq-modal";
 
 /** サイドバー：NiNKUBOXX 案内 */
 export function NinkuboxxSidebarBanner() {
