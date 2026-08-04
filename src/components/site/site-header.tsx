@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORIES, SITE_NAME } from "@/lib/dummy-data";
-import { SearchIcon } from "@/components/site/icons";
+import { MailIcon, SearchIcon } from "@/components/site/icons";
 import { BellIcon, MenuIcon } from "@/components/site/nav-icons";
 import { SiteMenuDrawer } from "@/components/site/site-menu-drawer";
 import { SiteLogo } from "@/components/site/site-logo";
@@ -30,13 +30,14 @@ export function SiteHeader() {
 
   const isTop = pathname === "/";
   const isNews = pathname === "/news" || pathname.startsWith("/news/");
+  const isArticles = pathname === "/articles" || pathname.startsWith("/articles/");
   const activeCategory = pathname.startsWith("/category/")
     ? pathname.split("/")[2]
     : null;
 
   return (
     <>
-      {/* ========== モバイル：NewsPicks風アプリヘッダー ========== */}
+      {/* ========== モバイル ========== */}
       <header className="sticky top-0 z-30 bg-white md:hidden">
         <div
           className="flex h-12 items-center justify-between px-2"
@@ -75,7 +76,6 @@ export function SiteHeader() {
           </div>
         </div>
 
-        {/* カテゴリタブ（黒アンダーライン） */}
         <div className="border-b border-slate-200">
           <nav
             className="flex h-11 items-stretch gap-0 overflow-x-auto px-2 scrollbar-none"
@@ -96,10 +96,7 @@ export function SiteHeader() {
                 {c.name}
               </TabLink>
             ))}
-            <TabLink
-              href="/articles"
-              active={pathname === "/articles"}
-            >
+            <TabLink href="/articles" active={pathname === "/articles"}>
               記事一覧
             </TabLink>
           </nav>
@@ -108,78 +105,90 @@ export function SiteHeader() {
 
       <SiteMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      {/* ========== デスクトップ：既存の日経ライクヘッダー ========== */}
-      <header className="sticky top-0 z-30 hidden bg-white md:block">
-        <div className="border-b border-slate-200">
-          <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-4">
-            <div className="justify-self-start">
-              <Link
-                href="/search"
-                className="flex w-full max-w-64 items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-400 transition-colors hover:border-navy-600"
-              >
-                <SearchIcon className="h-4 w-4" />
-                <span>記事を検索</span>
-              </Link>
-            </div>
+      {/* ========== デスクトップ：ポータル風ヘッダー ========== */}
+      <header className="sticky top-0 z-30 hidden border-b border-slate-200/80 bg-white/95 backdrop-blur md:block">
+        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-6 px-4 lg:px-6">
+          <Link
+            href="/"
+            className="shrink-0"
+            aria-label={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
+          >
+            <SiteLogo />
+          </Link>
 
-            <Link
-              href="/"
-              className="justify-self-center"
-              aria-label={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
-            >
-              <SiteLogo />
-            </Link>
+          <Link
+            href="/search"
+            className="mx-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm text-slate-400 transition-colors hover:border-navy-600 hover:bg-white"
+          >
+            <SearchIcon className="h-4 w-4 shrink-0" />
+            <span>記事を検索</span>
+          </Link>
 
-            <div className="flex items-center justify-self-end gap-2">
-              <Link
-                href="/contact"
-                className="rounded bg-brand-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-brand-700"
-              >
-                お問い合わせ
-              </Link>
-            </div>
-          </div>
+          <Link
+            href="/contact"
+            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-brand-700"
+          >
+            <MailIcon className="h-4 w-4" />
+            お問い合わせ
+          </Link>
         </div>
 
-        <div className="bg-navy-700 text-white">
-          <div className="mx-auto flex h-11 max-w-6xl items-center justify-center gap-1 overflow-x-auto px-4">
-            <Link
-              href="/"
-              className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-bold hover:bg-white/10"
-            >
+        <nav
+          className="border-t border-slate-100"
+          aria-label="メインナビゲーション"
+        >
+          <div className="mx-auto flex h-12 max-w-7xl items-stretch gap-0.5 overflow-x-auto px-4 lg:px-6">
+            <DesktopNavLink href="/" active={isTop}>
               トップ
-            </Link>
-            <Link
-              href="/news"
-              className={`whitespace-nowrap rounded px-3 py-1.5 text-sm hover:bg-white/10 ${
-                isNews ? "font-bold" : "font-medium text-slate-100"
-              }`}
-            >
+            </DesktopNavLink>
+            <DesktopNavLink href="/news" active={isNews}>
               ニュース
-            </Link>
+            </DesktopNavLink>
             {primary.map((c) => (
-              <Link
+              <DesktopNavLink
                 key={c.slug}
                 href={`/category/${c.slug}`}
-                className={`whitespace-nowrap rounded px-3 py-1.5 text-sm hover:bg-white/10 ${
-                  activeCategory === c.slug
-                    ? "bg-white/15 font-bold"
-                    : "font-medium text-slate-100"
-                }`}
+                active={activeCategory === c.slug}
               >
                 {c.name}
-              </Link>
+              </DesktopNavLink>
             ))}
-            <Link
-              href="/articles"
-              className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium text-slate-100 hover:bg-white/10"
-            >
+            <DesktopNavLink href="/articles" active={isArticles && !activeCategory}>
               記事一覧
-            </Link>
+            </DesktopNavLink>
           </div>
-        </div>
+        </nav>
       </header>
     </>
+  );
+}
+
+function DesktopNavLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`relative flex shrink-0 items-center px-3 text-[13px] whitespace-nowrap transition-colors lg:px-3.5 lg:text-sm ${
+        active
+          ? "font-bold text-navy-800"
+          : "font-medium text-slate-500 hover:text-navy-700"
+      }`}
+    >
+      {children}
+      {active && (
+        <span
+          aria-hidden
+          className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-navy-700"
+        />
+      )}
+    </Link>
   );
 }
 

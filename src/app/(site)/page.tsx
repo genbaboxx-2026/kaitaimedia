@@ -35,49 +35,42 @@ export const metadata: Metadata = {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="flex items-center gap-2.5 border-b-2 border-navy-700 pb-2 font-serif text-lg font-bold tracking-tight text-slate-900">
+    <h2 className="text-lg font-bold tracking-tight text-slate-900">
       {children}
     </h2>
   );
 }
 
-function SecondaryArticleCard({
-  article,
-  footer,
-}: {
-  article: Article;
-  footer?: React.ReactNode;
-}) {
+function SecondaryArticleCard({ article }: { article: Article }) {
   const categoryName = getCategoryName(article.categorySlug);
   const meta = getCategoryMeta(article.categorySlug);
 
   return (
-    <article>
+    <article className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md">
       <Link href={`/articles/${article.slug}`} className="group block">
-        <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="relative overflow-hidden">
           <Eyecatch
             categorySlug={article.categorySlug}
             categoryName={categoryName}
             imageUrl={article.imageUrl}
-            className="aspect-video"
+            className="aspect-[16/10]"
           />
-        </div>
-        <span className="mt-2.5 inline-flex items-center gap-1.5 text-[11px] font-bold text-navy-700">
           <span
-            aria-hidden
-            className="h-1.5 w-1.5 rounded-full"
+            className="absolute left-2.5 top-2.5 rounded-md px-2 py-0.5 text-[10px] font-bold text-white shadow-sm"
             style={{ backgroundColor: meta.accent }}
-          />
-          {categoryName}
-        </span>
-        <h3 className="mt-1 line-clamp-3 font-serif text-[15px] font-bold leading-snug text-slate-900 decoration-navy-600 decoration-2 underline-offset-4 group-hover:underline">
-          {article.title}
-        </h3>
-        <p className="mt-1.5 text-[11px] text-slate-400">
-          {formatRelativeJa(article.publishedAt)}
-        </p>
+          >
+            {categoryName}
+          </span>
+        </div>
+        <div className="px-3.5 py-3.5">
+          <h3 className="line-clamp-3 text-[14px] font-bold leading-snug text-slate-900 group-hover:text-navy-700">
+            {article.title}
+          </h3>
+          <p className="mt-2 text-[11px] text-slate-400">
+            {formatRelativeJa(article.publishedAt)}
+          </p>
+        </div>
       </Link>
-      {footer}
     </article>
   );
 }
@@ -88,7 +81,7 @@ export default async function HomePage() {
   const [news, articles, ranking, snsTrends] = await Promise.all([
     getLatestNews(10),
     getLatestArticles(13),
-    getRankingArticles(3),
+    getRankingArticles(5),
     getApprovedSnsTrends(10),
   ]);
 
@@ -96,7 +89,7 @@ export default async function HomePage() {
   const secondary = rest.slice(0, 6); // 注目の記事：3列×2行
   const newsRows = news.slice(0, 10);
   const snsRows = snsTrends.slice(0, 10);
-  const rankingRows = ranking.slice(0, 3);
+  const rankingRows = ranking.slice(0, 5);
   const articleFeed = rest.slice(0, 10); // モバイル「記事」セクション：最新記事の次から公開順に最大10件
 
   return (
@@ -211,128 +204,145 @@ export default async function HomePage() {
         )}
       </div>
 
-      {/* ========== デスクトップ：記事+ニュース | サイドバー → SNS ========== */}
-      <div className="mx-auto hidden max-w-7xl px-4 py-6 md:block">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
-          <main className="min-w-0">
-            {lead && (
-              <article className="grid gap-5 sm:grid-cols-2">
+      {/* ========== デスクトップ：ポータル風レイアウト ========== */}
+      <div className="hidden bg-slate-50 md:block">
+        <div className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <main className="min-w-0 space-y-10">
+              {lead && (
                 <Link
                   href={`/articles/${lead.slug}`}
-                  className="block overflow-hidden rounded-lg border border-slate-200"
+                  className="group block overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md"
                 >
-                  <Eyecatch
-                    categorySlug={lead.categorySlug}
-                    categoryName={getCategoryName(lead.categorySlug)}
-                    imageUrl={lead.imageUrl}
-                    className="aspect-video"
-                  />
+                  <div className="relative">
+                    <Eyecatch
+                      categorySlug={lead.categorySlug}
+                      categoryName={getCategoryName(lead.categorySlug)}
+                      imageUrl={lead.imageUrl}
+                      className="aspect-[21/9] sm:aspect-[2.4/1]"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-6 pb-5 pt-16">
+                      <span
+                        className="inline-flex rounded-md px-2.5 py-1 text-[11px] font-bold text-white"
+                        style={{
+                          backgroundColor: getCategoryMeta(lead.categorySlug)
+                            .accent,
+                        }}
+                      >
+                        {getCategoryName(lead.categorySlug)}
+                      </span>
+                      <h1 className="mt-2.5 max-w-3xl text-xl font-bold leading-snug text-white sm:text-2xl">
+                        {lead.title}
+                      </h1>
+                      <p className="mt-2 max-w-2xl line-clamp-2 text-sm leading-relaxed text-white/85">
+                        {lead.excerpt}
+                      </p>
+                      <p className="mt-2 text-xs text-white/65">
+                        {formatJaDate(lead.publishedAt)}
+                      </p>
+                    </div>
+                  </div>
                 </Link>
-                <div>
-                  <h1 className="font-serif text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">
-                    <Link
-                      href={`/articles/${lead.slug}`}
-                      className="decoration-navy-600 decoration-2 underline-offset-4 hover:underline"
-                    >
-                      {lead.title}
-                    </Link>
-                  </h1>
-                  <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-slate-600">
-                    {lead.excerpt}
-                  </p>
-                  <p className="mt-3 text-xs text-slate-400">
-                    {formatJaDate(lead.publishedAt)}
-                  </p>
-                </div>
-              </article>
-            )}
+              )}
 
-            {secondary.length > 0 && (
-              <div className="mt-8">
-                <SectionTitle>注目の記事</SectionTitle>
-                <div className="mt-4 grid gap-5 sm:grid-cols-3">
-                  {secondary.map((a) => (
-                    <SecondaryArticleCard key={a.slug} article={a} />
-                  ))}
-                </div>
-                <div className="mt-4 text-right">
-                  <Link
-                    href="/articles"
-                    className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-                  >
-                    記事一覧をすべて見る
-                    <ArrowIcon className="h-4 w-4" />
-                  </Link>
-                </div>
+              {secondary.length > 0 && (
+                <section>
+                  <div className="mb-4 flex items-end justify-between gap-4">
+                    <SectionTitle>注目の記事</SectionTitle>
+                    <Link
+                      href="/articles"
+                      className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                    >
+                      記事一覧をすべて見る
+                      <ArrowIcon className="h-4 w-4" />
+                    </Link>
+                  </div>
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                    {secondary.map((a) => (
+                      <SecondaryArticleCard key={a.slug} article={a} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {newsRows.length > 0 && (
+                <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
+                  <FeedSectionHeader title="今日のニュース" />
+                  <div className="mt-3 grid gap-x-8 sm:grid-cols-2">
+                    {newsRows.map((item) => (
+                      <NewsListItem key={item.id} item={item} />
+                    ))}
+                  </div>
+                  <div className="mt-5 text-right">
+                    <Link
+                      href="/news"
+                      className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
+                    >
+                      ニュースをもっと見る
+                      <ArrowIcon className="h-4 w-4" />
+                    </Link>
+                  </div>
+                </section>
+              )}
+            </main>
+
+            <aside className="space-y-6">
+              <div className="space-y-4">
+                <BakusoqSidebarBanner />
+                <NinkuboxxSidebarBanner />
               </div>
-            )}
 
-            {/* サイドバーが高くても左が空かないよう、ニュースを記事直下へ */}
-            {newsRows.length > 0 && (
-              <section className="mt-5 border-t border-slate-100 pt-5">
-                <FeedSectionHeader title="今日のニュース" />
-                <div className="mt-2 grid gap-x-10 sm:grid-cols-2">
-                  {newsRows.map((item) => (
-                    <NewsListItem key={item.id} item={item} />
-                  ))}
-                </div>
-                <div className="mt-5 text-right">
-                  <Link
-                    href="/news"
-                    className="inline-flex items-center gap-1 text-sm font-bold text-navy-700 hover:underline"
-                  >
-                    ニュースをもっと見る
-                    <ArrowIcon className="h-4 w-4" />
-                  </Link>
-                </div>
-              </section>
-            )}
-          </main>
-
-          <aside className="space-y-8">
-            <div className="space-y-4">
-              <BakusoqSidebarBanner />
-              <NinkuboxxSidebarBanner />
-            </div>
-
-            <div>
-              <SectionTitle>RANKING</SectionTitle>
-              <ol className="mt-1">
-                {rankingRows.map((a, i) => (
-                  <li key={a.slug} className="border-b border-slate-200">
-                    <Link
-                      href={`/articles/${a.slug}`}
-                      className="group flex gap-3 py-3"
-                    >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm bg-accent text-sm font-bold text-white">
-                        {i + 1}
-                      </span>
-                      <span className="flex flex-col">
-                        <span className="text-xs font-semibold text-slate-400">
-                          {getCategoryName(a.categorySlug)}
-                        </span>
-                        <span className="line-clamp-2 font-serif text-sm font-bold leading-snug text-slate-800 decoration-navy-600 decoration-2 underline-offset-4 group-hover:underline">
-                          {a.title}
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            {snsRows.length > 0 && (
-              <div>
-                <SectionTitle>SNSトレンド</SectionTitle>
-                <p className="mt-1 text-[11px] text-slate-400">
-                  いいね順 · タップで投稿を表示
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-bold tracking-[0.14em] text-slate-400">
+                  RANKING
                 </p>
-                <div className="mt-1">
-                  <SnsTrendList items={snsRows} compact />
-                </div>
+                <SectionTitle>
+                  <span className="text-base">人気記事ランキング</span>
+                </SectionTitle>
+                <ol className="mt-3 space-y-1">
+                  {rankingRows.map((a, i) => (
+                    <li key={a.slug}>
+                      <Link
+                        href={`/articles/${a.slug}`}
+                        className="group flex items-start gap-3 rounded-xl px-1 py-2.5 transition-colors hover:bg-slate-50"
+                      >
+                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-navy-700 text-xs font-bold text-white">
+                          {i + 1}
+                        </span>
+                        <span className="relative aspect-video w-[4.5rem] shrink-0 overflow-hidden rounded-md border border-slate-200">
+                          <Eyecatch
+                            categorySlug={a.categorySlug}
+                            categoryName={getCategoryName(a.categorySlug)}
+                            imageUrl={a.imageUrl}
+                            className="h-full w-full"
+                          />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="line-clamp-2 text-[13px] font-bold leading-snug text-slate-800 group-hover:text-navy-700">
+                            {a.title}
+                          </span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
               </div>
-            )}
-          </aside>
+
+              {snsRows.length > 0 && (
+                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
+                  <SectionTitle>
+                    <span className="text-base">SNSトレンド</span>
+                  </SectionTitle>
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    いいね順 · タップで投稿を表示
+                  </p>
+                  <div className="mt-2">
+                    <SnsTrendList items={snsRows} compact />
+                  </div>
+                </div>
+              )}
+            </aside>
+          </div>
         </div>
       </div>
     </>
