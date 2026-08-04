@@ -12,7 +12,7 @@ export function NinkuboxxSidebarBanner() {
       href={NINKUBOXX_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="mx-auto block w-full max-w-[240px] overflow-hidden shadow-md transition-opacity hover:opacity-95 md:max-w-[220px]"
+      className="block w-full max-w-[280px] overflow-hidden shadow-md transition-opacity hover:opacity-95 md:max-w-[260px]"
       aria-label="NiNKU BOXX を見る"
     >
       <Image
@@ -21,7 +21,7 @@ export function NinkuboxxSidebarBanner() {
         width={819}
         height={1024}
         className="h-auto w-full"
-        sizes="220px"
+        sizes="280px"
       />
     </a>
   );
