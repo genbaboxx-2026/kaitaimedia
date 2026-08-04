@@ -56,6 +56,7 @@ function parseGenerationTime(raw: string): number | null {
 /**
  * いまの JST が、generation_time を含むポーリング枠内か。
  * 例: 23:54 → 23:45〜23:59 の枠（15分間隔のとき）
+ * @deprecated 追い上げ判定には hasReachedGenerationTime を使う
  */
 export function isInGenerationWindow(
   generationTime: string,
@@ -71,6 +72,16 @@ export function isInGenerationWindow(
   return target >= slotStart && target < slotEnd;
 }
 
+/** 設定時刻を過ぎているか（GitHub cron の遅延に備えた当日追い上げ用） */
+export function hasReachedGenerationTime(
+  generationTime: string,
+  now = new Date(),
+): boolean {
+  const target = parseGenerationTime(generationTime);
+  if (target === null) return false;
+  return jstNow(now).minutesOfDay >= target;
+}
+
 export interface ScheduleGateResult {
   run: boolean;
   reason: string;
@@ -80,7 +91,7 @@ export interface ScheduleGateResult {
 
 /**
  * 定時トリガー時に「今すぐバッチを回してよいか」を判定する。
- * UI の generation_time を正とし、GitHub cron は頻繁に起こしてここで間引く。
+ * generation_time 以降で未生成なら実行（cron が15分枠を飛ばしても当日中に追いつく）。
  */
 export async function evaluateScheduleGate(
   now = new Date(),
@@ -88,6 +99,7 @@ export async function evaluateScheduleGate(
   const settings = await loadSettings();
   const generationTime = getString(settings, "generation_time", "03:00");
   const jst = jstNow(now);
+  const nowLabel = `${String(jst.hour).padStart(2, "0")}:${String(jst.minute).padStart(2, "0")}`;
 
   if (!getBool(settings, "generation_enabled", true)) {
     return {
@@ -98,10 +110,10 @@ export async function evaluateScheduleGate(
     };
   }
 
-  if (!isInGenerationWindow(generationTime, now)) {
+  if (!hasReachedGenerationTime(generationTime, now)) {
     return {
       run: false,
-      reason: `実行枠外（いま JST ${String(jst.hour).padStart(2, "0")}:${String(jst.minute).padStart(2, "0")} / 設定 ${generationTime}）`,
+      reason: `実行時刻前（いま JST ${nowLabel} / 設定 ${generationTime}）`,
       jstDate: jst.date,
       generationTime,
     };
@@ -132,9 +144,12 @@ export async function evaluateScheduleGate(
     };
   }
 
+  const onTime = isInGenerationWindow(generationTime, now);
   return {
     run: true,
-    reason: `定時枠ヒット（設定 ${generationTime} / JST ${jst.date}）`,
+    reason: onTime
+      ? `定時枠ヒット（設定 ${generationTime} / JST ${jst.date}）`
+      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel}）`,
     jstDate: jst.date,
     generationTime,
   };

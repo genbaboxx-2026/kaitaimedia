@@ -2,8 +2,8 @@ name: 記事自動生成
 
 on:
   schedule:
-    # 15分ごとに起こし、scripts 側で settings.generation_time（JST）を見て実行可否を判定する。
-    # UI の実行時刻を変えても、この YAML を書き換えなくてよい。
+    # 15分ごとに起こし、scripts 側で settings.generation_time（JST）以降かつ当日未生成なら実行する。
+    # cron が遅延しても当日中に追いつく。UI の実行時刻変更でこの YAML の書き換えは不要。
     - cron: "*/15 * * * *"
   workflow_dispatch: {} # 手動トリガー可（時刻判定をスキップして即実行）
 

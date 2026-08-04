@@ -4,7 +4,8 @@
  * .env.local を読み込み、生成パイプライン（要件5.1）を1回実行する。
  *
  * GitHub Actions 定時起動時は GENERATE_SCHEDULED=1 を付与する。
- * その場合、settings.generation_time（JST）の枠内でのみ本実行し、
+ * その場合、settings.generation_time（JST）以降かつ当日未生成なら本実行する
+ * （cron 遅延で枠を逃しても当日中に追いつく）。
  * UI の時刻変更が Actions の YAML 修正なしで効くようにする。
  */
 import { loadEnvLocal } from "./load-env-local";

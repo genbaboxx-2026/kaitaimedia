@@ -156,7 +156,7 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
           </Row>
           <Row
             label="実行時刻（JST）"
-            hint="この時刻を含む15分枠で自動生成します（例: 23:54 → 23:45〜23:59）。GitHub Actions が15分ごとに確認するため、時刻変更は保存するだけで反映されます"
+            hint="この時刻以降に自動生成します。GitHub Actions が15分ごとに確認し、時刻を逃しても当日中に追いつきます。時刻変更は保存するだけで反映されます"
           >
             <input type="time" value={s.generationTime} onChange={(e) => set("generationTime", e.target.value)} className={sel} />
           </Row>
