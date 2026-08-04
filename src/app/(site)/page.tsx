@@ -63,10 +63,10 @@ function SecondaryArticleCard({ article }: { article: Article }) {
           </span>
         </div>
         <div className="px-3.5 py-3.5">
-          <h3 className="line-clamp-3 text-[14px] font-bold leading-snug text-slate-900 group-hover:text-navy-700">
+          <h3 className="line-clamp-3 text-[16px] font-bold leading-snug text-slate-900 group-hover:text-navy-700">
             {article.title}
           </h3>
-          <p className="mt-2 text-[11px] text-slate-400">
+          <p className="mt-2 text-[12px] text-slate-400">
             {formatRelativeJa(article.publishedAt)}
           </p>
         </div>
