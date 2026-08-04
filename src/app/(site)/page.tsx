@@ -213,8 +213,8 @@ export default async function HomePage() {
 
       {/* ========== デスクトップ：記事+ニュース | サイドバー → SNS ========== */}
       <div className="mx-auto hidden max-w-7xl px-4 py-6 md:block">
-        <div className="grid gap-8 lg:grid-cols-3">
-          <main className="lg:col-span-2">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <main className="min-w-0">
             {lead && (
               <article className="grid gap-5 sm:grid-cols-2">
                 <Link
