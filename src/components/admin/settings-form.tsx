@@ -213,7 +213,10 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
         </Section>
 
         <Section title="コスト制御">
-          <Row label="月間AI利用料の上限（円）" hint="0で上限なし。超過で自動停止">
+          <Row
+            label="月間AI利用料の上限（円）"
+            hint="0で上限なし。超過で自動停止（ログのUSD概算×約150円で比較）"
+          >
             <input type="number" min={0} value={s.monthlyAiBudgetLimit} onChange={(e) => set("monthlyAiBudgetLimit", Number(e.target.value))} className={num} />
           </Row>
           <Row

@@ -6,6 +6,7 @@ import {
   restInsert,
   restDelete,
   restSelect,
+  restUpsert,
 } from "@/lib/supabase/rest";
 
 export type ActionResult = { ok: boolean; error?: string };
@@ -154,16 +155,26 @@ export async function setSettingAction(
   }
 }
 
-// 複数設定をまとめて保存
+// 複数設定をまとめて保存（未作成キーも UPSERT で作る）
 export async function saveSettingsAction(
   entries: { key: string; value: string }[],
 ): Promise<ActionResult> {
   try {
+    const now = new Date().toISOString();
     for (const { key, value } of entries) {
-      await restUpdate(`settings?key=eq.${key}`, {
-        value,
-        updated_at: new Date().toISOString(),
-      });
+      const looksNumber = /^-?\d+(\.\d+)?$/.test(value);
+      const looksBool = value === "true" || value === "false";
+      const valueType = looksBool ? "boolean" : looksNumber ? "number" : "string";
+      await restUpsert(
+        "settings",
+        {
+          key,
+          value,
+          value_type: valueType,
+          updated_at: now,
+        },
+        "key",
+      );
     }
     revalidatePath("/admin/generation");
     revalidatePath("/admin/articles");

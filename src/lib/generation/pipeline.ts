@@ -18,6 +18,7 @@ import {
   pickFigureStyle,
 } from "@/lib/image/figure-prompt";
 import { notifySlack } from "@/lib/notify/slack";
+import { USD_JPY_RATE } from "@/lib/ai/pricing";
 import type { ArticleType } from "@/lib/types";
 
 interface ThemeRow {
@@ -270,9 +271,9 @@ export async function runGenerationPipeline(opts?: {
   const perArticleCostLimit = getNumber(settings, "per_article_cost_limit_usd", 3);
 
   // 月間コスト上限チェック（超過で自動停止）。0 は無効。
-  // 注: estimated_cost は USD 概算。上限の単位運用は着手時に確定する（要件13）。
-  const budgetLimit = getNumber(settings, "monthly_ai_budget_limit", 0);
-  if (budgetLimit > 0) {
+  // UI は円、generation_logs.estimated_cost は USD 概算 → 概算レートで円換算して比較する。
+  const budgetLimitJpy = getNumber(settings, "monthly_ai_budget_limit", 0);
+  if (budgetLimitJpy > 0) {
     const now = new Date();
     const firstOfMonth = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1),
@@ -281,9 +282,12 @@ export async function runGenerationPipeline(opts?: {
       `generation_logs?select=estimated_cost&started_at=gte.${firstOfMonth}`,
       0,
     );
-    const spent = (logs ?? []).reduce((s, l) => s + (l.estimated_cost ?? 0), 0);
-    if (spent >= budgetLimit) {
-      await notifySlack("記事生成：月間コスト上限に達したため自動停止しました。");
+    const spentUsd = (logs ?? []).reduce((s, l) => s + (l.estimated_cost ?? 0), 0);
+    const spentJpy = spentUsd * USD_JPY_RATE;
+    if (spentJpy >= budgetLimitJpy) {
+      await notifySlack(
+        `記事生成：月間コスト上限（約¥${Math.round(spentJpy)} / 上限¥${budgetLimitJpy}）に達したため自動停止しました。`,
+      );
       return { status: "skipped", message: "月間コスト上限に達したため停止しました" };
     }
   }
