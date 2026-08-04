@@ -120,28 +120,39 @@ function Sparkle({
   );
 }
 
-function BrandMark({ className = "" }: { className?: string }) {
+function BrandMark({
+  className = "",
+  compact = false,
+}: {
+  className?: string;
+  /** 見出し内など小さめ用途 */
+  compact?: boolean;
+}) {
   return (
     <span
-      className={`inline-flex items-baseline font-black italic tracking-tight text-[#1677E6] ${className}`}
+      className={`inline-flex items-center ${compact ? "gap-1.5" : "gap-2"} ${className}`}
     >
-      BAK
-      <span className="relative inline-block px-[0.05em]">
-        <span className="invisible">U</span>
+      <span
+        aria-hidden
+        className={`inline-flex shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#38BDF8] to-[#1565C0] shadow-md shadow-sky-500/35 ${
+          compact ? "h-6 w-6" : "h-8 w-8 sm:h-9 sm:w-9"
+        }`}
+      >
         <svg
-          viewBox="0 0 20 28"
-          className="absolute left-1/2 top-[0.05em] h-[0.95em] w-auto -translate-x-1/2"
-          aria-hidden
+          viewBox="0 0 24 24"
+          className={compact ? "h-3.5 w-3.5" : "h-5 w-5"}
+          fill="white"
         >
-          <path
-            d="M11 1L3 15h6L8 27l9-16h-6L11 1z"
-            fill="#1677E6"
-            stroke="#fff"
-            strokeWidth="1.2"
-          />
+          <path d="M13 2L4.5 13.5H11L10 22l8.5-11.5H12L13 2z" />
         </svg>
       </span>
-      SOQ
+      <span
+        className={`font-black italic tracking-[-0.04em] text-transparent bg-clip-text bg-gradient-to-r from-[#0B4F9C] via-[#1677E6] to-[#38BDF8] ${
+          compact ? "text-[1.05em] leading-none" : "leading-none"
+        }`}
+      >
+        BAKUSOQ
+      </span>
     </span>
   );
 }
@@ -208,61 +219,61 @@ function Modal({ onClose }: { onClose: () => void }) {
         className="absolute inset-0 bg-slate-900/40"
       />
 
-      <div className="baku-in relative flex h-full w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(94vh,920px)] sm:rounded-2xl sm:ring-1 sm:ring-sky-200">
+      <div className="baku-in relative flex h-full w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(94vh,960px)] sm:rounded-2xl sm:ring-1 sm:ring-sky-200 lg:max-w-7xl">
         <button
           type="button"
           onClick={onClose}
           aria-label="閉じる"
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          className="absolute right-3 top-3 z-20 flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
         >
           <CloseIcon className="h-5 w-5" />
         </button>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <header className="border-b border-sky-100 px-5 pb-4 pt-5 sm:px-8 sm:pt-6">
-            <BrandMark className="text-[22px] sm:text-[26px]" />
-            <h2 className="baku-fade mt-3 text-[22px] font-black leading-tight tracking-tight text-slate-900 sm:text-[28px]">
+          <header className="border-b border-sky-100 px-5 pb-5 pt-5 sm:px-10 sm:pt-7">
+            <BrandMark className="text-[28px] sm:text-[34px]" />
+            <h2 className="baku-fade mt-4 text-[26px] font-black leading-tight tracking-tight text-slate-900 sm:text-[34px]">
               こんな悩み、ありませんか？
             </h2>
             <svg
-              viewBox="0 0 280 12"
-              className="mt-1 w-56 text-[#1677E6] sm:w-72"
+              viewBox="0 0 320 12"
+              className="mt-1.5 w-64 text-[#1677E6] sm:w-80"
               aria-hidden
             >
               <path
-                d="M2 8 Q40 2 80 8 T160 8 T260 7"
+                d="M2 8 Q40 2 80 8 T160 8 T300 7"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="3.5"
                 strokeLinecap="round"
               />
             </svg>
           </header>
 
-          <div className="px-4 py-5 sm:px-7 sm:py-6">
-            <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-              <ul className="space-y-2.5">
+          <div className="px-5 py-6 sm:px-10 sm:py-8">
+            <div className="grid gap-5 lg:grid-cols-[1.2fr_0.9fr]">
+              <ul className="space-y-3">
                 {WORRIES.map((w, i) => (
                   <li
                     key={w.n}
-                    className="baku-fade baku-card flex items-center gap-2.5 rounded-xl border border-sky-100 bg-white px-3 py-2 shadow-sm sm:gap-3 sm:py-2.5"
+                    className="baku-fade baku-card flex items-center gap-3 rounded-xl border border-sky-100 bg-white px-4 py-3 shadow-sm sm:gap-4 sm:py-3.5"
                     style={{ animationDelay: `${0.05 + i * 0.06}s` }}
                   >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-[12px] font-black text-white shadow-sm shadow-sky-500/30">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-[14px] font-black text-white shadow-sm shadow-sky-500/30">
                       {w.n}
                     </span>
-                    <p className="min-w-0 flex-1 text-[13px] font-bold leading-snug text-slate-800 sm:text-[14px]">
+                    <p className="min-w-0 flex-1 text-[15px] font-bold leading-snug text-slate-800 sm:text-[17px]">
                       {w.before}
                       <span className="text-[#1677E6]">{w.highlight}</span>
                       {w.after}
                     </p>
-                    <span className="relative h-14 w-14 shrink-0 sm:h-[4.5rem] sm:w-[4.5rem]">
+                    <span className="relative h-16 w-16 shrink-0 sm:h-20 sm:w-20">
                       <Image
                         src={w.img}
                         alt=""
                         fill
                         className="object-contain object-bottom"
-                        sizes="72px"
+                        sizes="80px"
                       />
                     </span>
                   </li>
@@ -270,71 +281,72 @@ function Modal({ onClose }: { onClose: () => void }) {
               </ul>
 
               <aside
-                className="baku-fade relative flex flex-col overflow-hidden rounded-2xl border-2 border-[#93C5FD] bg-[#EFF6FF] p-4 sm:p-5"
+                className="baku-fade relative flex flex-col overflow-hidden rounded-2xl border-2 border-[#93C5FD] bg-[#EFF6FF] p-5 sm:p-6"
                 style={{ animationDelay: "0.15s" }}
               >
-                <p className="text-[17px] font-black text-[#1677E6] sm:text-[18px]">
+                <p className="text-[20px] font-black text-[#1677E6] sm:text-[22px]">
                   それは仕方ないです。
                 </p>
-                <p className="mt-0.5 text-sm font-bold text-[#1677E6]">理由は…</p>
-                <ul className="mt-3 space-y-2">
+                <p className="mt-1 text-base font-bold text-[#1677E6]">理由は…</p>
+                <ul className="mt-4 space-y-2.5">
                   {REASONS.map((r) => (
                     <li
                       key={r}
-                      className="flex items-start gap-2 text-[13px] font-bold text-slate-700"
+                      className="flex items-start gap-2.5 text-[15px] font-bold leading-snug text-slate-700 sm:text-[16px]"
                     >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-white">
-                        <CheckIcon className="h-3 w-3" />
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-white">
+                        <CheckIcon className="h-3.5 w-3.5" />
                       </span>
                       {r}
                     </li>
                   ))}
                 </ul>
-                <div className="relative mt-auto h-28 w-full sm:h-36">
+                <div className="relative mt-auto h-32 w-full sm:h-40">
                   <Image
                     src={`${ILLUST}/reason-worker.png`}
                     alt=""
                     fill
                     className="object-contain object-right-bottom"
-                    sizes="360px"
+                    sizes="420px"
                   />
                 </div>
               </aside>
             </div>
 
-            <div className="baku-arrow my-4 flex justify-center" aria-hidden>
-              <svg viewBox="0 0 64 40" className="h-9 w-14 text-[#1677E6]">
+            <div className="baku-arrow my-5 flex justify-center" aria-hidden>
+              <svg viewBox="0 0 64 40" className="h-10 w-16 text-[#1677E6]">
                 <path d="M8 4h48L32 36z" fill="currentColor" />
               </svg>
             </div>
 
-            <div className="flex items-center justify-center gap-2 text-center">
-              <Sparkle className="baku-float h-5 w-5 shrink-0" />
-              <h3 className="text-[18px] font-black italic tracking-tight text-[#1677E6] sm:text-[22px]">
-                その悩み、
-                <BrandMark className="text-[18px] not-italic sm:text-[22px]" />{" "}
-                が解決します！
+            <div className="flex flex-wrap items-center justify-center gap-2.5 text-center">
+              <Sparkle className="baku-float h-6 w-6 shrink-0" />
+              <h3 className="flex flex-wrap items-center justify-center gap-2 text-[20px] font-black tracking-tight text-[#1677E6] sm:text-[26px]">
+                <span>その悩み、</span>
+                <BrandMark compact className="text-[22px] sm:text-[28px]" />
+                <span>が解決します！</span>
               </h3>
               <Sparkle
-                className="baku-float h-5 w-5 shrink-0"
+                className="baku-float h-6 w-6 shrink-0"
                 style={{ animationDelay: "0.4s" }}
               />
             </div>
 
-            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <ul className="mt-5 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
               {SOLUTIONS.map((s, i) => (
                 <li
                   key={s.title}
                   className="baku-fade baku-card overflow-hidden rounded-xl border border-[#93C5FD] bg-white shadow-sm"
                   style={{ animationDelay: `${0.1 + i * 0.06}s` }}
                 >
-                  <div className="bg-[#1677E6] px-3 py-2.5">
-                    <p className="text-center text-[12px] font-black leading-snug text-white sm:text-[13px]">
+                  <div className="bg-[#1677E6] px-3 py-3">
+                    <p className="text-center text-[14px] font-black leading-snug text-white sm:text-[15px]">
                       {s.title}
                     </p>
                   </div>
-                  <div className="flex flex-col items-center gap-2 px-3 py-3">
-                    <span className="baku-float relative h-20 w-20"
+                  <div className="flex flex-col items-center gap-2.5 px-3 py-4">
+                    <span
+                      className="baku-float relative h-24 w-24"
                       style={{ animationDelay: `${i * 0.2}s` }}
                     >
                       <Image
@@ -342,10 +354,10 @@ function Modal({ onClose }: { onClose: () => void }) {
                         alt=""
                         fill
                         className="object-contain"
-                        sizes="80px"
+                        sizes="96px"
                       />
                     </span>
-                    <p className="text-center text-[12px] font-bold leading-relaxed text-slate-700">
+                    <p className="text-center text-[14px] font-bold leading-relaxed text-slate-700 sm:text-[15px]">
                       {s.body}
                     </p>
                   </div>
@@ -353,32 +365,32 @@ function Modal({ onClose }: { onClose: () => void }) {
               ))}
             </ul>
 
-            <div className="mt-5 grid gap-3 rounded-2xl bg-[#EAF4FF] p-3 sm:grid-cols-2 sm:p-4">
+            <div className="mt-6 grid gap-4 rounded-2xl bg-[#EAF4FF] p-4 sm:grid-cols-2 sm:p-5">
               <a
                 href={BAKUSOQ_LINE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="baku-card group flex items-center gap-3 rounded-xl border-2 border-[#1677E6]/25 bg-[#F0FDF4] p-3 transition-colors hover:border-[#06C755]"
+                className="baku-card group flex items-center gap-4 rounded-xl border-2 border-[#1677E6]/25 bg-[#F0FDF4] p-4 transition-colors hover:border-[#06C755]"
               >
                 <div className="min-w-0 flex-1">
-                  <span className="inline-flex rounded-full bg-[#06C755] px-2.5 py-0.5 text-[10px] font-bold text-white">
+                  <span className="inline-flex rounded-full bg-[#06C755] px-3 py-1 text-[12px] font-bold text-white">
                     今すぐ情報を手に入れよう！
                   </span>
-                  <p className="mt-2 text-[15px] font-black leading-snug text-slate-800">
+                  <p className="mt-2.5 text-[17px] font-black leading-snug text-slate-800 sm:text-[18px]">
                     <span className="text-[#06C755]">LINE登録</span>
                     で限定資料や最新情報をお届け！
                   </p>
-                  <span className="mt-2 inline-flex rounded-full bg-slate-200/80 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+                  <span className="mt-2.5 inline-flex rounded-full bg-slate-200/80 px-3 py-1 text-[12px] font-bold text-slate-600">
                     登録は30秒で完了！
                   </span>
                 </div>
-                <span className="relative h-20 w-20 shrink-0">
+                <span className="relative h-24 w-24 shrink-0">
                   <Image
                     src={`${ILLUST}/cta-phone.png`}
                     alt=""
                     fill
                     className="object-contain"
-                    sizes="80px"
+                    sizes="96px"
                   />
                 </span>
               </a>
@@ -387,20 +399,20 @@ function Modal({ onClose }: { onClose: () => void }) {
                 href={BAKUSOQ_HP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="baku-card flex items-center gap-3 rounded-xl border-2 border-[#93C5FD] bg-white p-3"
+                className="baku-card flex items-center gap-4 rounded-xl border-2 border-[#93C5FD] bg-white p-4"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-bold text-[#1677E6]">
+                  <p className="text-[15px] font-bold text-[#1677E6]">
                     詳しいサービス内容はこちら
                   </p>
-                  <p className="mt-1 flex items-center gap-1.5 text-[15px] font-black text-[#1677E6]">
+                  <p className="mt-1.5 flex items-center gap-2 text-[17px] font-black text-[#1677E6] sm:text-[18px]">
                     <span
                       aria-hidden
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#1677E6] text-white"
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#1677E6] text-white"
                     >
                       <svg
                         viewBox="0 0 24 24"
-                        className="h-3 w-3"
+                        className="h-3.5 w-3.5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
@@ -411,18 +423,18 @@ function Modal({ onClose }: { onClose: () => void }) {
                     </span>
                     BAKUSOQ 公式HP
                   </p>
-                  <span className="mt-2 inline-flex max-w-full items-center gap-1 truncate rounded-full border border-[#93C5FD] bg-white px-3 py-1 text-[11px] font-bold text-[#1677E6]">
+                  <span className="mt-2.5 inline-flex max-w-full items-center gap-1 truncate rounded-full border border-[#93C5FD] bg-white px-3.5 py-1.5 text-[13px] font-bold text-[#1677E6]">
                     <span className="truncate">{BAKUSOQ_HP_URL}</span>
-                    <ArrowIcon className="h-3.5 w-3.5 shrink-0" />
+                    <ArrowIcon className="h-4 w-4 shrink-0" />
                   </span>
                 </div>
-                <span className="relative h-16 w-24 shrink-0">
+                <span className="relative h-20 w-28 shrink-0">
                   <Image
                     src={`${ILLUST}/cta-dash.png`}
                     alt=""
                     fill
                     className="object-contain"
-                    sizes="96px"
+                    sizes="112px"
                   />
                 </span>
               </a>
