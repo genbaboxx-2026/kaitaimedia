@@ -21,7 +21,7 @@ export function NinkuboxxSidebarBanner() {
       href={NINKUBOXX_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="relative block w-full overflow-hidden rounded-xl shadow-sm transition-opacity hover:opacity-95"
+      className="relative block w-full overflow-hidden shadow-sm transition-opacity hover:opacity-95"
       aria-label="NiNKU BOXX を見る"
     >
       <PrBadge />
