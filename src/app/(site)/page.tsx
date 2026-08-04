@@ -16,10 +16,7 @@ import { NewsListItem } from "@/components/site/news-list-item";
 import { SnsTrendList } from "@/components/site/sns-trend-list";
 import { FeedSectionHeader } from "@/components/site/feed-section-header";
 import { ArrowIcon } from "@/components/site/icons";
-import {
-  BakusoqSidebarBanner,
-  NinkuboxxSidebarBanner,
-} from "@/components/site/sidebar-promo-banners";
+import { SidebarPromoStack } from "@/components/site/sidebar-promo-banners";
 import { formatJaDate, formatRelativeJa } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -190,9 +187,8 @@ export default async function HomePage() {
         )}
 
         {/* 広告：BAKUSOQ / NiNKUBOXX（記事一覧の下・SNSの前） */}
-        <section className="space-y-4 border-t border-slate-100 px-4 py-5">
-          <BakusoqSidebarBanner />
-          <NinkuboxxSidebarBanner />
+        <section className="border-t border-slate-100 px-4 py-5">
+          <SidebarPromoStack />
         </section>
 
         {/* SNS（最大10件） */}
@@ -287,10 +283,7 @@ export default async function HomePage() {
             </main>
 
             <aside className="space-y-6">
-              <div className="space-y-4">
-                <BakusoqSidebarBanner />
-                <NinkuboxxSidebarBanner />
-              </div>
+              <SidebarPromoStack />
 
               <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-bold tracking-[0.14em] text-slate-400">
