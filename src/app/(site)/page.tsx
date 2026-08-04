@@ -7,6 +7,7 @@ import {
   getLatestNews,
   getRankingArticles,
 } from "@/lib/site-data";
+import { getCategoryMeta } from "@/lib/categories-meta";
 import { SITE_URL } from "@/lib/site-url";
 import { SITE_DESCRIPTION } from "@/lib/seo";
 import type { Article } from "@/lib/types";
