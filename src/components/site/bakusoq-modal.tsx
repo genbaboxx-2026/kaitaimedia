@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowIcon } from "@/components/site/icons";
 
 /* ============================================================
    BAKUSOQ 紹介モーダル
-   デモUIのシアン×スピード感を、明るい面で表現。
-   縦スクロール。スマホ1カラム / PCは広めの2〜3カラム。
+   悩み → 納得（仕方ない理由）→ 解決 → LINE / HP 導線
    ============================================================ */
+
+const BAKUSOQ_HP_URL = "https://bakusoq-hp.vercel.app/";
+/** LINE公式のURL。未設定時はHPへフォールバック */
+const BAKUSOQ_LINE_URL =
+  process.env.NEXT_PUBLIC_BAKUSOQ_LINE_URL || BAKUSOQ_HP_URL;
 
 function CloseIcon({ className }: { className?: string }) {
   return (
@@ -46,41 +49,49 @@ function BoltIcon({ className }: { className?: string }) {
   );
 }
 
-const PROBLEMS = [
+const WORRIES = [
+  "まだ平米単価や坪単価で見積もりを作っていませんか？",
+  "その単価、いつから前の単価を使い続けていますか？",
+  "利益率が見えないまま、値引きしていませんか？",
+  "営業が入ったのはいいけど、教育が難しくありませんか？",
+] as const;
+
+const REASONS = [
   {
-    title: "見積作成が遅い・属人化",
-    body: "現地調査からExcel／紙への手作業の転記が必要。経験によるバラつきや桁ミスが多発し、担当者依存の業務に。",
+    title: "現場条件が複雑すぎる",
+    body: "構造・搬出・周辺環境・産廃——変数が多く、単価表一枚では現実に追いつきません。",
   },
   {
-    title: "社内承認の手戻り",
-    body: "原価・提案金額のズレや丸め規則の不統一で承認が差し戻し。顧客への提案が遅れるリスクも。",
+    title: "単価の更新が後回しになる",
+    body: "忙しい現場の合間にマスタを見直す余裕がなく、古い数字が「会社の常識」として残り続けます。",
   },
   {
-    title: "マスタ・積算ロジック統一の難しさ",
-    body: "単位表記のゆれや例外処理が部署ごとにバラバラで、会社としての一貫性が保てない。",
+    title: "値引き判断が感覚頼み",
+    body: "原価の内訳が見えないと、どこまで下げてよいかがわからず、利益を削る交渉になりがちです。",
+  },
+  {
+    title: "育成に時間がかかる",
+    body: "ベテランの頭の中にある勘と経験を、新人営業に短期間で渡すのはとても難しい。",
   },
 ] as const;
 
-const VALUES = [
+const SOLUTIONS = [
   {
-    title: "現場情報の標準化・スピード",
-    body: "標準フォーマットで入力すると自動で積算・計算。スピードと精度を両立し作業時間を大幅短縮。",
+    title: "しっかり爆速",
+    body: "現場条件を入れるだけで積算が走る。提出までのリードタイムを一気に短縮します。",
   },
   {
-    title: "ステップ式UIで入力ミスを削減",
-    body: "直感的なステップ入力で抜け・ミスを防止。担当者による差（属人化）も解消。",
+    title: "原価を積み上げるから精度が高い",
+    body: "単価の丸め込みではなく、原価の積み上げで組むので、根拠のある数字になります。",
   },
   {
-    title: "マスタで会社基準を統一",
-    body: "単価・丸め・例外ルールを会社基準でマスタ化。部署間のばらつきを解消し社内展開も容易。",
+    title: "解体経験がなくても作れる",
+    body: "手順が標準化されているので、新人営業でも見積が作れる。成長のスピードが変わります。",
   },
-] as const;
-
-const STEPS = [
-  ["1週間トライアル", "費用負担なく使い勝手と精度を確認"],
-  ["マスタ移行", "既存の単価表・計算ルールを段階的に整備"],
-  ["運用テスト", "操作から実務活用までをサポート"],
-  ["本稼働サポート", "専任担当が伴走型で立ち上げを支援"],
+  {
+    title: "根拠がわかるからチェックが早い",
+    body: "なぜその金額なのかが一目でわかるので、上司の確認・承認もスムーズです。",
+  },
 ] as const;
 
 function Modal({ onClose }: { onClose: () => void }) {
@@ -111,8 +122,7 @@ function Modal({ onClose }: { onClose: () => void }) {
         className="absolute inset-0 bg-slate-900/35"
       />
 
-      <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#f4f8fb] shadow-xl sm:h-[min(90vh,840px)] sm:max-w-3xl sm:rounded-2xl">
-        {/* 明るいグリッド雰囲気（暗くしすぎない） */}
+      <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#f4f8fb] shadow-xl sm:h-[min(90vh,880px)] sm:max-w-3xl sm:rounded-2xl">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-[0.35]"
@@ -131,7 +141,6 @@ function Modal({ onClose }: { onClose: () => void }) {
           className="pointer-events-none absolute -left-16 bottom-24 h-48 w-48 rounded-full bg-cyan-200/30 blur-3xl"
         />
 
-        {/* ヘッダー */}
         <header className="relative z-10 shrink-0 border-b border-sky-100/80 bg-white/80 px-5 py-5 backdrop-blur-sm sm:px-8 sm:py-6">
           <button
             type="button"
@@ -145,191 +154,163 @@ function Modal({ onClose }: { onClose: () => void }) {
           <p className="text-[11px] font-bold tracking-[0.14em] text-sky-600">
             BAKUSOQ
           </p>
-          <h2 className="mt-1 flex flex-wrap items-center gap-2 text-[26px] font-black tracking-tight text-slate-900 sm:text-[32px]">
-            <span>一瞬で見積もりに。</span>
+          <h2 className="mt-1 flex flex-wrap items-center gap-2 text-[24px] font-black tracking-tight text-slate-900 sm:text-[30px]">
+            <span>こんな悩み、ありませんか？</span>
             <BoltIcon className="h-6 w-6 text-sky-500 sm:h-7 sm:w-7" />
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-slate-600">
-            解体見積に根拠を。そして爆速に。現場条件を入れるだけで、積算ロジックが走ります。
+            解体見積の「なんとなく」を、根拠とスピードに変える話です。
           </p>
-          <span className="mt-3 inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-[11px] font-bold text-sky-700">
-            解体業向け 見積作成サービス
-          </span>
         </header>
 
-        {/* 本文スクロール */}
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-8 sm:py-8">
+          {/* 1. 悩み */}
           <section>
-            <div className="flex items-end justify-between gap-3 border-b border-sky-100 pb-2">
-              <h3 className="text-base font-bold text-slate-900 sm:text-lg">
-                解体業界の3つの課題
-              </h3>
-              <span className="hidden text-[11px] font-bold tracking-wide text-sky-600 sm:inline">
-                CHALLENGES
-              </span>
-            </div>
-            <ul className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-3.5">
-              {PROBLEMS.map((p, i) => (
+            <p className="text-[11px] font-bold tracking-[0.14em] text-sky-600">
+              WORRIES
+            </p>
+            <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
+              現場の見積、こんな状態になっていませんか
+            </h3>
+            <ul className="mt-4 space-y-2.5">
+              {WORRIES.map((w) => (
                 <li
-                  key={p.title}
-                  className="rounded-xl border border-white bg-white p-4 shadow-sm shadow-sky-900/5"
+                  key={w}
+                  className="flex gap-3 rounded-xl border border-white bg-white px-4 py-3.5 shadow-sm shadow-sky-900/5"
                 >
-                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-sky-50 px-1.5 text-[11px] font-black text-sky-600">
-                    0{i + 1}
+                  <span
+                    aria-hidden
+                    className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sm font-black text-sky-600"
+                  >
+                    ?
                   </span>
-                  <p className="mt-2.5 text-sm font-bold text-slate-900">{p.title}</p>
-                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">
-                    {p.body}
+                  <p className="text-[14px] font-bold leading-snug text-slate-800">
+                    {w}
                   </p>
                 </li>
               ))}
             </ul>
           </section>
 
+          {/* 2. 仕方ない理由 */}
           <section className="mt-8 sm:mt-10">
-            <div className="flex items-end justify-between gap-3 border-b border-sky-100 pb-2">
-              <h3 className="text-base font-bold text-slate-900 sm:text-lg">
-                BAKUSOQの提供価値
-              </h3>
-              <span className="hidden text-[11px] font-bold tracking-wide text-sky-600 sm:inline">
-                VALUE
-              </span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-[15px]">
-              入力から見積書まで、速く・正確に・会社基準で。
+            <p className="text-[11px] font-bold tracking-[0.14em] text-sky-600">
+              WHY
             </p>
-
-            <div className="mt-5 grid gap-5 sm:grid-cols-5 sm:gap-6">
-              <ul className="space-y-3 sm:col-span-3">
-                {VALUES.map((v) => (
-                  <li
-                    key={v.title}
-                    className="flex gap-3 rounded-xl border border-white bg-white p-3.5 shadow-sm shadow-sky-900/5"
-                  >
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white">
-                      <CheckIcon className="h-3.5 w-3.5" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{v.title}</p>
-                      <p className="mt-0.5 text-[13px] leading-relaxed text-slate-600">
-                        {v.body}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="grid grid-cols-2 gap-2.5 sm:col-span-2 sm:grid-cols-1 sm:gap-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5">
-                  <p className="text-[11px] font-bold tracking-wide text-slate-400">
-                    BEFORE
+            <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
+              それは仕方ないです
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              平米・坪単価に頼ったり、教育が難しかったりするのは、現場のせいでも人のせいでもありません。構造的にこうなりやすいからです。
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+              {REASONS.map((r) => (
+                <li
+                  key={r.title}
+                  className="rounded-xl border border-white bg-white p-4 shadow-sm shadow-sky-900/5"
+                >
+                  <p className="text-sm font-bold text-slate-900">{r.title}</p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">
+                    {r.body}
                   </p>
-                  <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
-                    Excel／紙で手作業。手直し多数・承認遅延で受注機会を損失。
-                  </p>
-                </div>
-                <div className="rounded-xl border border-sky-200 bg-sky-50 p-3.5">
-                  <p className="text-[11px] font-bold tracking-wide text-sky-600">
-                    AFTER
-                  </p>
-                  <p className="mt-1 text-[13px] leading-relaxed text-slate-700">
-                    自動積算で計算ミスを抑制。提出用見積をすばやく生成し、提案スピードが上がります。
-                  </p>
-                </div>
-              </div>
-            </div>
+                </li>
+              ))}
+            </ul>
           </section>
 
+          {/* 3. 解決 */}
           <section className="mt-8 sm:mt-10">
-            <div className="flex items-end justify-between gap-3 border-b border-sky-100 pb-2">
-              <h3 className="text-base font-bold text-slate-900 sm:text-lg">
-                導入ステップ & 料金
-              </h3>
-              <span className="hidden text-[11px] font-bold tracking-wide text-sky-600 sm:inline">
-                PLAN
-              </span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-slate-700 sm:text-[15px]">
-              まずは1週間の無料トライアルから。
+            <p className="text-[11px] font-bold tracking-[0.14em] text-sky-600">
+              SOLUTION
             </p>
-
-            <div className="mt-5 grid gap-5 sm:grid-cols-2 sm:gap-6">
-              <ol className="space-y-2.5 rounded-xl border border-white bg-white p-4 shadow-sm shadow-sky-900/5 sm:p-5">
-                {STEPS.map(([t, d], i) => (
-                  <li key={t} className="flex items-start gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sky-500 text-[12px] font-black text-white">
-                      {i + 1}
-                    </span>
-                    <p className="text-[13px] leading-snug text-slate-700">
-                      <span className="font-bold text-slate-900">{t}</span>
-                      <span className="text-slate-500"> — {d}</span>
+            <h3 className="mt-1 text-base font-bold text-slate-900 sm:text-lg">
+              そこを、BAKUSOQが解決します
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              原価を積み上げる積算で、速さ・精度・育成・チェックまで一気に変えます。
+            </p>
+            <ul className="mt-4 space-y-3">
+              {SOLUTIONS.map((s) => (
+                <li
+                  key={s.title}
+                  className="flex gap-3 rounded-xl border border-sky-100 bg-white p-3.5 shadow-sm shadow-sky-900/5"
+                >
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white">
+                    <CheckIcon className="h-3.5 w-3.5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{s.title}</p>
+                    <p className="mt-0.5 text-[13px] leading-relaxed text-slate-600">
+                      {s.body}
                     </p>
-                  </li>
-                ))}
-              </ol>
-
-              <div className="rounded-xl border border-sky-200 bg-white p-5 shadow-sm shadow-sky-900/5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-sm font-bold text-slate-900">
-                    BAKUSOQ スタンダード
-                  </p>
-                  <span className="rounded-full bg-sky-500 px-2.5 py-0.5 text-[10px] font-bold text-white">
-                    期間限定 40% OFF
-                  </span>
-                </div>
-                <p className="mt-3 flex flex-wrap items-end gap-2">
-                  <span className="text-sm text-slate-400 line-through">
-                    ¥50,000
-                  </span>
-                  <span className="text-3xl font-black leading-none text-sky-600">
-                    ¥30,000
-                  </span>
-                  <span className="text-sm font-medium text-slate-600">/ 月</span>
-                </p>
-                <p className="mt-3 text-[12px] leading-relaxed text-slate-500">
-                  ユーザー数無制限・全機能利用可。別途 初回マスタ設定費用
-                  ¥200,000。早期導入で正式リリース後も特別価格を継続。
-                </p>
-              </div>
-            </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
 
-          <div className="mt-8 hidden gap-3 sm:flex">
-            <a
-              href="mailto:support@genbaboxx.co.jp"
-              className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl bg-sky-500 px-4 text-sm font-bold text-white shadow-md shadow-sky-500/25 transition-colors hover:bg-sky-400"
-            >
-              <BoltIcon className="h-4 w-4" />
-              メールで相談する
-              <ArrowIcon className="h-4 w-4" />
-            </a>
-            <Link
-              href="/bakusoq"
-              className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50"
-            >
-              サービス紹介ページを見る
-            </Link>
-          </div>
+          {/* 4. CTA */}
+          <section className="mt-8 rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 sm:mt-10 sm:p-6">
+            <h3 className="text-base font-bold text-slate-900 sm:text-lg">
+              ぜひ LINE 登録して、情報を集めよう
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              最新の使い方や導入のヒントを、LINEでお届けします。公式サイトもあわせてご覧ください。
+            </p>
+            <div className="mt-5 hidden gap-3 sm:flex">
+              <a
+                href={BAKUSOQ_LINE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#06C755] px-4 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition-opacity hover:opacity-95"
+              >
+                LINE登録してはじめる
+                <ArrowIcon className="h-4 w-4" />
+              </a>
+              <a
+                href={BAKUSOQ_HP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50"
+              >
+                <BoltIcon className="h-4 w-4 text-sky-500" />
+                公式HPを見る
+              </a>
+            </div>
+            <p className="mt-3 hidden text-[12px] text-slate-500 sm:block">
+              HP:{" "}
+              <a
+                href={BAKUSOQ_HP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-sky-700 underline-offset-2 hover:underline"
+              >
+                {BAKUSOQ_HP_URL}
+              </a>
+            </p>
+          </section>
 
           <div className="h-24 sm:hidden" aria-hidden />
         </div>
 
-        {/* スマホ固定CTA */}
         <div className="relative z-10 shrink-0 border-t border-sky-100 bg-white/95 px-4 py-3 backdrop-blur-sm sm:hidden">
           <div className="flex gap-2">
             <a
-              href="mailto:support@genbaboxx.co.jp"
-              className="inline-flex h-11 flex-1 items-center justify-center gap-1 rounded-xl bg-sky-500 text-sm font-bold text-white shadow-sm shadow-sky-500/30"
+              href={BAKUSOQ_LINE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-11 flex-1 items-center justify-center gap-1 rounded-xl bg-[#06C755] text-sm font-bold text-white shadow-sm"
             >
-              <BoltIcon className="h-3.5 w-3.5" />
-              メールで相談
+              LINE登録
             </a>
-            <Link
-              href="/bakusoq"
+            <a
+              href={BAKUSOQ_HP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-800"
             >
-              詳しく見る
-            </Link>
+              公式HP
+            </a>
           </div>
         </div>
       </div>
