@@ -1,12 +1,13 @@
 /**
  * Nano Banana 図解サムネ（表紙1枚目）。
- * 写実YouTube風ではなく、編集向けフラット図解を生成する。
+ * 構図・色はタイトルごとにバリエーションを取る。
  */
 import sharp from "sharp";
 import {
   buildDiagramEyecatchPrompt,
   generateNanoBananaPng,
 } from "@/lib/image/nanobanana";
+import { pickDiagramStyle } from "@/lib/image/diagram-styles";
 
 export interface DiagramEyecatchResult {
   png: Buffer;
@@ -14,6 +15,7 @@ export interface DiagramEyecatchResult {
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
+  styleId: string;
 }
 
 const OUT_W = 1280;
@@ -22,9 +24,26 @@ const OUT_H = 720;
 export async function generateDiagramEyecatchPng(
   title: string,
   categoryName: string,
-  opts?: { model?: string },
+  opts?: {
+    model?: string;
+    categorySlug?: string;
+    seed?: number;
+  },
 ): Promise<DiagramEyecatchResult | null> {
-  const prompt = buildDiagramEyecatchPrompt(title, categoryName);
+  const style = pickDiagramStyle({
+    title,
+    categorySlug: opts?.categorySlug,
+    seed: opts?.seed,
+  });
+  const styleId = `${style.layout.id}/${style.palette.id}`;
+  console.log(
+    `[eyecatch] style=${styleId} seed=${style.seed} title=${title.slice(0, 40)}`,
+  );
+
+  const prompt = buildDiagramEyecatchPrompt(title, categoryName, {
+    categorySlug: opts?.categorySlug,
+    style,
+  });
   const raw = await generateNanoBananaPng(prompt, {
     model: opts?.model,
     aspectRatio: "16:9",
@@ -42,5 +61,6 @@ export async function generateDiagramEyecatchPng(
     inputTokens: raw.inputTokens,
     outputTokens: raw.outputTokens,
     costUsd: raw.costUsd,
+    styleId,
   };
 }

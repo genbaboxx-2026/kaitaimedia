@@ -19,7 +19,8 @@ function targetSiteUrl(): string | null {
     return site;
   }
   // ローカル .env でも本番DBへ公開する運用があるため、既定の本番へ再検証する
-  return "https://kaitaimedia.jp";
+  // apex は www へ 308 するため、Authorization が落ちないよう www を直打ちする
+  return "https://www.kaitaimedia.jp";
 }
 
 export async function requestPublicRevalidate(

@@ -11,6 +11,7 @@ export interface YoutubeEyecatchResult {
   outputTokens: number;
   costUsd: number;
   model?: string;
+  styleId?: string;
 }
 
 /** @deprecated 名前は互換のため残す。実体は Nano Banana 図解 */
@@ -23,8 +24,10 @@ export async function generateYoutubeEyecatchPng(
     seed?: number;
   },
 ): Promise<YoutubeEyecatchResult | null> {
-  void opts;
-  const result = await generateDiagramEyecatchPng(title, categoryName);
+  const result = await generateDiagramEyecatchPng(title, categoryName, {
+    categorySlug: opts?.categorySlug,
+    seed: opts?.seed,
+  });
   if (!result) return null;
 
   return {
@@ -33,5 +36,6 @@ export async function generateYoutubeEyecatchPng(
     outputTokens: result.outputTokens,
     costUsd: result.costUsd,
     model: result.model,
+    styleId: result.styleId,
   };
 }

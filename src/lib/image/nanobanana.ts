@@ -3,6 +3,8 @@
  * モデル既定: gemini-3.1-flash-image（Nano Banana 2）
  */
 import { GoogleGenAI } from "@google/genai";
+import type { PickedDiagramStyle } from "@/lib/image/diagram-styles";
+import { pickDiagramStyle } from "@/lib/image/diagram-styles";
 
 export const NANOBANANA_MODEL =
   process.env.NANOBANANA_MODEL || "gemini-3.1-flash-image";
@@ -14,6 +16,8 @@ export interface NanoBananaImageResult {
   costUsd: number;
   inputTokens: number;
   outputTokens: number;
+  /** デバッグ用：選ばれた構図/色 */
+  styleId?: string;
 }
 
 function getApiKey(): string | null {
@@ -25,40 +29,60 @@ function getApiKey(): string | null {
   );
 }
 
-/** 図解サムネ用プロンプト（人物なし・編集向けフラット図解） */
+export interface DiagramPromptOptions {
+  categorySlug?: string;
+  seed?: number;
+  /** 呼び出し側で決定済みのスタイル（二重抽選防止） */
+  style?: PickedDiagramStyle;
+}
+
+/**
+ * 図解サムネ用プロンプト。
+ * タイトル／カテゴリから構図・色を毎回変える（固定の紺ヘッダー＋クリーム4コマを禁止）。
+ */
 export function buildDiagramEyecatchPrompt(
   title: string,
   categoryName: string,
+  opts?: DiagramPromptOptions,
 ): string {
+  const style =
+    opts?.style ??
+    pickDiagramStyle({
+      title,
+      categorySlug: opts?.categorySlug,
+      seed: opts?.seed,
+    });
+  const { layout, palette, seed } = style;
+
   return `
-Create one finished 16:9 Japanese B2B editorial eye-catch. Draw only the artwork. Do not print this brief, constraints, or English meta text in the image.
+Create one finished 16:9 Japanese B2B editorial eye-catch thumbnail. Draw ONLY the artwork. Never print this brief, constraints, English meta, or style IDs in the image.
 
-SUBJECT
-- Header title (exact): ${title}
-- Small Japanese category under the title: ${categoryName}
-- Theme: site communication that improves foreman management on a demolition job site
+ARTICLE
+- Exact Japanese title to show: ${title}
+- Small Japanese category label: ${categoryName}
+- Invent icons and short labels FROM THIS TITLE's meaning. Do not reuse generic defaults like 情報共有/安全確認/状況把握/成果 unless the title is truly about those topics.
+- Style pick (internal): layout=${layout.id} palette=${palette.id} seed=${seed}
 
-LAYOUT
-1) Full-width deep navy header with the title in large white Japanese type
-2) Soft cream body with ONE horizontal process of 4 equal panels, connected by red arrows
-3) Each panel has: Japanese circle number (①②③④) + ONE short Japanese label under a single icon cluster
-4) Keep the composition balanced, aligned, and uncluttered
+TITLE PLACEMENT
+${layout.titlePlacement}
+
+LAYOUT (follow strictly — this must NOT look like a navy-top + cream body + 4 red-arrow panels unless this layout explicitly asks for a short process)
+${layout.brief}
+
+COLOR / TONE
+${palette.brief}
+
+HARD BAN (critical for variety)
+- Do NOT default to: full-width deep navy header + soft cream body + 4 equal panels + red arrows
+- Do NOT reuse the same four labels 情報共有 / 安全確認 / 状況把握 / 成果
+- Do NOT draw English words (no Step, Category, Before, After in Latin letters — use Japanese 改善前/改善後 if needed)
+- No people, no faces, no photoreal workers, no logos, no watermarks, no URLs, no character-count notes
 
 VISUAL LANGUAGE
-- Flat vector / textbook infographic
-- Symbols only: excavators, buildings, radios, hard hats, checklists, tablets, documents, arrows
-- No people, no faces, no photoreal workers
-- Palette: navy, slate, cream, muted red accents
-- Professional demolition-industry editorial look
-
-ON-IMAGE TEXT RULES
-- Japanese only
-- Header title once
-- Category once
-- Each panel: number + one label only (do not repeat the same label twice in one panel)
-- Good labels: 情報共有 / 安全確認 / 状況把握 / 成果
-- Never draw English words (no Step, no Category, no max, no characters)
-- Never draw character-limit notes, parentheses with limits, prompt leftovers, logos, watermarks, URLs
+- Flat vector / editorial illustration, readable at small mobile sizes
+- Symbols may include excavators, buildings, documents, tablets, hard hats, charts, checkmarks — choose what fits THIS title
+- Keep text large and legible; prefer fewer words over clutter
+- Japanese only on the image
 `.trim();
 }
 
@@ -100,12 +124,10 @@ export async function generateNanoBananaPng(
       if (!inline?.data) continue;
       const mime = inline.mimeType ?? "image/png";
       const raw = Buffer.from(inline.data, "base64");
-      // JPEG 等でも sharp 側で PNG 化する想定。ここでは素のバッファを返す。
       void mime;
       const usage = response.usageMetadata;
       const inputTokens = usage?.promptTokenCount ?? 0;
       const outputTokens = usage?.candidatesTokenCount ?? 0;
-      // Flash Image 概算: 画像1枚あたりおおよそ $0.03〜0.07。取れないときは $0.05
       const costUsd =
         inputTokens + outputTokens > 0
           ? (inputTokens / 1_000_000) * 0.3 + (outputTokens / 1_000_000) * 30
