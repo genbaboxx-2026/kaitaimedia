@@ -9,15 +9,15 @@ import { BellIcon, MenuIcon } from "@/components/site/nav-icons";
 import { SiteMenuDrawer } from "@/components/site/site-menu-drawer";
 import { SiteLogo } from "@/components/site/site-logo";
 
+/** ヘッダーに出す統合カテゴリ（CATEGORIES 全件） */
 const PRIMARY_CATEGORY_SLUGS = [
   "estimate",
-  "cost",
   "schedule",
-  "labor",
+  "field",
   "waste",
   "law",
-  "subsidy",
-  "news",
+  "management",
+  "industry",
 ];
 
 export function SiteHeader() {
@@ -161,7 +161,11 @@ export function SiteHeader() {
               <Link
                 key={c.slug}
                 href={`/category/${c.slug}`}
-                className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium text-slate-100 hover:bg-white/10"
+                className={`whitespace-nowrap rounded px-3 py-1.5 text-sm hover:bg-white/10 ${
+                  activeCategory === c.slug
+                    ? "bg-white/15 font-bold"
+                    : "font-medium text-slate-100"
+                }`}
               >
                 {c.name}
               </Link>
