@@ -79,7 +79,7 @@ export async function generateEyecatchPng(
     createElement(
       "div",
       { style: { fontSize: 28, opacity: 0.85 } },
-      "解体ナレッジ | GENBABOXX",
+      "解体ナレッジ",
     ),
   );
 

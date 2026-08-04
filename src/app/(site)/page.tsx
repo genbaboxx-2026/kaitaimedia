@@ -23,11 +23,11 @@ import {
 import { formatJaDate, formatRelativeJa } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: { absolute: "解体ナレッジ | GENBABOXX" },
+  title: { absolute: "解体ナレッジ" },
   description: SITE_DESCRIPTION,
   alternates: { canonical: SITE_URL },
   openGraph: {
-    title: "解体ナレッジ | GENBABOXX",
+    title: "解体ナレッジ",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
   },

@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/site-url";
 
 /** サイト全体のデフォルト説明文 */
 export const SITE_DESCRIPTION =
-  "解体業界の実務者向け専門メディア。見積もり・原価管理・工程・産廃・法改正など、解体企業の判断に役立つ情報を GENBABOXX が発信します。";
+  "解体業界の実務者向け専門メディア。見積もり・原価管理・工程・産廃・法改正など、解体企業の判断に役立つ情報を発信します。";
 
 /** SEO用：表示タイトル・説明の解決 */
 export function articleSeoTitle(a: Article): string {
