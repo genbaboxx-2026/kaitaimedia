@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CATEGORIES, SITE_NAME } from "@/lib/dummy-data";
@@ -52,10 +53,15 @@ export function SiteHeader() {
             </button>
           </div>
 
-          <Link href="/" className="min-w-0 text-center">
-            <span className="block truncate text-[15px] font-black tracking-[0.08em] text-ink">
-              解体メディア
-            </span>
+          <Link href="/" className="min-w-0 px-1" aria-label={SITE_NAME}>
+            <Image
+              src="/logo-kaitai-knowledge.png"
+              alt={SITE_NAME}
+              width={394}
+              height={112}
+              className="mx-auto h-8 w-auto max-w-[200px] object-contain"
+              priority
+            />
           </Link>
 
           <div className="flex w-20 items-center justify-end gap-0.5">
@@ -123,13 +129,19 @@ export function SiteHeader() {
               </Link>
             </div>
 
-            <Link href="/" className="justify-self-center text-center">
-              <span className="block font-serif text-2xl font-bold tracking-wide text-navy-800">
-                {SITE_NAME}
-              </span>
-              <span className="block text-[10px] tracking-widest text-slate-500">
-                運営：株式会社GENBA&nbsp;BOXX
-              </span>
+            <Link
+              href="/"
+              className="justify-self-center"
+              aria-label={SITE_NAME}
+            >
+              <Image
+                src="/logo-kaitai-knowledge.png"
+                alt={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
+                width={394}
+                height={112}
+                className="h-11 w-auto max-w-[280px] object-contain"
+                priority
+              />
             </Link>
 
             <div className="flex items-center justify-self-end gap-2">
