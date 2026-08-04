@@ -82,13 +82,13 @@ export default async function HomePage() {
     getLatestNews(10),
     getLatestArticles(13),
     getRankingArticles(5),
-    getApprovedSnsTrends(10),
+    getApprovedSnsTrends(5),
   ]);
 
   const [lead, ...rest] = articles;
   const secondary = rest.slice(0, 6); // 注目の記事：3列×2行
   const newsRows = news.slice(0, 10);
-  const snsRows = snsTrends.slice(0, 10);
+  const snsRows = snsTrends.slice(0, 5);
   const rankingRows = ranking.slice(0, 5);
   const articleFeed = rest.slice(0, 10); // モバイル「記事」セクション：最新記事の次から公開順に最大10件
 
