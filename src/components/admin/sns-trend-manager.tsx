@@ -117,7 +117,7 @@ export function SnsTrendManager({
       </div>
 
       {message && (
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="whitespace-pre-wrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {message}
         </p>
       )}
