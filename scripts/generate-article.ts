@@ -15,6 +15,7 @@ loadEnvLocal();
 async function main(): Promise<void> {
   const scheduled = process.env.GENERATE_SCHEDULED === "1";
   let scheduledJstDate: string | null = null;
+  let scheduledRemaining: number | null = null;
 
   // 定時ポーリングは枠外が多い。APIキー未設定でも枠外スキップは成功終了にする
   // （Secrets 欠落時に Actions が毎時 red にならないようにする）
@@ -28,9 +29,10 @@ async function main(): Promise<void> {
     if (!gate.run) {
       process.exit(0);
     }
-    // 二重起動防止のロック。失敗時は外して次の cron で再試行する
+    // 二重起動防止のロック。本数未達・失敗時は外して次の cron で再試行する
     await markScheduledGenerationDate(gate.jstDate);
     scheduledJstDate = gate.jstDate;
+    scheduledRemaining = gate.remaining;
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -52,22 +54,34 @@ async function main(): Promise<void> {
   const { requestPublicRevalidate } = await import(
     "../src/lib/request-public-revalidate"
   );
-  const { results, publishedDrafts } = await runGenerationBatch();
+  // 定時は「1日の生成本数」の不足分だけ生成する（既に1本ある日に2本設定なら残り1本）
+  const { results, publishedDrafts } = await runGenerationBatch(
+    scheduledRemaining != null ? { count: scheduledRemaining } : undefined,
+  );
 
   const publishedSlugs = results
     .filter((r) => r.status === "published" && r.slug)
     .map((r) => r.slug as string);
-  const producedArticle = results.some((r) => Boolean(r.articleId));
-  const ok = producedArticle || publishedDrafts > 0;
+  const producedCount = results.filter((r) => Boolean(r.articleId)).length;
+  const ok = producedCount > 0 || publishedDrafts > 0;
 
-  if (scheduled && scheduledJstDate && !ok) {
-    const { clearScheduledGenerationDate } = await import(
-      "../src/lib/generation/schedule-gate"
-    );
-    await clearScheduledGenerationDate();
-    console.error(
-      "[schedule] 記事を残せなかったためロック解除。次の定時/追い上げで再試行します。",
-    );
+  if (scheduled && scheduledJstDate) {
+    const {
+      clearScheduledGenerationDate,
+      countTodaysGeneratedArticles,
+    } = await import("../src/lib/generation/schedule-gate");
+    const { getNumber, loadSettings } = await import("../src/lib/ai/settings");
+    const settings = await loadSettings();
+    const perDay = Math.max(0, Math.floor(getNumber(settings, "articles_per_day", 1)));
+    const todayCount = await countTodaysGeneratedArticles(scheduledJstDate);
+    if (todayCount < perDay) {
+      await clearScheduledGenerationDate();
+      console.log(
+        `[schedule] 本日 ${todayCount}/${perDay} 本のためロック解除（不足分は次の追い上げで生成）`,
+      );
+    } else {
+      console.log(`[schedule] 本日分完了（${todayCount}/${perDay}本）`);
+    }
   }
 
   if (publishedDrafts > 0 || publishedSlugs.length > 0) {
@@ -88,6 +102,9 @@ async function main(): Promise<void> {
   }
 
   if (scheduled && !ok) {
+    console.error(
+      "[schedule] 記事を残せませんでした。次の定時/追い上げで再試行します。",
+    );
     process.exit(1);
   }
 }

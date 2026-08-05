@@ -156,7 +156,7 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
           </Row>
           <Row
             label="実行時刻（JST）"
-            hint="この時刻以降に自動生成します。実行時刻直後を厚く起こし、以降は毎時追い上げます。失敗時は完了扱いにせず再試行します。時刻変更は保存するだけで反映されます"
+            hint="この時刻以降に自動生成します。実行時刻直後を厚く起こし、以降は毎時追い上げます。「1日の生成本数」に足りない分だけ生成し、失敗時は再試行します。時刻変更は保存するだけで反映されます"
           >
             <input type="time" value={s.generationTime} onChange={(e) => set("generationTime", e.target.value)} className={sel} />
           </Row>

@@ -1,5 +1,6 @@
 import {
   getBool,
+  getNumber,
   getString,
   loadSettings,
 } from "@/lib/ai/settings";
@@ -81,84 +82,111 @@ export function hasReachedGenerationTime(
   return jstNow(now).minutesOfDay >= target;
 }
 
+export function jstDayStartUtcIso(jstDate: string): string {
+  // JST 0:00 = UTC 前日 15:00
+  return new Date(`${jstDate}T00:00:00+09:00`).toISOString();
+}
+
+/** 本日（JST）に記事まで残った生成ログ件数 */
+export async function countTodaysGeneratedArticles(
+  jstDate: string,
+): Promise<number> {
+  const dayStartUtc = jstDayStartUtcIso(jstDate);
+  const logs = await restSelect<{ id: string }>(
+    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}&article_id=not.is.null`,
+    0,
+  );
+  return logs?.length ?? 0;
+}
+
 export interface ScheduleGateResult {
   run: boolean;
   reason: string;
   jstDate: string;
   generationTime: string;
+  /** 本日あと何本生成するか（articles_per_day − 本日済み） */
+  remaining: number;
+  articlesPerDay: number;
+  todayCount: number;
 }
 
 /**
  * 定時トリガー時に「今すぐバッチを回してよいか」を判定する。
- * generation_time 以降で、当日まだ記事が作られていなければ実行する。
- * 失敗ログだけではスキップしない（翌日まで止まり続けない）。
+ * generation_time 以降で、本日の生成数が articles_per_day 未達なら実行する。
+ * 1本でもあると全スキップ、にはしない（不足分を埋める）。
  */
 export async function evaluateScheduleGate(
   now = new Date(),
 ): Promise<ScheduleGateResult> {
   const settings = await loadSettings();
   const generationTime = getString(settings, "generation_time", "03:00");
+  const articlesPerDay = Math.max(
+    0,
+    Math.floor(getNumber(settings, "articles_per_day", 1)),
+  );
   const jst = jstNow(now);
   const nowLabel = `${String(jst.hour).padStart(2, "0")}:${String(jst.minute).padStart(2, "0")}`;
+  const todayCount = await countTodaysGeneratedArticles(jst.date);
+  const remaining = Math.max(0, articlesPerDay - todayCount);
+
+  const base = {
+    jstDate: jst.date,
+    generationTime,
+    remaining,
+    articlesPerDay,
+    todayCount,
+  };
 
   if (!getBool(settings, "generation_enabled", true)) {
     return {
+      ...base,
       run: false,
       reason: "generation_enabled=false のためスキップ",
-      jstDate: jst.date,
-      generationTime,
+    };
+  }
+
+  if (articlesPerDay === 0) {
+    return {
+      ...base,
+      run: false,
+      reason: "articles_per_day=0 のためスキップ",
     };
   }
 
   if (!hasReachedGenerationTime(generationTime, now)) {
     return {
+      ...base,
       run: false,
       reason: `実行時刻前（いま JST ${nowLabel} / 設定 ${generationTime}）`,
-      jstDate: jst.date,
-      generationTime,
     };
   }
 
+  if (remaining === 0) {
+    return {
+      ...base,
+      run: false,
+      reason: `本日の生成本数に到達（${todayCount}/${articlesPerDay}本・${jst.date}）`,
+    };
+  }
+
+  // 実行中ロック：同日ロック中でも本数未達なら不足分を埋める（失敗後の再試行／設定増分）
   const last = settings[LAST_RUN_KEY] ?? "";
-  if (last === jst.date) {
+  if (last === jst.date && todayCount >= articlesPerDay) {
     return {
+      ...base,
       run: false,
-      reason: `本日（${jst.date}）は定時生成済み`,
-      jstDate: jst.date,
-      generationTime,
-    };
-  }
-
-  // 記事が実際にできたログだけを「生成済み」とみなす。
-  // 失敗・中断ログ（article_id なし）ではスキップしない。
-  const dayStartUtc = jstDayStartUtcIso(jst.date);
-  const logs = await restSelect<{ id: string }>(
-    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}&article_id=not.is.null&limit=1`,
-    0,
-  );
-  if (logs && logs.length > 0) {
-    return {
-      run: false,
-      reason: `本日すでに記事生成済み（${jst.date}）`,
-      jstDate: jst.date,
-      generationTime,
+      reason: `本日（${jst.date}）は定時生成済み（${todayCount}/${articlesPerDay}）`,
     };
   }
 
   const onTime = isInGenerationWindow(generationTime, now);
   return {
+    ...base,
     run: true,
     reason: onTime
-      ? `定時枠ヒット（設定 ${generationTime} / JST ${jst.date}）`
-      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel}）`,
-    jstDate: jst.date,
-    generationTime,
+      ? `定時枠ヒット（設定 ${generationTime} / 不足 ${remaining}本・本日 ${todayCount}/${articlesPerDay}）`
+      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel} / 不足 ${remaining}本・本日 ${todayCount}/${articlesPerDay}）`,
   };
-}
-
-function jstDayStartUtcIso(jstDate: string): string {
-  // JST 0:00 = UTC 前日 15:00
-  return new Date(`${jstDate}T00:00:00+09:00`).toISOString();
 }
 
 /** 定時バッチ開始時の二重起動防止ロック（成功時はそのまま残す） */
@@ -175,7 +203,7 @@ export async function markScheduledGenerationDate(jstDate: string): Promise<void
   );
 }
 
-/** 失敗時にロックを外し、次の cron で再試行できるようにする */
+/** 失敗時／本数未達時にロックを外し、次の cron で再試行できるようにする */
 export async function clearScheduledGenerationDate(): Promise<void> {
   await restUpsert(
     "settings",
