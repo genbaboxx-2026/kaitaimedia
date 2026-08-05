@@ -1,17 +1,15 @@
 name: 記事自動生成
 
+# 主系は Vercel Cron（/api/cron/generate）。
+# こちらはバックアップ＋手動実行用。schedule は残すが、遅延しても Vercel 側で拾う。
 on:
   schedule:
-    # GitHub cron は遅延しうるので、15分間隔の追い上げを基本にする。
-    # scripts 側で settings.generation_time（JST）以降かつ成功数未達なら実行する。
-    # UI の実行時刻変更でこの YAML の書き換えは不要。
-    - cron: "0,15,30,45 * * * *"
-  workflow_dispatch: {} # 手動トリガー可（時刻判定をスキップして即実行）
+    - cron: "5 * * * *" # 毎時:05 UTC（バックアップ）。主系は Vercel */15
+  workflow_dispatch: {}
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-    # 1日複数本だと1本あたり数分かかるため余裕を持たせる
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +24,6 @@ jobs:
       - name: 記事生成バッチ実行
         run: npm run generate
         env:
-          # schedule のときだけ 1。workflow_dispatch（手動）は 0 で即実行。
           GENERATE_SCHEDULED: ${{ github.event_name == 'schedule' && '1' || '0' }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

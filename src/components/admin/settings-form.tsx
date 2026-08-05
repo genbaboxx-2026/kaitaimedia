@@ -156,7 +156,7 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
           </Row>
           <Row
             label="実行時刻（JST）"
-            hint="この時刻以降に自動生成します。不足分だけ生成し、品質不合格の下書きは成功数に数えず再試行します。試行は生成本数×2で打ち切ります。時刻変更は保存するだけで反映されます"
+            hint="この時刻以降に自動生成します（Vercel Cronが約15分ごとに確認）。不足分だけ生成し、不合格下書きは成功数に含めず再試行。試行上限は生成本数×2。保存するだけで反映されます"
           >
             <input type="time" value={s.generationTime} onChange={(e) => set("generationTime", e.target.value)} className={sel} />
           </Row>
