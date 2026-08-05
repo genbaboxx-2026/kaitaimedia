@@ -40,7 +40,7 @@ export function SiteHeader() {
       {/* ========== モバイル ========== */}
       <header className="sticky top-0 z-30 border-b border-brand-100 bg-white md:hidden">
         <div
-          className="flex h-12 items-center justify-between bg-gradient-to-b from-brand-50 to-white px-2"
+          className="flex h-12 items-center justify-between bg-white px-2"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="flex w-20 items-center">

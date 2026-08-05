@@ -44,9 +44,6 @@ html {
   html {
     /* モバイル：アプヘッダー + カテゴリタブ */
     scroll-padding-top: 5.75rem;
-    /* リロード時のオーバースクロール領域（canvas）をヘッダー上部と同色にし、
-       上端の白／青の段差（切れて見える現象）を防ぐ */
-    background: var(--color-brand-50);
   }
 }
 
