@@ -19,7 +19,7 @@ import { Eyecatch } from "@/components/site/eyecatch";
 import { ViewBeacon } from "@/components/site/view-beacon";
 import { TableOfContents } from "@/components/site/table-of-contents";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
-import { ArticleTypeBadge, CategoryBadge } from "@/components/site/badges";
+import { CategoryBadge } from "@/components/site/badges";
 import { JsonLd } from "@/components/site/json-ld";
 
 export const revalidate = 300; // ISR: 5分
@@ -131,7 +131,6 @@ export default async function ArticleDetailPage({
       <header className="border-b border-slate-100 pb-5 md:mt-4 md:border-slate-200 md:pb-6">
         <div className="flex flex-wrap items-center gap-2">
           <CategoryBadge slug={article.categorySlug} name={categoryName} />
-          <ArticleTypeBadge type={article.articleType} />
         </div>
         <h1 className="mt-3 text-[1.35rem] font-black leading-snug tracking-tight text-ink md:font-serif md:text-3xl md:font-bold md:leading-relaxed md:text-slate-900">
           {article.title}
@@ -149,8 +148,6 @@ export default async function ArticleDetailPage({
               </time>
             </>
           )}
-          <span aria-hidden>·</span>
-          <span>約{article.readingMinutes}分</span>
         </div>
 
         <div className="mt-5 overflow-hidden rounded-lg border border-slate-200 md:mt-6">
