@@ -101,7 +101,10 @@ export async function saveMastersAction(
   groups: { type: string; rows: { label: string; value: string }[] }[],
 ): Promise<ActionResult> {
   try {
+    // 用語集は廃止（記事偏りの原因）。保存のたびに残存行も消す
+    await restDelete("masters?master_type=eq.glossary");
     for (const g of groups) {
+      if (g.type === "glossary") continue;
       await restDelete(`masters?master_type=eq.${g.type}`);
       const inserts = g.rows
         .filter((r) => r.label.trim() || r.value.trim())

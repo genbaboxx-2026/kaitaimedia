@@ -203,7 +203,6 @@ export type MasterType =
   | "article_template";
 
 export const MASTER_TABS: { type: MasterType; label: string; labelCol: string; valueCol: string }[] = [
-  { type: "glossary", label: "用語集", labelCol: "用語", valueCol: "正しい表記・説明" },
   { type: "faq", label: "よくある質問", labelCol: "質問", valueCol: "回答" },
   { type: "ng_expression", label: "禁止表現", labelCol: "表現", valueCol: "理由" },
   { type: "recommended_expression", label: "推奨表現", labelCol: "表現", valueCol: "使いどころ" },
@@ -218,10 +217,7 @@ export interface MasterRow {
 }
 
 export const MASTERS: Record<MasterType, MasterRow[]> = {
-  glossary: [
-    { id: "g1", label: "人工", value: "にんく。作業に必要な人手の量。" },
-    { id: "g2", label: "マニフェスト", value: "産業廃棄物管理票。" },
-  ],
+  glossary: [],
   faq: [
     { id: "f1", label: "見積もりは無料ですか？", value: "会社ごとの方針によります。本メディアでは断定しません。" },
   ],

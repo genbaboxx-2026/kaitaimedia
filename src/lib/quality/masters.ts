@@ -35,10 +35,8 @@ const LABEL_DEFAULTS: Record<string, string[]> = {
 };
 
 const PAIR_DEFAULTS: Record<string, { label: string; value: string }[]> = {
-  glossary: [
-    { label: "人工", value: "にんく。作業に必要な人手の量。" },
-    { label: "マニフェスト", value: "産業廃棄物管理票。" },
-  ],
+  // glossary（用語集）は記事偏りの原因になるため既定値なし・生成にも使わない
+  glossary: [],
   article_template: [
     {
       label: "A",

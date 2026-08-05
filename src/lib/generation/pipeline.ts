@@ -345,24 +345,19 @@ export async function runGenerationPipeline(opts?: {
     assertCostUnderLimit();
   };
 
-  const [ngList, recommendedList, glossary, templates] = await Promise.all([
+  const [ngList, recommendedList, templates] = await Promise.all([
     loadMasterLabels("ng_expression"),
     loadMasterLabels("recommended_expression"),
-    loadMasterPairs("glossary"),
     loadMasterPairs("article_template"),
   ]);
   const ngStr = ngList.join("、");
 
-  // 参照マスタ（用語集＋この記事型の構成方針）をまとめてプロンプトに渡す
+  // 記事型の構成方針のみ渡す（用語集 glossary は偏りが出るため使わない）
   const templateBlock =
     templates.find((t) => t.label === theme.article_type)?.value ?? "";
-  const glossaryBlock = glossary.map((g) => `・${g.label}＝${g.value}`).join("\n");
-  const mastersStr = [
-    templateBlock ? `【記事型${theme.article_type}の構成方針】\n${templateBlock}` : "",
-    glossaryBlock ? `【用語の統一表記】\n${glossaryBlock}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const mastersStr = templateBlock
+    ? `【記事型${theme.article_type}の構成方針】\n${templateBlock}`
+    : "";
 
   // 専門用語のレベル（設定値→AIへの指示文に変換）
   const EXPERTISE_LABEL: Record<string, string> = {
