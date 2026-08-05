@@ -11,11 +11,6 @@ export interface GenerationSettings {
   generationInstruction: string;
   generationTime: string;
   articlesPerDay: number;
-  /**
-   * 定時生成の1日あたり最大試行回数（成功・不合格下書き・失敗を含む）。
-   * 0 のときは articlesPerDay × 2 を使う。
-   */
-  maxScheduledAttemptsPerDay: number;
   minCharCount: number;
   maxCharCount: number;
   targetReader: string;
@@ -57,7 +52,6 @@ export const DEFAULT_SETTINGS: GenerationSettings = {
   generationInstruction: "",
   generationTime: "03:00",
   articlesPerDay: 1,
-  maxScheduledAttemptsPerDay: 0,
   minCharCount: 3500,
   maxCharCount: 5000,
   targetReader: "見積担当",

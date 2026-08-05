@@ -145,12 +145,8 @@ export async function countTodaysGenerationAttempts(
   return logs?.length ?? 0;
 }
 
-/** 試行上限。設定が 0 なら成功本数の2倍（最低1） */
-export function resolveMaxScheduledAttempts(
-  articlesPerDay: number,
-  configuredMax: number,
-): number {
-  if (configuredMax > 0) return configuredMax;
+/** 試行上限 = 生成本数×2（不合格再試行用。最低1） */
+export function resolveMaxScheduledAttempts(articlesPerDay: number): number {
   return Math.max(1, articlesPerDay * 2);
 }
 
@@ -180,10 +176,7 @@ export async function evaluateScheduleGate(
     0,
     Math.floor(getNumber(settings, "articles_per_day", 1)),
   );
-  const maxAttempts = resolveMaxScheduledAttempts(
-    articlesPerDay,
-    Math.floor(getNumber(settings, "max_scheduled_attempts_per_day", 0)),
-  );
+  const maxAttempts = resolveMaxScheduledAttempts(articlesPerDay);
   const jst = jstNow(now);
   const nowLabel = `${String(jst.hour).padStart(2, "0")}:${String(jst.minute).padStart(2, "0")}`;
   const todayCount = await countTodaysGeneratedArticles(jst.date);

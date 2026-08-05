@@ -89,10 +89,6 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
       { key: "generation_enabled", value: String(s.generationEnabled) },
       { key: "generation_time", value: s.generationTime },
       { key: "articles_per_day", value: String(s.articlesPerDay) },
-      {
-        key: "max_scheduled_attempts_per_day",
-        value: String(s.maxScheduledAttemptsPerDay),
-      },
       { key: "min_char_count", value: String(s.minCharCount) },
       { key: "max_char_count", value: String(s.maxCharCount) },
       { key: "writing_style", value: s.writingStyle },
@@ -160,26 +156,15 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
           </Row>
           <Row
             label="実行時刻（JST）"
-            hint="この時刻以降に自動生成します。不足分だけ生成し、品質不合格の下書きは成功数に数えず再試行します。試行上限で無限再試行を止めます。時刻変更は保存するだけで反映されます"
+            hint="この時刻以降に自動生成します。不足分だけ生成し、品質不合格の下書きは成功数に数えず再試行します。試行は生成本数×2で打ち切ります。時刻変更は保存するだけで反映されます"
           >
             <input type="time" value={s.generationTime} onChange={(e) => set("generationTime", e.target.value)} className={sel} />
           </Row>
-          <Row label="1日の生成本数" hint="1日あたり成功（公開または合格下書き）の上限。不合格下書きは成功数に含みません">
-            <input type="number" min={0} value={s.articlesPerDay} onChange={(e) => set("articlesPerDay", Number(e.target.value))} className={num} />
-          </Row>
           <Row
-            label="1日の最大試行回数"
-            hint="成功・不合格下書き・失敗を含む試行の上限。0=生成本数×2（例: 1本設定なら最大2回まで）"
+            label="1日の生成本数"
+            hint="成功（公開または合格下書き）の上限。不合格下書きは成功数に含みません。試行上限は自動でこの値×2です"
           >
-            <input
-              type="number"
-              min={0}
-              value={s.maxScheduledAttemptsPerDay}
-              onChange={(e) =>
-                set("maxScheduledAttemptsPerDay", Number(e.target.value))
-              }
-              className={num}
-            />
+            <input type="number" min={0} value={s.articlesPerDay} onChange={(e) => set("articlesPerDay", Number(e.target.value))} className={num} />
           </Row>
         </Section>
 

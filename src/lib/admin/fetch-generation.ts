@@ -59,10 +59,6 @@ export async function fetchGenerationSettings(): Promise<GenerationSettings> {
     generationInstruction: s("generation_instruction", DEFAULT_SETTINGS.generationInstruction),
     generationTime: s("generation_time", DEFAULT_SETTINGS.generationTime),
     articlesPerDay: n("articles_per_day", DEFAULT_SETTINGS.articlesPerDay),
-    maxScheduledAttemptsPerDay: n(
-      "max_scheduled_attempts_per_day",
-      DEFAULT_SETTINGS.maxScheduledAttemptsPerDay,
-    ),
     minCharCount: n("min_char_count", DEFAULT_SETTINGS.minCharCount),
     maxCharCount: n("max_char_count", DEFAULT_SETTINGS.maxCharCount),
     writingStyle: s("writing_style", DEFAULT_SETTINGS.writingStyle) as GenerationSettings["writingStyle"],

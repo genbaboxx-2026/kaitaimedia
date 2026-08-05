@@ -51,10 +51,7 @@ async function main(): Promise<void> {
       0,
       Math.floor(getNumber(settings, "articles_per_day", 1)),
     );
-    const maxAttempts = resolveMaxScheduledAttempts(
-      articlesPerDay,
-      Math.floor(getNumber(settings, "max_scheduled_attempts_per_day", 0)),
-    );
+    const maxAttempts = resolveMaxScheduledAttempts(articlesPerDay);
     const todayCount = await countTodaysGeneratedArticles(gate.jstDate);
     const todayAttempts = await countTodaysGenerationAttempts(gate.jstDate);
     const remaining = Math.max(0, articlesPerDay - todayCount);
