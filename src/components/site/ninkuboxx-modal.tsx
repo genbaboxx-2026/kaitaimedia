@@ -181,7 +181,7 @@ function useCountUp(target: number | null, duration = 1000): number {
   return val;
 }
 
-type TierKey = "low" | "mid" | "high" | "critical";
+type TierKey = "good" | "watch" | "warn" | "danger";
 
 interface Tier {
   key: TierKey;
@@ -193,20 +193,30 @@ interface Tier {
   message: string;
 }
 
-/** 総合スコア（高いほど課題が大きい）→ 危機感を段階で表現 */
+/** 健全度スコア（0〜100・高いほど良い）→ 段階を表現 */
 const TIERS: Tier[] = [
   {
-    key: "critical",
-    min: 55,
-    title: "危険水域",
-    c1: "#dc2626",
-    c2: "#991b1b",
-    accent: "#dc2626",
+    key: "good",
+    min: 75,
+    title: "良好",
+    c1: "#0f766e",
+    c2: "#115e59",
+    accent: "#0f766e",
     message:
-      "属人化と評価のひずみが重なり、離職やトラブルが起きてもおかしくない状態です。今すぐ制度の立て直しを。",
+      "評価と役割の土台ができています。この状態を保てば、人が育ち定着する強い現場になります。",
   },
   {
-    key: "high",
+    key: "watch",
+    min: 55,
+    title: "黄信号",
+    c1: "#d97706",
+    c2: "#b45309",
+    accent: "#d97706",
+    message:
+      "大きな問題はまだ出ていませんが、評価のあいまいさが不満の火種に。今が整えるベストタイミングです。",
+  },
+  {
+    key: "warn",
     min: 35,
     title: "要注意",
     c1: "#ea580c",
@@ -216,29 +226,20 @@ const TIERS: Tier[] = [
       "課題が表面化し始めています。人が抜け、社長依存がさらに強まる前に手を打つべき段階です。",
   },
   {
-    key: "mid",
-    min: 18,
-    title: "黄信号",
-    c1: "#d97706",
-    c2: "#b45309",
-    accent: "#d97706",
-    message:
-      "今はまだ回っていますが、評価のあいまいさが不満の火種に。伸びるか停滞するかの分かれ道です。",
-  },
-  {
-    key: "low",
+    key: "danger",
     min: 0,
-    title: "初期段階",
-    c1: "#0f766e",
-    c2: "#115e59",
-    accent: "#0f766e",
+    title: "危険水域",
+    c1: "#dc2626",
+    c2: "#991b1b",
+    accent: "#dc2626",
     message:
-      "大きな問題はまだ出ていませんが、属人化の芽は静かに育ちます。整えるなら“今”が一番ラクなタイミングです。",
+      "属人化と評価のひずみが重なり、離職やトラブルが起きてもおかしくない状態です。今すぐ制度の立て直しを。",
   },
 ];
 
-function tierOf(overall: number): Tier {
-  return TIERS.find((t) => overall >= t.min) ?? TIERS[TIERS.length - 1];
+/** 健全度（高いほど良い）から段階を判定 */
+function tierOf(health: number): Tier {
+  return TIERS.find((t) => health >= t.min) ?? TIERS[TIERS.length - 1];
 }
 
 /** 各指標が高いときの「状況」と「その結果どうなるか」（解体業のリアル・緊急度順） */
@@ -270,10 +271,10 @@ const RISK_TEXT: Record<IndexId, { cause: string; result: string }> = {
 function HealthFace({ tier }: { tier: Tier }) {
   const { key, accent } = tier;
   const mouth: Record<TierKey, string> = {
-    low: "M43 71 Q60 83 77 71",
-    mid: "M44 75 H76",
-    high: "M43 80 Q60 70 77 80",
-    critical: "M43 82 Q60 66 77 82",
+    good: "M43 71 Q60 83 77 71",
+    watch: "M44 75 H76",
+    warn: "M43 80 Q60 70 77 80",
+    danger: "M43 82 Q60 66 77 82",
   };
   return (
     <svg
@@ -283,7 +284,7 @@ function HealthFace({ tier }: { tier: Tier }) {
       aria-label={`組織の状態：${tier.title}`}
     >
       <circle cx="60" cy="60" r="46" fill="rgba(255,255,255,0.92)" stroke={accent} strokeWidth="4" />
-      {key === "critical" ? (
+      {key === "danger" ? (
         <g stroke={accent} strokeWidth="4" strokeLinecap="round">
           <path d="M40 47l12 10M52 47l-12 10" />
           <path d="M68 47l12 10M80 47l-12 10" />
@@ -302,14 +303,14 @@ function HealthFace({ tier }: { tier: Tier }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {key !== "low" ? (
+      {key !== "good" ? (
         <path
           d="M95 38c0 5-4 7-4 11a4 4 0 008 0c0-4-4-6-4-11z"
           fill={accent}
           opacity="0.85"
         />
       ) : null}
-      {key === "critical" ? (
+      {key === "danger" ? (
         <g transform="rotate(30 32 32)">
           <rect x="14" y="26" width="30" height="13" rx="6.5" fill={accent} />
           <line x1="22" y1="28" x2="22" y2="37" stroke="#fff" strokeWidth="1.6" />
@@ -943,8 +944,9 @@ function Modal({ onClose }: { onClose: () => void }) {
   const inputLocked = busy || typing || loading || done;
   const currentQ = !done && !inputLocked && cursor < TOTAL ? QUESTIONS[cursor] : null;
 
-  // 結果表示の演出：総合スコアのカウントアップ
-  const displayOverall = useCountUp(result ? result.overall : null);
+  // 健全度スコア（0〜100・高いほど良い）＝ 100 − 課題平均。カウントアップ演出。
+  const health = result ? 100 - result.overall : 0;
+  const displayHealth = useCountUp(result ? 100 - result.overall : null);
 
   const clearTimers = () => {
     for (const id of timersRef.current) window.clearTimeout(id);
@@ -1166,7 +1168,7 @@ function Modal({ onClose }: { onClose: () => void }) {
             {result ? (
               <section className="ninku-result" ref={resultRef} aria-label="診断結果">
                 {(() => {
-                  const tier = tierOf(result.overall);
+                  const tier = tierOf(health);
                   return (
                     <div
                       className="ninku-overall"
@@ -1176,10 +1178,12 @@ function Modal({ onClose }: { onClose: () => void }) {
                     >
                       <div className="ninku-overall-top">
                         <div className="ninku-overall-main">
-                          <span className="ninku-overall-badge">{tier.title}</span>
+                          <span className="ninku-overall-badge">
+                            健全度スコア・{tier.title}
+                          </span>
                           <div className="ninku-overall-score">
-                            <span className="ninku-overall-num">{displayOverall}</span>
-                            <span className="ninku-overall-unit">/ 100</span>
+                            <span className="ninku-overall-num">{displayHealth}</span>
+                            <span className="ninku-overall-unit">/ 100点</span>
                           </div>
                         </div>
                         <div className="ninku-face-wrap">
@@ -1188,7 +1192,7 @@ function Modal({ onClose }: { onClose: () => void }) {
                       </div>
                       <p className="ninku-overall-label">{tier.message}</p>
                       <p className="ninku-note">
-                        ※指数は0〜100。高いほど課題が大きい状態です。
+                        ※スコアは0〜100点。高いほど組織が健全な状態です。
                       </p>
                     </div>
                   );
