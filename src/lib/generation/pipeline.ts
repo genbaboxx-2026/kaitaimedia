@@ -21,6 +21,7 @@ import { notifySlack } from "@/lib/notify/slack";
 import { USD_JPY_RATE } from "@/lib/ai/pricing";
 import { excerptFrom } from "@/lib/excerpt";
 import type { ArticleType } from "@/lib/types";
+import { isBlockedTheme } from "@/lib/generation/theme-policy";
 
 interface ThemeRow {
   /** テーマ在庫は廃止。その場生成なので id は持たない（null） */
@@ -91,13 +92,26 @@ function toThemeRow(t: QueuedThemeRow): ThemeRow {
 }
 
 // 手動で追加された未生成テーマがあれば、それを優先して1件取り出す（無ければ null）。
+// 法令・補助金手続きなどブロック対象は excluded にしてスキップする。
 async function selectQueuedTheme(): Promise<ThemeRow | null> {
   const rows = await restSelect<QueuedThemeRow>(
-    "themes?select=id,title,category_id,target_keyword,article_type,category:categories(name,slug)&status=eq.pending&order=sort_order.asc,created_at.asc&limit=1",
+    "themes?select=id,title,category_id,target_keyword,article_type,category:categories(name,slug)&status=eq.pending&order=sort_order.asc,created_at.asc&limit=40",
     0,
   );
-  const t = rows?.[0];
-  return t ? toThemeRow(t) : null;
+  for (const t of rows ?? []) {
+    const slug = t.category?.slug ?? null;
+    if (isBlockedTheme(t.title, slug)) {
+      console.warn(
+        `[pipeline] 方針外テーマを除外: ${t.title} (category=${slug ?? "?"})`,
+      );
+      await restUpdate(`themes?id=eq.${encodeURIComponent(t.id)}`, {
+        status: "excluded",
+      });
+      continue;
+    }
+    return toThemeRow(t);
+  }
+  return null;
 }
 
 async function selectThemeById(id: string): Promise<ThemeRow | null> {
@@ -106,7 +120,14 @@ async function selectThemeById(id: string): Promise<ThemeRow | null> {
     0,
   );
   const t = rows?.[0];
-  return t ? toThemeRow(t) : null;
+  if (!t) return null;
+  if (isBlockedTheme(t.title, t.category?.slug ?? null)) {
+    await restUpdate(`themes?id=eq.${encodeURIComponent(t.id)}`, {
+      status: "excluded",
+    });
+    return null;
+  }
+  return toThemeRow(t);
 }
 
 // トピックをその場生成：AIに数件提案させ、既存記事と重複しない最初の1件を採用する。
@@ -125,6 +146,7 @@ async function generateTopic(
     const { themes } = await suggestThemes(5, instruction);
     for (const s of themes) {
       if (!s?.title) continue;
+      if (isBlockedTheme(s.title, s.categorySlug)) continue;
       if (await isDuplicateTheme(s.title, titleSim)) continue; // 既存と類似なら次の候補へ
       const cat = bySlug.get(s.categorySlug) ?? cats?.[0];
       return {

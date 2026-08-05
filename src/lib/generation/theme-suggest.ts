@@ -1,4 +1,5 @@
 import { CATEGORIES } from "@/lib/dummy-data";
+import { isBlockedTheme } from "@/lib/generation/theme-policy";
 import type { ArticleType } from "@/lib/types";
 
 export interface ThemeSuggestion {
@@ -69,15 +70,16 @@ function sanitizeThemes(
   themes: ThemeSuggestion[],
   year: number,
 ): ThemeSuggestion[] {
-  return applyTypeQuota(
-    themes.map((th) => ({
+  const cleaned = themes
+    .map((th) => ({
       ...th,
       title: sanitizeThemeYear(th.title, year),
       articleType: (["A", "B", "C"].includes(th.articleType)
         ? th.articleType
         : "B") as ArticleType,
-    })),
-  );
+    }))
+    .filter((th) => !isBlockedTheme(th.title, th.categorySlug));
+  return applyTypeQuota(cleaned);
 }
 
 /** 10本あたり A3 / B6 / C1 に寄せる */
