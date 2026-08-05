@@ -210,8 +210,8 @@ function Modal({ onClose }: { onClose: () => void }) {
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
       />
 
-      {/* 横幅を広く。高さは画面内に収め、中身はスクロール可 */}
-      <div className="baku-in relative flex h-full w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-sky-100 sm:h-[min(100dvh-2.5rem,900px)] sm:rounded-3xl lg:max-w-6xl">
+      {/* PCは画面の大半を使う幅。高さ内に収め、中身はスクロール可 */}
+      <div className="baku-in relative flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-sky-100 sm:h-[min(100dvh-2.5rem,920px)] sm:w-[min(96vw,1200px)] sm:rounded-3xl lg:w-[min(94vw,1280px)]">
         <button
           type="button"
           onClick={onClose}
