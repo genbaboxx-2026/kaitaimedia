@@ -10,12 +10,21 @@ import { restSelect, restUpsert } from "@/lib/supabase/rest";
 export const SCHEDULE_POLL_MINUTES = 60;
 
 const LAST_RUN_KEY = "last_scheduled_generation_date";
+const LOCK_KEY = "scheduled_generation_lock";
+/** 1バッチ最大時間より少し短く。期限切れ後は他ランナーが奪える */
+const LOCK_TTL_MS = 25 * 60 * 1000;
 
 interface JstNow {
   date: string; // YYYY-MM-DD
   hour: number;
   minute: number;
   minutesOfDay: number;
+}
+
+interface ScheduleLock {
+  jstDate: string;
+  owner: string;
+  expiresAt: string;
 }
 
 function jstNow(d = new Date()): JstNow {
@@ -87,13 +96,38 @@ export function jstDayStartUtcIso(jstDate: string): string {
   return new Date(`${jstDate}T00:00:00+09:00`).toISOString();
 }
 
-/** 本日（JST）に記事まで残った生成ログ件数 */
+function parseLock(raw: string): ScheduleLock | null {
+  if (!raw.trim()) return null;
+  try {
+    const v = JSON.parse(raw) as Partial<ScheduleLock>;
+    if (
+      typeof v.jstDate === "string" &&
+      typeof v.owner === "string" &&
+      typeof v.expiresAt === "string"
+    ) {
+      return { jstDate: v.jstDate, owner: v.owner, expiresAt: v.expiresAt };
+    }
+  } catch {
+    // 旧形式や壊れた値は無効扱い
+  }
+  return null;
+}
+
+function lockActive(lock: ScheduleLock | null, jstDate: string, now = Date.now()): boolean {
+  if (!lock || lock.jstDate !== jstDate) return false;
+  return new Date(lock.expiresAt).getTime() > now;
+}
+
+/**
+ * 本日の「成功した生成」だけを数える。
+ * 品質不合格で error_message 付きの下書きは枠を消費しない（再試行可能）。
+ */
 export async function countTodaysGeneratedArticles(
   jstDate: string,
 ): Promise<number> {
   const dayStartUtc = jstDayStartUtcIso(jstDate);
   const logs = await restSelect<{ id: string }>(
-    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}&article_id=not.is.null`,
+    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}&article_id=not.is.null&error_message=is.null&status=in.(published,draft)`,
     0,
   );
   return logs?.length ?? 0;
@@ -104,7 +138,7 @@ export interface ScheduleGateResult {
   reason: string;
   jstDate: string;
   generationTime: string;
-  /** 本日あと何本生成するか（articles_per_day − 本日済み） */
+  /** 本日あと何本生成するか（articles_per_day − 本日成功数） */
   remaining: number;
   articlesPerDay: number;
   todayCount: number;
@@ -112,8 +146,7 @@ export interface ScheduleGateResult {
 
 /**
  * 定時トリガー時に「今すぐバッチを回してよいか」を判定する。
- * generation_time 以降で、本日の生成数が articles_per_day 未達なら実行する。
- * 1本でもあると全スキップ、にはしない（不足分を埋める）。
+ * generation_time 以降で、本日の成功生成数が articles_per_day 未達なら実行する。
  */
 export async function evaluateScheduleGate(
   now = new Date(),
@@ -165,17 +198,16 @@ export async function evaluateScheduleGate(
     return {
       ...base,
       run: false,
-      reason: `本日の生成本数に到達（${todayCount}/${articlesPerDay}本・${jst.date}）`,
+      reason: `本日の生成本数に到達（成功 ${todayCount}/${articlesPerDay}本・${jst.date}）`,
     };
   }
 
-  // 実行中ロック：同日ロック中でも本数未達なら不足分を埋める（失敗後の再試行／設定増分）
-  const last = settings[LAST_RUN_KEY] ?? "";
-  if (last === jst.date && todayCount >= articlesPerDay) {
+  const lock = parseLock(String(settings[LOCK_KEY] ?? ""));
+  if (lockActive(lock, jst.date)) {
     return {
       ...base,
       run: false,
-      reason: `本日（${jst.date}）は定時生成済み（${todayCount}/${articlesPerDay}）`,
+      reason: `他の定時生成が実行中のためスキップ（owner=${lock?.owner ?? "?"}）`,
     };
   }
 
@@ -184,12 +216,63 @@ export async function evaluateScheduleGate(
     ...base,
     run: true,
     reason: onTime
-      ? `定時枠ヒット（設定 ${generationTime} / 不足 ${remaining}本・本日 ${todayCount}/${articlesPerDay}）`
-      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel} / 不足 ${remaining}本・本日 ${todayCount}/${articlesPerDay}）`,
+      ? `定時枠ヒット（設定 ${generationTime} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}）`
+      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}）`,
   };
 }
 
-/** 定時バッチ開始時の二重起動防止ロック（成功時はそのまま残す） */
+/** 二重起動防止ロックを取得。取得後に再読込して所有者一致を確認する */
+export async function tryAcquireScheduleLock(
+  jstDate: string,
+  owner: string,
+): Promise<{ ok: boolean; reason: string }> {
+  const settings = await loadSettings();
+  const existing = parseLock(String(settings[LOCK_KEY] ?? ""));
+  if (lockActive(existing, jstDate)) {
+    return {
+      ok: false,
+      reason: `他の定時生成が実行中（owner=${existing?.owner ?? "?"}）`,
+    };
+  }
+
+  const expiresAt = new Date(Date.now() + LOCK_TTL_MS).toISOString();
+  await restUpsert(
+    "settings",
+    {
+      key: LOCK_KEY,
+      value: JSON.stringify({ jstDate, owner, expiresAt } satisfies ScheduleLock),
+      value_type: "string",
+      description: "定時生成の実行中ロック（二重起動防止）",
+    },
+    "key",
+  );
+
+  const again = await loadSettings();
+  const locked = parseLock(String(again[LOCK_KEY] ?? ""));
+  if (!locked || locked.owner !== owner || !lockActive(locked, jstDate)) {
+    return { ok: false, reason: "定時ロックの取得に失敗（競合）" };
+  }
+  return { ok: true, reason: "lock acquired" };
+}
+
+/** 自分が持っているロックだけ解放する */
+export async function releaseScheduleLock(owner: string): Promise<void> {
+  const settings = await loadSettings();
+  const locked = parseLock(String(settings[LOCK_KEY] ?? ""));
+  if (!locked || locked.owner !== owner) return;
+  await restUpsert(
+    "settings",
+    {
+      key: LOCK_KEY,
+      value: "",
+      value_type: "string",
+      description: "定時生成の実行中ロック（二重起動防止）",
+    },
+    "key",
+  );
+}
+
+/** 定時バッチが本数到達した日を記録 */
 export async function markScheduledGenerationDate(jstDate: string): Promise<void> {
   await restUpsert(
     "settings",
@@ -197,13 +280,13 @@ export async function markScheduledGenerationDate(jstDate: string): Promise<void
       key: LAST_RUN_KEY,
       value: jstDate,
       value_type: "string",
-      description: "定時生成を最後に実行した日付（JST YYYY-MM-DD）",
+      description: "定時生成を最後に完了した日付（JST YYYY-MM-DD）",
     },
     "key",
   );
 }
 
-/** 失敗時／本数未達時にロックを外し、次の cron で再試行できるようにする */
+/** 本数未達時などに完了マークを外す */
 export async function clearScheduledGenerationDate(): Promise<void> {
   await restUpsert(
     "settings",
@@ -211,7 +294,7 @@ export async function clearScheduledGenerationDate(): Promise<void> {
       key: LAST_RUN_KEY,
       value: "",
       value_type: "string",
-      description: "定時生成を最後に実行した日付（JST YYYY-MM-DD）",
+      description: "定時生成を最後に完了した日付（JST YYYY-MM-DD）",
     },
     "key",
   );
