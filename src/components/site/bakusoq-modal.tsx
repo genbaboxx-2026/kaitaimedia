@@ -99,7 +99,7 @@ const SOLUTIONS = [
     head: "即戦力に",
     body: (
       <>
-        解体経験がなくても作れる
+        解体経験がなくても作れて
         <br />
         新人も早く成長できる！
       </>
@@ -173,39 +173,24 @@ function Underline() {
   );
 }
 
-function Spark() {
+function LineBtnMark() {
   return (
-    <svg viewBox="0 0 28 28" className="baku-spark" aria-hidden>
+    <svg viewBox="0 0 36 36" className="baku-cta-line-mark" aria-hidden>
+      <circle cx="18" cy="18" r="18" fill="#fff" />
       <path
-        d="M14 2l2.2 8.2L24 14l-7.8 3.8L14 26l-2.2-8.2L4 14l7.8-3.8L14 2z"
-        fill="#F5A623"
+        d="M18 7.5c-5.7 0-10.3 3.8-10.3 8.5 0 4.2 3.7 7.7 8.8 8.4.3.1.7.2.8.4.1.2.1.5 0 .8l-.2.9c0 .3-.2 1.1.9.6 0 0 5.1-3 7-5.2 1.3-1.4 2.2-2.9 2.2-5.2 0-4.7-4.6-8.5-10.2-8.5z"
+        fill="#06C755"
       />
     </svg>
   );
 }
 
-function DownArrow() {
+function HpGlobe() {
   return (
-    <svg viewBox="0 0 48 48" className="baku-down" aria-hidden>
-      <circle cx="24" cy="24" r="24" fill="#1674E8" />
-      <path
-        d="M24 12v18M16 24l8 10 8-10"
-        stroke="#fff"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
-function Globe() {
-  return (
-    <svg viewBox="0 0 40 40" className="baku-globe" aria-hidden>
-      <circle cx="20" cy="20" r="17" stroke="#1674E8" strokeWidth="2.4" fill="#E8F3FF" />
-      <ellipse cx="20" cy="20" rx="7" ry="17" stroke="#1674E8" strokeWidth="2" fill="none" />
-      <path d="M4 20h32M20 3c5 5 7.5 10 7.5 17S25 32 20 37M20 3c-5 5-7.5 10-7.5 17S15 32 20 37" stroke="#1674E8" strokeWidth="2" fill="none" />
+    <svg viewBox="0 0 20 20" className="baku-cta-hp-globe" aria-hidden>
+      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" fill="none" />
+      <ellipse cx="10" cy="10" rx="3.2" ry="8" stroke="currentColor" strokeWidth="1.4" fill="none" />
+      <path d="M2.5 10h15" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   );
 }
@@ -218,6 +203,43 @@ function CloseIcon() {
         stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** 理由パネル下部の薄い街並み・工事シルエット */
+function ReasonSkyline() {
+  return (
+    <svg
+      className="baku-reason-skyline"
+      viewBox="0 0 480 140"
+      preserveAspectRatio="xMidYMax meet"
+      aria-hidden
+    >
+      <path
+        fill="#9ec8f0"
+        opacity="0.55"
+        d="M0 140V88h18v-22h14v22h10V60h16v28h12V48h10v12h8V72h14v-18h12v18h8V55h18v33h10V40h14v20h8V70h16v-28h12v38h10V52h20v36h8V64h14v24h10V78h16v-30h12v30h8V58h18v30h10V46h16v42h12V70h14v22h10V88h22v52H0z"
+      />
+      <path
+        fill="#7eb4e8"
+        opacity="0.5"
+        d="M40 140V70h8v-28h6v8h4v-12h6v32h8V50h10v40h6V62h12v28h8V55h6v-20h5v20h5v35h8V68h14v32h6V78h10v22h8V90h18v50H40z"
+      />
+      {/* crane */}
+      <g fill="#8fbfeb" opacity="0.65">
+        <rect x="318" y="48" width="3" height="92" />
+        <path d="M250 56h140v3H250z" />
+        <path d="M320 48l-8-14h6l6 14h-4z" />
+        <path d="M390 56l4 22h-3l-3-22z" />
+        <rect x="392" y="76" width="10" height="7" rx="1" />
+        <path d="M321 56v40" stroke="#8fbfeb" strokeWidth="1.5" fill="none" />
+      </g>
+      <path
+        fill="#a8d0f2"
+        opacity="0.45"
+        d="M0 118c40-8 80 6 120 0s70-10 110 2 80 4 120-2 70-2 90 4v18H0v-22z"
       />
     </svg>
   );
@@ -386,25 +408,35 @@ function ModalStyles() {
 
       .baku-reason {
         position: relative;
-        border-radius: 22px;
-        background: #eef6ff;
+        display: flex;
+        flex-direction: column;
+        border-radius: 24px;
+        background: linear-gradient(180deg, #f5f9ff 0%, #eaf4ff 48%, #dcecff 100%);
         border: 1.5px solid #b9d8ff;
-        padding: 20px 16px 16px 18px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+        padding: 0;
         overflow: hidden;
         min-height: 100%;
+        height: 100%;
         box-sizing: border-box;
+      }
+      .baku-reason-copy {
+        position: relative;
+        z-index: 2;
+        flex: 0 0 auto;
+        padding: 16px 16px 6px 18px;
       }
       .baku-reason-title {
         margin: 0;
-        font-size: 26px;
+        font-size: 28px;
         font-weight: 900;
         color: #1674e8;
         letter-spacing: -0.03em;
-        line-height: 1.2;
+        line-height: 1.15;
       }
       .baku-reason-sub {
-        margin: 8px 0 12px;
-        font-size: 17px;
+        margin: 8px 0 10px;
+        font-size: 18px;
         font-weight: 800;
         color: #0f172a;
       }
@@ -414,71 +446,85 @@ function ModalStyles() {
         padding: 0;
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        max-width: calc(100% - 108px);
-        width: calc(100% - 108px);
-        position: relative;
-        z-index: 1;
+        gap: 10px;
+        max-width: 100%;
+        width: 100%;
       }
       .baku-reason-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 14.5px;
+        gap: 8px;
+        font-size: 16px;
         font-weight: 700;
         line-height: 1.35;
         color: #0f172a;
         white-space: nowrap;
       }
       .baku-check {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         flex-shrink: 0;
+      }
+      /* 下半分：街並み背景 + 大きめ人物 */
+      .baku-reason-visual {
+        position: relative;
+        flex: 1 1 auto;
+        min-height: 168px;
+        margin-top: 2px;
+      }
+      .baku-reason-skyline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 78%;
+        pointer-events: none;
+        z-index: 0;
       }
       .baku-reason-illust {
         position: absolute;
-        right: -4px;
-        bottom: 2px;
-        width: 112px;
-        height: 98px;
+        right: -4%;
+        bottom: -6%;
+        width: min(78%, 270px);
+        height: auto;
+        max-height: 100%;
         object-fit: contain;
+        object-position: bottom right;
         pointer-events: none;
+        z-index: 1;
       }
 
       .baku-solve {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
-        padding: 2px 0;
-      }
-      .baku-down {
-        width: 40px;
-        height: 40px;
+        gap: 6px;
+        padding: 4px 0 2px;
+        text-align: center;
       }
       .baku-solve-line {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        font-size: 30px;
+        margin: 0;
+        font-size: 28px;
         font-weight: 900;
         color: #0f172a;
         letter-spacing: -0.03em;
-        line-height: 1.1;
+        line-height: 1.25;
       }
       .baku-solve-brand {
-        font-size: 48px;
+        font-size: 34px;
         font-weight: 900;
         font-style: italic;
-        color: #1269d3;
+        color: #1674e8;
         letter-spacing: 0.01em;
-        margin: 0 4px;
+        margin: 0 2px;
       }
-      .baku-spark {
-        width: 24px;
-        height: 24px;
-        flex-shrink: 0;
+      .baku-solve-sub {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #5b9fe8;
+        letter-spacing: -0.01em;
       }
 
       .baku-sols {
@@ -530,119 +576,146 @@ function ModalStyles() {
         color: #0f172a;
       }
 
-      /* CTA — 切れ禁止 */
+      /* CTA — 薄緑パネル + LINEボタン主役、HPは下に小さく */
       .baku-cta {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
         flex-shrink: 0;
       }
-      .baku-cta-a, .baku-cta-b {
-        min-height: 128px;
-        height: auto;
-        border-radius: 18px;
-        padding: 20px 24px;
-        display: flex;
+      .baku-cta-panel {
+        width: fit-content;
+        max-width: 100%;
+        margin: 0 auto;
+        border-radius: 22px;
+        padding: 18px 22px 18px 18px;
+        display: inline-flex;
         align-items: center;
-        gap: 18px;
-        text-decoration: none;
+        gap: 16px;
         box-sizing: border-box;
-        overflow: visible;
-        transition: transform .15s ease, box-shadow .15s ease;
-      }
-      .baku-cta-a:hover, .baku-cta-b:hover {
-        transform: translateY(-2px);
-      }
-      .baku-cta-a {
-        background: linear-gradient(135deg, #19d66a, #06b34f);
-        color: #fff;
-        box-shadow: 0 10px 24px rgba(6, 179, 79, 0.28);
-      }
-      .baku-cta-b {
-        background: linear-gradient(135deg, #e8f3ff, #d5e9ff);
-        color: #0f172a;
-        border: 1.5px solid #9ec8f5;
-        box-shadow: 0 10px 24px rgba(22, 116, 232, 0.12);
+        background:
+          radial-gradient(circle at 12% 50%, rgba(6,199,85,0.08) 0 2px, transparent 3px),
+          radial-gradient(circle at 88% 40%, rgba(6,199,85,0.07) 0 2px, transparent 3px),
+          linear-gradient(135deg, #f0fff5 0%, #e6fbeb 55%, #dff8e8 100%);
+        background-size: 18px 18px, 18px 18px, auto;
+        border: 1.5px solid #8fe0a8;
+        box-shadow: 0 10px 24px rgba(6, 179, 79, 0.14);
       }
       .baku-cta-side {
-        width: 88px;
-        height: 88px;
+        width: 84px;
+        height: 84px;
         object-fit: contain;
         flex-shrink: 0;
       }
-      .baku-globe {
-        width: 64px;
-        height: 64px;
-        flex-shrink: 0;
-      }
       .baku-cta-copy {
-        flex: 1;
-        min-width: 0;
+        width: max-content;
+        max-width: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 8px;
+        align-items: center;
+        gap: 10px;
       }
-      .baku-cta-kicker {
-        margin: 0;
-        font-size: 15px;
-        font-weight: 700;
-        opacity: 0.95;
-        line-height: 1.3;
+      .baku-cta-main,
+      .baku-cta-points {
+        align-self: flex-start;
       }
       .baku-cta-main {
         margin: 0;
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 900;
         line-height: 1.25;
         letter-spacing: -0.03em;
+        color: #06a849;
+        display: inline;
+        background-image: linear-gradient(transparent 62%, #fff59d 62%);
       }
-      .baku-cta-a .baku-cta-main { color: #fff; font-size: 24px; }
-      .baku-cta-b .baku-cta-main { color: #0f5ec4; font-size: 26px; }
+      .baku-cta-points {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 14px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .baku-cta-points li {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      .baku-cta-points li + li {
+        padding-left: 14px;
+        border-left: 1px solid #cbd5e1;
+      }
+      .baku-cta-dot {
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: #06c755;
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 900;
+        flex-shrink: 0;
+      }
       .baku-cta-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        align-self: flex-start;
-        height: 46px;
-        padding: 0 20px;
+        gap: 10px;
+        height: 52px;
+        padding: 0 28px;
         border-radius: 999px;
-        font-size: 16px;
+        font-size: 17px;
         font-weight: 800;
-        background: #fff;
-        color: #06a849;
-        white-space: nowrap;
-      }
-      .baku-cta-url {
-        display: inline-flex;
-        align-items: center;
-        align-self: flex-start;
-        height: 36px;
-        padding: 0 14px;
-        border-radius: 10px;
-        background: #1674e8;
         color: #fff;
-        font-size: 13px;
-        font-weight: 700;
+        text-decoration: none;
         white-space: nowrap;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        background: linear-gradient(180deg, #2fda6e 0%, #06b34f 100%);
+        box-shadow: 0 8px 18px rgba(6, 179, 79, 0.35);
+        transition: transform .15s ease, box-shadow .15s ease;
       }
-      .baku-cta-thumb {
-        width: 100px;
-        height: 82px;
-        object-fit: contain;
+      .baku-cta-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(6, 179, 79, 0.42);
+      }
+      .baku-cta-line-mark {
+        width: 26px;
+        height: 26px;
         flex-shrink: 0;
       }
-      .baku-foot {
-        margin: 4px 0 0;
-        padding-bottom: 4px;
-        text-align: center;
-        font-size: 12px;
-        font-weight: 600;
+      .baku-cta-hp {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
         color: #64748b;
-        line-height: 1.45;
+        font-size: 13px;
+        font-weight: 700;
+        transition: color .15s ease;
+      }
+      .baku-cta-hp:hover {
+        color: #1674e8;
+      }
+      .baku-cta-hp-globe {
+        width: 16px;
+        height: 16px;
+        color: #64748b;
+      }
+      .baku-cta-hp:hover .baku-cta-hp-globe {
+        color: #1674e8;
+      }
+      .baku-cta-hp-url {
+        color: #1674e8;
+        font-weight: 700;
       }
 
       @media (max-width: 980px) {
@@ -663,20 +736,33 @@ function ModalStyles() {
           grid-template-columns: 42px 1fr 72px;
         }
         .baku-worry-text { max-width: none; }
-        .baku-reason-list {
-          max-width: 100%;
-          width: 100%;
-        }
         .baku-reason-item { white-space: normal; }
-        .baku-reason-illust { opacity: 0.3; width: 96px; height: 84px; }
-        .baku-solve-line { font-size: 20px; flex-wrap: wrap; }
-        .baku-solve-brand { font-size: 32px; }
+        .baku-reason-visual { min-height: 150px; }
+        .baku-reason-illust { width: min(70%, 220px); }
+        .baku-solve-line { font-size: 20px; }
+        .baku-solve-brand { font-size: 24px; }
+        .baku-solve-sub { font-size: 12px; }
         .baku-sols { grid-template-columns: 1fr 1fr; }
         .baku-sol { height: auto; min-height: 200px; }
-        .baku-cta { grid-template-columns: 1fr; }
-        .baku-cta-a, .baku-cta-b { min-height: 120px; }
-        .baku-cta-a .baku-cta-main { font-size: 20px; }
-        .baku-cta-b .baku-cta-main { font-size: 22px; }
+        .baku-cta-panel {
+          width: min(100%, 360px);
+          flex-direction: column;
+          align-items: center;
+          padding: 16px 14px;
+          gap: 12px;
+        }
+        .baku-cta-copy {
+          width: 100%;
+          align-items: center;
+          text-align: center;
+        }
+        .baku-cta-main { font-size: 20px; }
+        .baku-cta-points { justify-content: center; }
+        .baku-cta-points li + li {
+          border-left: none;
+          padding-left: 0;
+        }
+        .baku-cta-btn { width: 100%; height: 48px; font-size: 15px; }
       }
     `}</style>
   );
@@ -755,38 +841,41 @@ function Modal({ onClose }: { onClose: () => void }) {
               </div>
 
               <aside className="baku-reason">
-                <h3 className="baku-reason-title">それは仕方ないです。</h3>
-                <p className="baku-reason-sub">理由は…</p>
-                <ul className="baku-reason-list">
-                  {REASONS.map((r) => (
-                    <li key={r} className="baku-reason-item">
-                      <IconCheck />
-                      <span>{r}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Image
-                  src={`${ILLUST}/reason-worker.png`}
-                  alt=""
-                  width={112}
-                  height={98}
-                  className="baku-reason-illust"
-                  unoptimized
-                />
+                <div className="baku-reason-copy">
+                  <h3 className="baku-reason-title">それは仕方ないです。</h3>
+                  <p className="baku-reason-sub">理由は…</p>
+                  <ul className="baku-reason-list">
+                    {REASONS.map((r) => (
+                      <li key={r} className="baku-reason-item">
+                        <IconCheck />
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="baku-reason-visual" aria-hidden>
+                  <ReasonSkyline />
+                  <Image
+                    src={`${ILLUST}/reason-worker.png`}
+                    alt=""
+                    width={270}
+                    height={180}
+                    className="baku-reason-illust"
+                    unoptimized
+                  />
+                </div>
               </aside>
             </section>
 
             <div className="baku-solve">
-              <DownArrow />
-              <div className="baku-solve-line">
-                <Spark />
-                <span>
-                  その悩み、
-                  <span className="baku-solve-brand">BAKUSOQ</span>
-                  が解決します！
-                </span>
-                <Spark />
-              </div>
+              <h3 className="baku-solve-line">
+                見積もりの悩みを、
+                <span className="baku-solve-brand">BAKUSOQ</span>
+                がすべて解決！
+              </h3>
+              <p className="baku-solve-sub">
+                スピード・精度・わかりやすさで、あなたの業務を強力にサポートします。
+              </p>
             </div>
 
             <section className="baku-sols">
@@ -809,55 +898,57 @@ function Modal({ onClose }: { onClose: () => void }) {
             </section>
 
             <section className="baku-cta">
-              <a
-                href={BAKUSOQ_LINE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="baku-cta-a"
-              >
+              <div className="baku-cta-panel">
                 <Image
                   src={`${ILLUST}/cta-phone.png`}
                   alt=""
-                  width={88}
-                  height={88}
+                  width={96}
+                  height={96}
                   className="baku-cta-side"
                   unoptimized
                 />
                 <div className="baku-cta-copy">
-                  <p className="baku-cta-kicker">今すぐ情報を手に入れよう！</p>
                   <p className="baku-cta-main">
-                    LINE登録で限定資料や最新情報をお届け！
+                    LINE登録してお問い合わせください！
                   </p>
-                  <span className="baku-cta-btn">LINE登録はこちら →</span>
+                  <ul className="baku-cta-points">
+                    <li>
+                      <span className="baku-cta-dot" aria-hidden>
+                        ✓
+                      </span>
+                      まずはLINEで気軽に相談
+                    </li>
+                    <li>
+                      <span className="baku-cta-dot" aria-hidden>
+                        ✓
+                      </span>
+                      限定資料・最新情報もLINEでお届け
+                    </li>
+                  </ul>
+                  <a
+                    href={BAKUSOQ_LINE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="baku-cta-btn"
+                  >
+                    <LineBtnMark />
+                    LINE 登録はこちら
+                  </a>
                 </div>
-              </a>
+              </div>
 
               <a
                 href={BAKUSOQ_HP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="baku-cta-b"
+                className="baku-cta-hp"
               >
-                <Globe />
-                <div className="baku-cta-copy">
-                  <p className="baku-cta-kicker">詳しいサービス内容はこちら</p>
-                  <p className="baku-cta-main">BAKUSOQ 公式HP</p>
-                  <span className="baku-cta-url">{BAKUSOQ_HP_URL}</span>
-                </div>
-                <Image
-                  src={`${ILLUST}/cta-dash.png`}
-                  alt=""
-                  width={100}
-                  height={82}
-                  className="baku-cta-thumb"
-                  unoptimized
-                />
+                <HpGlobe />
+                <span>公式HP</span>
+                <span className="baku-cta-hp-url">{BAKUSOQ_HP_URL}</span>
+                <span aria-hidden>↗</span>
               </a>
             </section>
-
-            <p className="baku-foot">
-              最新事例や活用ノウハウなど、すぐに役立つ情報をお届けします。登録は30秒で完了・いつでも解除できます。
-            </p>
           </div>
         </div>
       </div>
