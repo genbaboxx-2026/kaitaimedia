@@ -1,5 +1,6 @@
 import { callGrokXSearch, parseGrokJson } from "@/lib/ai/grok";
 import { getActivePrompt, interpolate } from "@/lib/ai/prompts";
+import { estimateCostUsd } from "@/lib/ai/pricing";
 import {
   getNumber,
   getString,
@@ -24,6 +25,8 @@ export interface FetchSnsTrendsResult {
   model: string;
   inputTokens: number;
   outputTokens: number;
+  /** トークン単価からの概算（x_search 追加料金は含まない） */
+  costUsd: number;
   /** 0件のとき原因確認用（先頭のみ） */
   preview?: string;
 }
@@ -312,6 +315,12 @@ export async function fetchSnsTrends(): Promise<FetchSnsTrendsResult> {
     upserted += 1;
   }
 
+  const costUsd = estimateCostUsd(
+    grok.model,
+    grok.inputTokens,
+    grok.outputTokens,
+  );
+
   return {
     fetched: rows.length,
     upserted,
@@ -319,6 +328,7 @@ export async function fetchSnsTrends(): Promise<FetchSnsTrendsResult> {
     model: grok.model,
     inputTokens: grok.inputTokens,
     outputTokens: grok.outputTokens,
+    costUsd,
     ...(upserted === 0
       ? { preview: grok.text.slice(0, 400) }
       : {}),

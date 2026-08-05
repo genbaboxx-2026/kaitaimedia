@@ -9,6 +9,7 @@ import {
 } from "@/app/admin/(app)/sns-trends/actions";
 import type { SnsTrendPost, SnsTrendStatus } from "@/lib/types";
 import { formatRelativeJa } from "@/lib/format";
+import { formatCostUsdJpy } from "@/lib/ai/pricing";
 
 const STATUS_LABEL: Record<SnsTrendStatus, string> = {
   pending: "未審査",
@@ -54,12 +55,23 @@ export function SnsTrendManager({
         upserted?: number;
         skipped?: number;
         model?: string;
+        inputTokens?: number;
+        outputTokens?: number;
+        costUsd?: number;
         preview?: string;
       };
       if (!res.ok || !data.ok) {
         throw new Error(data.error ?? `HTTP ${res.status}`);
       }
-      const base = `更新完了: 取得${data.fetched ?? 0}件 → 保存${data.upserted ?? 0}件（スキップ${data.skipped ?? 0}） / ${data.model ?? ""}`;
+      const inTok = data.inputTokens ?? 0;
+      const outTok = data.outputTokens ?? 0;
+      const costLabel =
+        typeof data.costUsd === "number"
+          ? formatCostUsdJpy(data.costUsd)
+          : "—";
+      const base =
+        `更新完了: 取得${data.fetched ?? 0}件 → 保存${data.upserted ?? 0}件（スキップ${data.skipped ?? 0}）\n` +
+        `今回のコスト（概算）: ${costLabel} ／ トークン 入力 ${inTok.toLocaleString("ja-JP")} + 出力 ${outTok.toLocaleString("ja-JP")} ／ ${data.model ?? ""}`;
       setMessage(
         data.preview && (data.upserted ?? 0) === 0
           ? `${base}\n\nGrok応答プレビュー:\n${data.preview}`

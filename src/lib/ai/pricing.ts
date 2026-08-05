@@ -23,9 +23,30 @@ const PRICING: Record<string, { input: number; output: number }> = {
   "claude-haiku-4-5": { input: 1, output: 5 },
   "claude-haiku-4-5-20251001": { input: 1, output: 5 },
   "claude-fable-5": { input: 10, output: 50 },
+  // xAI Grok（$/1M tokens。x_search 利用料は含まない概算）
+  "grok-4-1-fast-reasoning": { input: 0.2, output: 0.5 },
+  "grok-4-1-fast-non-reasoning": { input: 0.2, output: 0.5 },
+  "grok-4-fast-reasoning": { input: 0.2, output: 0.5 },
+  "grok-4-fast-non-reasoning": { input: 0.2, output: 0.5 },
 };
 
 const FALLBACK = PRICING["claude-opus-4-8"];
+
+function resolvePricing(model: string): { input: number; output: number } {
+  if (PRICING[model]) return PRICING[model]!;
+  const lower = model.toLowerCase();
+  if (lower.includes("grok") && lower.includes("fast")) {
+    return PRICING["grok-4-1-fast-reasoning"]!;
+  }
+  if (lower.includes("grok")) {
+    // 不明な Grok は Fast 単価で概算（高額モデル誤用でも過大表示を避ける）
+    return PRICING["grok-4-1-fast-reasoning"]!;
+  }
+  if (lower.includes("haiku")) return PRICING["claude-haiku-4-5"]!;
+  if (lower.includes("sonnet")) return PRICING["claude-sonnet-4-6"]!;
+  if (lower.includes("opus")) return PRICING["claude-opus-4-8"]!;
+  return FALLBACK;
+}
 
 // 概算コスト（米ドル）
 export function estimateCostUsd(
@@ -33,7 +54,7 @@ export function estimateCostUsd(
   inputTokens: number,
   outputTokens: number,
 ): number {
-  const p = PRICING[model] ?? FALLBACK;
+  const p = resolvePricing(model);
   return (inputTokens / 1_000_000) * p.input + (outputTokens / 1_000_000) * p.output;
 }
 
