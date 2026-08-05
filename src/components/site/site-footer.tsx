@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CATEGORIES, OPERATOR_NAME, SITE_NAME } from "@/lib/dummy-data";
 
@@ -10,14 +11,23 @@ const NAV_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 bg-navy-800 text-slate-300">
+    <footer className="mt-16 bg-navy-900 text-slate-300">
       <div className="mx-auto max-w-6xl px-4 py-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="font-serif text-base font-bold text-white">
-              {SITE_NAME}
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-slate-400">
+            <div className="flex items-center gap-2.5">
+              <Image
+                src="/brand/logo-mark-v2.png"
+                alt=""
+                width={64}
+                height={48}
+                unoptimized
+              />
+              <p className="font-sans text-lg font-black tracking-tight text-white">
+                {SITE_NAME}
+              </p>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
               解体業界の実務者向けに、見積もり・原価管理・法改正などの実務情報をお届けします。
             </p>
           </div>

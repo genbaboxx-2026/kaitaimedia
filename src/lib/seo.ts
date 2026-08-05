@@ -43,7 +43,7 @@ export function organizationWebSiteLd() {
         name: SITE_NAME,
         alternateName: OPERATOR_NAME,
         url: SITE_URL,
-        logo: `${SITE_URL}/brand/k-mark.png`,
+        logo: `${SITE_URL}/brand/logo-mark-v2.png`,
       },
       {
         "@type": "WebSite",
@@ -108,7 +108,7 @@ export function articleJsonLd(article: Article, categoryName: string) {
       url: SITE_URL,
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/brand/k-mark.png`,
+        url: `${SITE_URL}/brand/logo-mark-v2.png`,
       },
     },
   };

@@ -13,10 +13,14 @@ export function FeedSectionHeader({
 }) {
   return (
     <div className="px-4 pb-1 pt-5 md:px-0">
-      <h2 className="text-[22px] font-black leading-none tracking-tight text-ink">
+      <h2 className="flex items-center gap-2.5 text-[22px] font-black leading-none tracking-tight text-navy-800">
+        <span
+          aria-hidden
+          className="inline-block h-5 w-1.5 rounded-full bg-brand-500"
+        />
         {title}
       </h2>
-      <p className="mt-1.5 text-[13px] text-slate-400">
+      <p className="mt-1.5 pl-4 text-[13px] font-medium text-slate-400">
         {formatFeedDate(date)}
         {subtitle ? (
           <>

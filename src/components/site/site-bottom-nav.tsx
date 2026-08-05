@@ -38,7 +38,7 @@ export function SiteBottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-brand-100 bg-white/95 backdrop-blur-md md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="メインメニュー"
     >
@@ -50,11 +50,19 @@ export function SiteBottomNav() {
             <li key={item.href} className="min-w-0">
               <Link
                 href={item.href}
-                className={`flex h-full flex-col items-center justify-center gap-0.5 text-[10px] font-medium ${
-                  active ? "text-ink" : "text-slate-400"
+                className={`flex h-full flex-col items-center justify-center gap-0.5 text-[10px] ${
+                  active
+                    ? "font-black text-brand-600"
+                    : "font-bold text-slate-400"
                 }`}
               >
-                <Icon className="h-[22px] w-[22px]" />
+                <span
+                  className={`flex h-7 w-7 items-center justify-center rounded-full ${
+                    active ? "bg-brand-50" : ""
+                  }`}
+                >
+                  <Icon className="h-[22px] w-[22px]" />
+                </span>
                 <span className="truncate">{item.label}</span>
               </Link>
             </li>

@@ -38,16 +38,16 @@ export function SiteHeader() {
   return (
     <>
       {/* ========== モバイル ========== */}
-      <header className="sticky top-0 z-30 bg-white md:hidden">
+      <header className="sticky top-0 z-30 border-b border-brand-100 bg-white md:hidden">
         <div
-          className="flex h-12 items-center justify-between px-2"
+          className="flex h-12 items-center justify-between bg-gradient-to-b from-brand-50/80 to-white px-2"
           style={{ paddingTop: "env(safe-area-inset-top)" }}
         >
           <div className="flex w-20 items-center">
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
-              className="flex h-10 w-10 items-center justify-center text-ink active:bg-slate-100"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-navy-800 active:bg-brand-50"
               aria-label="メニューを開く"
             >
               <MenuIcon className="h-6 w-6" />
@@ -61,14 +61,14 @@ export function SiteHeader() {
           <div className="flex w-20 items-center justify-end gap-0.5">
             <Link
               href="/search"
-              className="flex h-10 w-10 items-center justify-center text-ink active:bg-slate-100"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-navy-800 active:bg-brand-50"
               aria-label="検索"
             >
               <SearchIcon className="h-5 w-5" />
             </Link>
             <Link
               href="/bakusoq"
-              className="flex h-10 w-10 items-center justify-center text-ink active:bg-slate-100"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-brand-600 active:bg-brand-50"
               aria-label="BAKUSOQ"
             >
               <BellIcon className="h-5 w-5" />
@@ -76,9 +76,9 @@ export function SiteHeader() {
           </div>
         </div>
 
-        <div className="border-b border-slate-200">
+        <div className="border-t border-brand-50 bg-white">
           <nav
-            className="flex h-11 items-stretch gap-0 overflow-x-auto px-2 scrollbar-none"
+            className="flex h-12 items-center gap-1.5 overflow-x-auto px-2.5 scrollbar-none"
             aria-label="カテゴリー"
           >
             <TabLink href="/" active={isTop}>
@@ -105,38 +105,40 @@ export function SiteHeader() {
 
       <SiteMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      {/* ========== デスクトップ：ポータル風ヘッダー ========== */}
-      <header className="sticky top-0 z-50 hidden border-b border-slate-200/80 bg-white md:block">
-        <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-6 px-4 lg:px-6">
-          <Link
-            href="/"
-            className="relative z-10 shrink-0"
-            aria-label={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
-          >
-            <SiteLogo />
-          </Link>
+      {/* ========== デスクトップ ========== */}
+      <header className="sticky top-0 z-50 hidden md:block">
+        <div className="border-b border-brand-100 bg-gradient-to-b from-brand-50 via-white to-white">
+          <div className="mx-auto flex h-[4.75rem] max-w-7xl items-center gap-6 px-4 lg:px-6">
+            <Link
+              href="/"
+              className="relative z-10 shrink-0"
+              aria-label={`${SITE_NAME} — 解体業界の今と未来をつなぐメディア`}
+            >
+              <SiteLogo />
+            </Link>
 
-          <form
-            action="/search"
-            method="get"
-            className="relative z-10 ml-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50 px-4 transition-colors focus-within:border-navy-600 focus-within:bg-white"
-          >
-            <SearchIcon className="h-4 w-4 shrink-0 text-slate-400" />
-            <input
-              type="search"
-              name="q"
-              placeholder="記事を検索"
-              aria-label="記事を検索"
-              className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
-            />
-          </form>
+            <form
+              action="/search"
+              method="get"
+              className="relative z-10 ml-auto flex h-11 w-full max-w-md items-center gap-2.5 rounded-full border-2 border-brand-100 bg-white px-4 shadow-sm transition-colors focus-within:border-brand-500 focus-within:shadow-[0_0_0_3px_rgba(22,116,232,0.12)]"
+            >
+              <SearchIcon className="h-4 w-4 shrink-0 text-brand-500" />
+              <input
+                type="search"
+                name="q"
+                placeholder="記事を検索"
+                aria-label="記事を検索"
+                className="w-full bg-transparent text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
+              />
+            </form>
+          </div>
         </div>
 
         <nav
-          className="relative z-10 border-t border-slate-100 bg-white"
+          className="relative z-10 border-b border-brand-100 bg-white"
           aria-label="メインナビゲーション"
         >
-          <div className="mx-auto flex h-12 max-w-7xl items-stretch justify-between gap-0 px-3 lg:px-6">
+          <div className="mx-auto flex h-[3.25rem] max-w-7xl items-center gap-1 px-3 lg:gap-1.5 lg:px-6">
             <DesktopNavLink href="/" active={isTop}>
               トップ
             </DesktopNavLink>
@@ -174,19 +176,13 @@ function DesktopNavLink({
   return (
     <Link
       href={href}
-      className={`relative z-10 flex flex-1 cursor-pointer items-center justify-center px-1 text-[12px] whitespace-nowrap transition-colors lg:px-2 lg:text-[13px] ${
+      className={`relative z-10 flex h-9 flex-1 cursor-pointer items-center justify-center rounded-full px-1 text-[12px] whitespace-nowrap transition-all lg:px-2 lg:text-[13px] ${
         active
-          ? "font-bold text-navy-800"
-          : "font-medium text-slate-500 hover:text-navy-700"
+          ? "bg-brand-500 font-black text-white shadow-[0_4px_12px_rgba(22,116,232,0.28)]"
+          : "font-bold text-slate-500 hover:bg-brand-50 hover:text-brand-700"
       }`}
     >
       {children}
-      {active && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-1 bottom-0 h-[3px] rounded-full bg-navy-700"
-        />
-      )}
     </Link>
   );
 }
@@ -203,19 +199,13 @@ function TabLink({
   return (
     <Link
       href={href}
-      className={`relative flex shrink-0 items-center px-3.5 text-[14px] whitespace-nowrap transition-colors ${
+      className={`relative flex h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] whitespace-nowrap transition-all ${
         active
-          ? "font-bold text-ink"
-          : "font-medium text-slate-400 active:text-ink"
+          ? "bg-brand-500 font-black text-white shadow-sm"
+          : "font-bold text-slate-500 active:bg-brand-50 active:text-brand-700"
       }`}
     >
       {children}
-      {active && (
-        <span
-          aria-hidden
-          className="absolute inset-x-2 bottom-0 h-[3px] rounded-full bg-ink"
-        />
-      )}
     </Link>
   );
 }

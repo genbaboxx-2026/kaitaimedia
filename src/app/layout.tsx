@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   icons: {
-    icon: [{ url: "/brand/k-mark.png", type: "image/png" }],
+    icon: [{ url: "/brand/logo-mark-v2.png", type: "image/png" }],
     apple: [{ url: "/apple-icon.png", type: "image/png" }],
   },
   keywords: [
