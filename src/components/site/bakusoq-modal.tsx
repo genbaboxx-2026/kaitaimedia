@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 
 /* ============================================================
@@ -173,28 +179,6 @@ function Underline() {
   );
 }
 
-function LineBtnMark() {
-  return (
-    <svg viewBox="0 0 36 36" className="baku-cta-line-mark" aria-hidden>
-      <circle cx="18" cy="18" r="18" fill="#fff" />
-      <path
-        d="M18 7.5c-5.7 0-10.3 3.8-10.3 8.5 0 4.2 3.7 7.7 8.8 8.4.3.1.7.2.8.4.1.2.1.5 0 .8l-.2.9c0 .3-.2 1.1.9.6 0 0 5.1-3 7-5.2 1.3-1.4 2.2-2.9 2.2-5.2 0-4.7-4.6-8.5-10.2-8.5z"
-        fill="#06C755"
-      />
-    </svg>
-  );
-}
-
-function HpGlobe() {
-  return (
-    <svg viewBox="0 0 20 20" className="baku-cta-hp-globe" aria-hidden>
-      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" fill="none" />
-      <ellipse cx="10" cy="10" rx="3.2" ry="8" stroke="currentColor" strokeWidth="1.4" fill="none" />
-      <path d="M2.5 10h15" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
 function CloseIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
@@ -264,8 +248,9 @@ function ModalStyles() {
         overflow-y: auto;
         overflow-x: hidden;
         background: #fff;
-        padding: 18px 32px 28px;
+        padding: 18px 32px 0;
         -webkit-overflow-scrolling: touch;
+        --baku-dark: 0;
       }
       .baku-stack {
         display: flex;
@@ -495,38 +480,6 @@ function ModalStyles() {
         z-index: 1;
       }
 
-      .baku-solve {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 0 2px;
-        text-align: center;
-      }
-      .baku-solve-line {
-        margin: 0;
-        font-size: 28px;
-        font-weight: 900;
-        color: #0f172a;
-        letter-spacing: -0.03em;
-        line-height: 1.25;
-      }
-      .baku-solve-brand {
-        font-size: 34px;
-        font-weight: 900;
-        font-style: italic;
-        color: #1674e8;
-        letter-spacing: 0.01em;
-        margin: 0 2px;
-      }
-      .baku-solve-sub {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 700;
-        color: #5b9fe8;
-        letter-spacing: -0.01em;
-      }
-
       .baku-sols {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -576,146 +529,130 @@ function ModalStyles() {
         color: #0f172a;
       }
 
-      /* CTA — 薄緑パネル + LINEボタン主役、HPは下に小さく */
-      .baku-cta {
+      .baku-flow {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-        flex-shrink: 0;
-      }
-      .baku-cta-panel {
-        width: fit-content;
-        max-width: 100%;
-        margin: 0 auto;
-        border-radius: 22px;
-        padding: 18px 22px 18px 18px;
-        display: inline-flex;
-        align-items: center;
-        gap: 16px;
-        box-sizing: border-box;
-        background:
-          radial-gradient(circle at 12% 50%, rgba(6,199,85,0.08) 0 2px, transparent 3px),
-          radial-gradient(circle at 88% 40%, rgba(6,199,85,0.07) 0 2px, transparent 3px),
-          linear-gradient(135deg, #f0fff5 0%, #e6fbeb 55%, #dff8e8 100%);
-        background-size: 18px 18px, 18px 18px, auto;
-        border: 1.5px solid #8fe0a8;
-        box-shadow: 0 10px 24px rgba(6, 179, 79, 0.14);
-      }
-      .baku-cta-side {
-        width: 84px;
-        height: 84px;
-        object-fit: contain;
-        flex-shrink: 0;
-      }
-      .baku-cta-copy {
-        width: max-content;
-        max-width: 100%;
-        display: flex;
-        flex-direction: column;
         justify-content: center;
-        align-items: center;
-        gap: 10px;
-      }
-      .baku-cta-main,
-      .baku-cta-points {
-        align-self: flex-start;
-      }
-      .baku-cta-main {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 900;
-        line-height: 1.25;
-        letter-spacing: -0.03em;
-        color: #06a849;
-        display: inline;
-        background-image: linear-gradient(transparent 62%, #fff59d 62%);
-      }
-      .baku-cta-points {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px 14px;
-        margin: 0;
         padding: 0;
-        list-style: none;
+        margin-bottom: -4px;
       }
-      .baku-cta-points li {
-        display: inline-flex;
+      .baku-flow-img {
+        width: min(100%, 520px);
+        height: auto;
+        display: block;
+      }
+
+      /* Demo — 白→シアン→ダークへスクロール遷移 */
+      .baku-demo {
+        position: relative;
+        margin: 0 -32px 0;
+        /* 末尾に約3cmぶんのスクロール余白 */
+        padding: 12px 32px 120px;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            ellipse 80% 55% at 50% 42%,
+            rgba(34, 211, 238, calc(0.22 * var(--baku-dark))) 0%,
+            transparent 62%
+          ),
+          linear-gradient(
+            180deg,
+            #ffffff 0%,
+            #f3faff calc(10% - var(--baku-dark) * 4%),
+            #9ad8ff calc(22% - var(--baku-dark) * 4%),
+            #123a66 calc(42% + var(--baku-dark) * 4%),
+            #06101f 68%,
+            #020617 100%
+          );
+      }
+      .baku-demo::before {
+        content: "";
+        position: absolute;
+        inset: 28% 0 0;
+        background-image:
+          linear-gradient(rgba(34, 211, 238, 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(34, 211, 238, 0.07) 1px, transparent 1px);
+        background-size: 36px 36px;
+        opacity: calc(0.25 + 0.75 * var(--baku-dark));
+        pointer-events: none;
+        mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 100%);
+      }
+      .baku-demo-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 6px;
-        font-size: 13.5px;
-        font-weight: 700;
-        color: #1e293b;
       }
-      .baku-cta-points li + li {
-        padding-left: 14px;
-        border-left: 1px solid #cbd5e1;
+      .baku-demo-img-wrap {
+        position: relative;
+        width: min(100%, 640px);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(34, 211, 238, calc(0.25 + 0.45 * var(--baku-dark)));
+        box-shadow:
+          0 0 calc(28px * var(--baku-dark)) rgba(34, 211, 238, calc(0.35 * var(--baku-dark))),
+          0 24px 48px rgba(0, 0, 0, 0.45);
+        transform: translateY(calc((1 - var(--baku-dark)) * 12px)) scale(calc(0.98 + 0.02 * var(--baku-dark)));
+        opacity: calc(0.75 + 0.25 * var(--baku-dark));
       }
-      .baku-cta-dot {
-        width: 18px;
-        height: 18px;
-        border-radius: 999px;
-        background: #06c755;
-        color: #fff;
+      .baku-demo-img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      /* デモ画像のフォーム枠内 — 発光アニメ */
+      .baku-demo-link {
+        position: absolute;
+        left: 13%;
+        right: 13%;
+        bottom: 3.2%;
+        z-index: 2;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
-        font-weight: 900;
-        flex-shrink: 0;
-      }
-      .baku-cta-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        height: 52px;
-        padding: 0 28px;
+        min-height: 52px;
+        padding: 0 20px;
         border-radius: 999px;
         font-size: 17px;
-        font-weight: 800;
-        color: #fff;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: #f4f9ff;
         text-decoration: none;
+        text-align: center;
         white-space: nowrap;
-        background: linear-gradient(180deg, #2fda6e 0%, #06b34f 100%);
-        box-shadow: 0 8px 18px rgba(6, 179, 79, 0.35);
-        transition: transform .15s ease, box-shadow .15s ease;
+        border: 1px solid rgba(160, 220, 255, 0.55);
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.28) 0%, transparent 38%),
+          linear-gradient(180deg, #5eb6ff 0%, #2f8fff 42%, #1674e8 78%, #0b4ea8 100%);
+        box-shadow:
+          0 0 0 1px rgba(140, 200, 255, 0.28),
+          0 0 22px rgba(56, 160, 255, 0.45),
+          0 8px 18px rgba(0, 0, 0, 0.4),
+          inset 0 -2px 6px rgba(0, 0, 0, 0.22);
+        animation: baku-btn-glow 2.4s ease-in-out infinite;
+        transition: filter .15s ease, transform .15s ease;
       }
-      .baku-cta-btn:hover {
+      .baku-demo-link:hover {
+        filter: brightness(1.1);
         transform: translateY(-1px);
-        box-shadow: 0 10px 22px rgba(6, 179, 79, 0.42);
+        animation-duration: 1.4s;
       }
-      .baku-cta-line-mark {
-        width: 26px;
-        height: 26px;
-        flex-shrink: 0;
-      }
-      .baku-cta-hp {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        text-decoration: none;
-        color: #64748b;
-        font-size: 13px;
-        font-weight: 700;
-        transition: color .15s ease;
-      }
-      .baku-cta-hp:hover {
-        color: #1674e8;
-      }
-      .baku-cta-hp-globe {
-        width: 16px;
-        height: 16px;
-        color: #64748b;
-      }
-      .baku-cta-hp:hover .baku-cta-hp-globe {
-        color: #1674e8;
-      }
-      .baku-cta-hp-url {
-        color: #1674e8;
-        font-weight: 700;
+      @keyframes baku-btn-glow {
+        0%, 100% {
+          box-shadow:
+            0 0 0 1px rgba(140, 200, 255, 0.28),
+            0 0 18px rgba(56, 160, 255, 0.4),
+            0 8px 18px rgba(0, 0, 0, 0.4),
+            inset 0 -2px 6px rgba(0, 0, 0, 0.22);
+        }
+        50% {
+          box-shadow:
+            0 0 0 1px rgba(200, 235, 255, 0.55),
+            0 0 36px rgba(80, 190, 255, 0.75),
+            0 0 60px rgba(56, 160, 255, 0.35),
+            0 8px 18px rgba(0, 0, 0, 0.4),
+            inset 0 -2px 6px rgba(0, 0, 0, 0.18);
+        }
       }
 
       @media (max-width: 980px) {
@@ -725,7 +662,21 @@ function ModalStyles() {
           max-height: 100dvh;
           border-radius: 0;
         }
-        .baku-scroll { padding: 16px 16px 28px; }
+        .baku-scroll { padding: 16px 16px 0; }
+        .baku-demo {
+          margin-left: -16px;
+          margin-right: -16px;
+          padding: 8px 16px 100px;
+        }
+        .baku-demo-link {
+          left: 10%;
+          right: 10%;
+          bottom: 2.8%;
+          min-height: 46px;
+          font-size: 14px;
+          padding: 0 12px;
+          white-space: normal;
+        }
         .baku-title { font-size: 28px; white-space: nowrap; }
         .baku-scribble { display: none; }
         .baku-mid { grid-template-columns: 1fr; }
@@ -739,36 +690,18 @@ function ModalStyles() {
         .baku-reason-item { white-space: normal; }
         .baku-reason-visual { min-height: 150px; }
         .baku-reason-illust { width: min(70%, 220px); }
-        .baku-solve-line { font-size: 20px; }
-        .baku-solve-brand { font-size: 24px; }
-        .baku-solve-sub { font-size: 12px; }
         .baku-sols { grid-template-columns: 1fr 1fr; }
         .baku-sol { height: auto; min-height: 200px; }
-        .baku-cta-panel {
-          width: min(100%, 360px);
-          flex-direction: column;
-          align-items: center;
-          padding: 16px 14px;
-          gap: 12px;
-        }
-        .baku-cta-copy {
-          width: 100%;
-          align-items: center;
-          text-align: center;
-        }
-        .baku-cta-main { font-size: 20px; }
-        .baku-cta-points { justify-content: center; }
-        .baku-cta-points li + li {
-          border-left: none;
-          padding-left: 0;
-        }
-        .baku-cta-btn { width: 100%; height: 48px; font-size: 15px; }
+        .baku-flow-img { width: min(100%, 360px); }
       }
     `}</style>
   );
 }
 
 function Modal({ onClose }: { onClose: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [dark, setDark] = useState(0);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -781,6 +714,28 @@ function Modal({ onClose }: { onClose: () => void }) {
       document.body.style.overflow = prev;
     };
   }, [onClose]);
+
+  useEffect(() => {
+    const sc = scrollRef.current;
+    if (!sc) return;
+
+    const update = () => {
+      const demo = sc.querySelector<HTMLElement>(".baku-demo");
+      if (!demo) return;
+      const start = demo.offsetTop - sc.clientHeight * 0.95;
+      const end = demo.offsetTop + Math.min(220, demo.offsetHeight * 0.35);
+      const t = (sc.scrollTop - start) / Math.max(1, end - start);
+      setDark(Math.min(1, Math.max(0, t)));
+    };
+
+    update();
+    sc.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      sc.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
 
   return (
     <div
@@ -798,8 +753,12 @@ function Modal({ onClose }: { onClose: () => void }) {
       />
 
       <div className="baku-shell relative z-10">
-        <div className="baku-scroll">
-          <div className="baku-stack">
+        <div
+          className="baku-scroll"
+          ref={scrollRef}
+          style={{ "--baku-dark": dark } as CSSProperties}
+        >
+          <div className="baku-stack" style={{ paddingBottom: 0 }}>
             <div className="baku-header">
               <div className="baku-logo">BAKUSOQ</div>
               <button
@@ -867,17 +826,6 @@ function Modal({ onClose }: { onClose: () => void }) {
               </aside>
             </section>
 
-            <div className="baku-solve">
-              <h3 className="baku-solve-line">
-                見積もりの悩みを、
-                <span className="baku-solve-brand">BAKUSOQ</span>
-                がすべて解決！
-              </h3>
-              <p className="baku-solve-sub">
-                スピード・精度・わかりやすさで、あなたの業務を強力にサポートします。
-              </p>
-            </div>
-
             <section className="baku-sols">
               {SOLUTIONS.map((s) => (
                 <article key={s.head} className="baku-sol">
@@ -897,59 +845,41 @@ function Modal({ onClose }: { onClose: () => void }) {
               ))}
             </section>
 
-            <section className="baku-cta">
-              <div className="baku-cta-panel">
+            <section className="baku-flow" aria-label="ここを変えると">
+              <Image
+                src={`${ILLUST}/flow-line.png`}
+                alt="ここを変えると、見積の不安が減り現場も営業も前に進む。お気軽にお問い合わせください"
+                width={1024}
+                height={768}
+                className="baku-flow-img"
+                unoptimized
+              />
+            </section>
+
+          </div>
+
+          <section className="baku-demo" aria-label="BAKUSOQ 見積もり体験">
+            <div className="baku-demo-inner">
+              <div className="baku-demo-img-wrap">
                 <Image
-                  src={`${ILLUST}/cta-phone.png`}
-                  alt=""
-                  width={96}
-                  height={96}
-                  className="baku-cta-side"
+                  src={`${ILLUST}/demo-ai.png`}
+                  alt="BAKUSOQ AI 見積もり体験デモ画面"
+                  width={1024}
+                  height={1010}
+                  className="baku-demo-img"
                   unoptimized
                 />
-                <div className="baku-cta-copy">
-                  <p className="baku-cta-main">
-                    LINE登録してお問い合わせください！
-                  </p>
-                  <ul className="baku-cta-points">
-                    <li>
-                      <span className="baku-cta-dot" aria-hidden>
-                        ✓
-                      </span>
-                      まずはLINEで気軽に相談
-                    </li>
-                    <li>
-                      <span className="baku-cta-dot" aria-hidden>
-                        ✓
-                      </span>
-                      限定資料・最新情報もLINEでお届け
-                    </li>
-                  </ul>
-                  <a
-                    href={BAKUSOQ_LINE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="baku-cta-btn"
-                  >
-                    <LineBtnMark />
-                    LINE 登録はこちら
-                  </a>
-                </div>
+                <a
+                  href={BAKUSOQ_HP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="baku-demo-link"
+                >
+                  BAKUSOQ体験をしてみる
+                </a>
               </div>
-
-              <a
-                href={BAKUSOQ_HP_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="baku-cta-hp"
-              >
-                <HpGlobe />
-                <span>公式HP</span>
-                <span className="baku-cta-hp-url">{BAKUSOQ_HP_URL}</span>
-                <span aria-hidden>↗</span>
-              </a>
-            </section>
-          </div>
+            </div>
+          </section>
         </div>
       </div>
     </div>
