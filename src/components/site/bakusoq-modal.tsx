@@ -197,7 +197,7 @@ function Modal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-stretch justify-center p-0 sm:items-center sm:p-5 lg:p-8"
       role="dialog"
       aria-modal="true"
       aria-label="BAKUSOQ サービス紹介"
@@ -210,36 +210,36 @@ function Modal({ onClose }: { onClose: () => void }) {
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-[1px]"
       />
 
-      <div className="baku-in relative flex max-h-[min(100dvh,920px)] w-full max-w-[440px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl ring-1 ring-sky-100 sm:max-h-[min(100dvh-2rem,880px)] sm:rounded-3xl">
+      {/* 横幅を広く。高さは画面内に収め、中身はスクロール可 */}
+      <div className="baku-in relative flex h-full w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-sky-100 sm:h-[min(100dvh-2.5rem,900px)] sm:rounded-3xl lg:max-w-6xl">
         <button
           type="button"
           onClick={onClose}
           aria-label="閉じる"
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-slate-400 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50 hover:text-slate-700"
+          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-400 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50 hover:text-slate-700"
         >
           <CloseIcon className="h-5 w-5" />
         </button>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {/* Hero */}
-          <header className="relative overflow-hidden bg-gradient-to-b from-[#F3F9FF] via-[#F7FBFF] to-white px-5 pb-2 pt-5">
-            <p className="text-[22px] font-black tracking-[0.06em] text-[#0A4D9C]">
+          <header className="relative overflow-hidden bg-gradient-to-b from-[#F3F9FF] via-[#F7FBFF] to-white px-6 pb-3 pt-6 sm:px-10 sm:pb-4 sm:pt-8 lg:px-12">
+            <p className="text-[26px] font-black tracking-[0.06em] text-[#0A4D9C] sm:text-[30px]">
               BAKUSOQ
             </p>
-            <div className="mt-3 grid grid-cols-[1fr_auto] items-end gap-1">
-              <div className="min-w-0 pb-2">
-                <h2 className="text-[26px] font-black leading-[1.25] tracking-tight text-slate-900">
+            <div className="mt-4 grid items-end gap-4 sm:mt-5 sm:grid-cols-[1.2fr_0.9fr] lg:gap-8">
+              <div className="min-w-0 pb-1">
+                <h2 className="text-[28px] font-black leading-[1.3] tracking-tight text-slate-900 sm:text-[34px] lg:text-[38px]">
                   こんな悩み、
-                  <br />
                   <span className="relative inline-block text-[#1677E6]">
                     ありませんか？
                     <svg
-                      viewBox="0 0 200 12"
+                      viewBox="0 0 240 12"
                       className="absolute -bottom-1 left-0 w-full text-[#1677E6]"
                       aria-hidden
                     >
                       <path
-                        d="M2 8 Q40 2 80 8 T160 7 T198 8"
+                        d="M2 8 Q50 2 100 8 T200 7 T238 8"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="3.5"
@@ -248,49 +248,47 @@ function Modal({ onClose }: { onClose: () => void }) {
                     </svg>
                   </span>
                 </h2>
-                <p className="mt-3 text-[13px] font-bold leading-relaxed text-slate-600">
+                <p className="mt-4 text-[15px] font-bold leading-relaxed text-slate-600 sm:text-[16px]">
                   見積の
                   <span className="text-slate-800">“なんとなく”</span>
-                  を、
-                  <br />
-                  根拠とスピードに変える。
+                  を、根拠とスピードに変える。
                 </p>
               </div>
-              <div className="relative -mb-1 h-[148px] w-[148px] shrink-0 sm:h-[160px] sm:w-[160px]">
+              <div className="relative mx-auto h-[180px] w-full max-w-[280px] sm:mx-0 sm:h-[200px] sm:max-w-none lg:h-[220px]">
                 <Image
                   src={`${ILLUST}/reason-worker.png`}
                   alt=""
                   fill
                   className="object-contain object-bottom"
-                  sizes="160px"
+                  sizes="(max-width: 640px) 280px, 360px"
                   priority
                 />
               </div>
             </div>
           </header>
 
-          <div className="space-y-4 px-4 pb-5 pt-3 sm:px-5">
+          <div className="space-y-5 px-5 pb-8 pt-4 sm:space-y-6 sm:px-10 sm:pb-10 lg:px-12">
             {/* 悩み → 理由 */}
-            <div className="grid gap-2.5 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch">
+            <div className="grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-stretch md:gap-4">
               <section className="baku-soft overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm shadow-sky-900/5">
-                <div className="bg-[#1677E6] px-3 py-2">
-                  <p className="text-center text-[13px] font-black text-white">
+                <div className="bg-[#1677E6] px-4 py-2.5">
+                  <p className="text-center text-[15px] font-black text-white sm:text-[16px]">
                     こんな悩み、ありませんか？
                   </p>
                 </div>
-                <ul className="divide-y divide-sky-50 px-3 py-1">
+                <ul className="divide-y divide-sky-50 px-4 py-1">
                   {WORRIES.map((w, i) => (
-                    <li key={i} className="flex items-center gap-2.5 py-2.5">
-                      <span className="relative h-9 w-9 shrink-0">
+                    <li key={i} className="flex items-center gap-3 py-3.5">
+                      <span className="relative h-11 w-11 shrink-0 sm:h-12 sm:w-12">
                         <Image
                           src={w.img}
                           alt=""
                           fill
                           className="object-contain"
-                          sizes="36px"
+                          sizes="48px"
                         />
                       </span>
-                      <p className="min-w-0 text-[12px] font-bold leading-snug text-slate-800">
+                      <p className="min-w-0 text-[13px] font-bold leading-snug text-slate-800 sm:text-[14px]">
                         {w.text}
                       </p>
                     </li>
@@ -299,10 +297,10 @@ function Modal({ onClose }: { onClose: () => void }) {
               </section>
 
               <div
-                className="flex items-center justify-center py-0.5 text-[#1677E6] sm:px-0.5"
+                className="flex items-center justify-center py-1 text-[#1677E6] md:px-1"
                 aria-hidden
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EAF4FF] text-lg font-black shadow-sm ring-1 ring-sky-100 sm:h-9 sm:w-9">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EAF4FF] text-xl font-black shadow-sm ring-1 ring-sky-100 md:h-11 md:w-11">
                   →
                 </span>
               </div>
@@ -311,19 +309,19 @@ function Modal({ onClose }: { onClose: () => void }) {
                 className="baku-soft overflow-hidden rounded-2xl border border-[#93C5FD] bg-[#EFF6FF] shadow-sm"
                 style={{ animationDelay: "0.06s" }}
               >
-                <div className="bg-[#BFDBFE] px-3 py-2">
-                  <p className="text-center text-[13px] font-black text-[#1677E6]">
+                <div className="bg-[#BFDBFE] px-4 py-2.5">
+                  <p className="text-center text-[15px] font-black text-[#1677E6] sm:text-[16px]">
                     それは仕方ないです。
                   </p>
                 </div>
-                <ul className="space-y-2.5 px-3 py-3">
+                <ul className="space-y-3.5 px-4 py-4 sm:px-5 sm:py-5">
                   {REASONS.map((r) => (
                     <li
                       key={r}
-                      className="flex items-start gap-2 text-[12px] font-bold leading-snug text-slate-700"
+                      className="flex items-start gap-2.5 text-[13px] font-bold leading-snug text-slate-700 sm:text-[14px]"
                     >
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-white">
-                        <CheckIcon className="h-3 w-3" />
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-white">
+                        <CheckIcon className="h-3.5 w-3.5" />
                       </span>
                       {r}
                     </li>
@@ -333,38 +331,38 @@ function Modal({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* Bridge */}
-            <p className="flex items-center justify-center gap-1.5 text-center text-[14px] font-black text-slate-800">
-              <Sparkle className="h-4 w-4" />
+            <p className="flex flex-wrap items-center justify-center gap-2 text-center text-[16px] font-black text-slate-800 sm:text-[18px]">
+              <Sparkle className="h-5 w-5" />
               そこを{" "}
               <span className="tracking-[0.04em] text-[#0A4D9C]">BAKUSOQ</span>{" "}
               が解決します
-              <Sparkle className="h-4 w-4" />
+              <Sparkle className="h-5 w-5" />
             </p>
 
-            {/* Solutions 2×2 */}
-            <ul className="grid grid-cols-2 gap-2.5">
+            {/* Solutions：広い画面は4列 */}
+            <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-3.5">
               {SOLUTIONS.map((s, i) => (
                 <li
                   key={s.n}
-                  className="baku-soft baku-lift relative overflow-hidden rounded-2xl border border-[#93C5FD] bg-white px-2.5 pb-3 pt-3 shadow-sm"
+                  className="baku-soft baku-lift relative overflow-hidden rounded-2xl border border-[#93C5FD] bg-white px-3 pb-4 pt-4 shadow-sm"
                   style={{ animationDelay: `${0.08 + i * 0.04}s` }}
                 >
-                  <span className="absolute left-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#EAF4FF] text-[10px] font-black text-[#1677E6]">
+                  <span className="absolute left-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#EAF4FF] text-[11px] font-black text-[#1677E6]">
                     {s.n}
                   </span>
-                  <div className="relative mx-auto mt-1 h-14 w-14">
+                  <div className="relative mx-auto mt-1 h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem]">
                     <Image
                       src={s.img}
                       alt=""
                       fill
                       className="object-contain"
-                      sizes="56px"
+                      sizes="72px"
                     />
                   </div>
-                  <p className="mt-2 text-center text-[12px] font-black leading-snug text-slate-900">
+                  <p className="mt-3 text-center text-[13px] font-black leading-snug text-slate-900 sm:text-[14px]">
                     {s.title}
                   </p>
-                  <p className="mt-1 text-center text-[10px] font-bold leading-snug text-slate-500">
+                  <p className="mt-1.5 text-center text-[11px] font-bold leading-snug text-slate-500 sm:text-[12px]">
                     {s.body}
                   </p>
                 </li>
@@ -372,62 +370,58 @@ function Modal({ onClose }: { onClose: () => void }) {
             </ul>
 
             {/* CTA */}
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-[#E8F9EF] p-3.5">
-                <div className="flex items-start gap-2.5">
-                  <LineMark className="h-9 w-9 shrink-0" />
-                  <p className="text-[13px] font-black leading-snug text-slate-800">
-                    ぜひLINE登録して
-                    <br />
-                    情報を集めよう！
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+              <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-[#E8F9EF] p-5">
+                <div className="flex items-center gap-3">
+                  <LineMark className="h-11 w-11 shrink-0" />
+                  <p className="text-[15px] font-black leading-snug text-slate-800 sm:text-[16px]">
+                    ぜひLINE登録して情報を集めよう！
                   </p>
                 </div>
                 <a
                   href={BAKUSOQ_LINE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="baku-lift mt-3 flex items-center justify-center gap-1 rounded-full bg-[#06C755] px-4 py-2.5 text-[14px] font-black text-white shadow-md shadow-emerald-500/25 transition hover:bg-[#05b34c]"
+                  className="baku-lift mt-4 flex items-center justify-center gap-1 rounded-full bg-[#06C755] px-5 py-3 text-[15px] font-black text-white shadow-md shadow-emerald-500/25 transition hover:bg-[#05b34c]"
                 >
                   LINE登録はこちら
                   <span aria-hidden>›</span>
                 </a>
               </div>
 
-              <div className="overflow-hidden rounded-2xl border border-sky-200 bg-[#EAF4FF] p-3.5">
-                <div className="flex items-start justify-between gap-2">
+              <div className="overflow-hidden rounded-2xl border border-sky-200 bg-[#EAF4FF] p-5">
+                <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <GlobeMark className="h-8 w-8 shrink-0" />
+                    <div className="flex items-center gap-2.5">
+                      <GlobeMark className="h-10 w-10 shrink-0" />
                       <a
                         href={BAKUSOQ_HP_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[14px] font-black text-[#1677E6] underline-offset-2 hover:underline"
+                        className="text-[16px] font-black text-[#1677E6] underline-offset-2 hover:underline"
                       >
                         HPはこちら ›
                       </a>
                     </div>
-                    <p className="mt-1.5 break-all text-[10px] font-medium leading-snug text-slate-500">
+                    <p className="mt-2 break-all text-[12px] font-medium leading-snug text-slate-500">
                       {BAKUSOQ_HP_URL}
                     </p>
                   </div>
-                  <span className="relative h-14 w-16 shrink-0">
+                  <span className="relative h-16 w-20 shrink-0 sm:h-[4.5rem] sm:w-24">
                     <Image
                       src={`${ILLUST}/cta-dash.png`}
                       alt=""
                       fill
                       className="object-contain object-right"
-                      sizes="64px"
+                      sizes="96px"
                     />
                   </span>
                 </div>
               </div>
             </div>
 
-            <p className="text-center text-[10px] leading-relaxed text-slate-400">
-              最新事例やノウハウなど、お役立ち情報をお届けします。
-              <br />
-              登録は30秒で完了、いつでも解除できます。
+            <p className="text-center text-[11px] leading-relaxed text-slate-400 sm:text-[12px]">
+              最新事例やノウハウなど、お役立ち情報をお届けします。登録は30秒で完了、いつでも解除できます。
             </p>
           </div>
         </div>
