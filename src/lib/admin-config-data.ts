@@ -135,7 +135,7 @@ export const PROMPTS: PromptStepData[] = [
         note: "数値不使用ルールを強調・文体/専門用語レベル/文字数/禁止表現/推奨表現/参照マスタ/FAQを明記",
         createdAt: "2026-08-01",
         content:
-          "見出し構成に沿って本文をMarkdownで書いてください。\n\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現（使用禁止）: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要（違反厳禁）：金額・重量・単価・割合・断定的な工期日数を一切書かない。数量は読者が入力する前提で、計算式や確認項目として示す。本文に外部URLは載せない。法令・制度は名称と概要のみで示す。",
+          "見出し構成に沿って本文をMarkdownで書いてください。\n\n文体: {{writing_style}}\n専門用語のレベル: {{expertise_level}}\n文字数: {{min_char_count}}〜{{max_char_count}}字\n禁止表現（使用禁止）: {{ng_expressions}}\n推奨表現: {{recommended_expressions}}\n参照マスタ: {{masters}}\nFAQ: {{faq_section}}\n\n最重要（違反厳禁）：金額・重量・単価・割合・断定的な工期日数を一切書かない。数量は読者が入力する前提で、計算式や確認項目として示す。本文に外部URLは載せない。法令・法律・条文・許認可手続きの解説は一切書かない。",
       },
     ],
   },
@@ -234,9 +234,24 @@ export const MASTERS: Record<MasterType, MasterRow[]> = {
     { id: "x3", label: "第◯条", value: "法令の条番号は許容。" },
   ],
   article_template: [
-    { id: "at1", label: "A", value: "手順・チェックリスト型。判断順序と確認項目を示す。" },
-    { id: "at2", label: "B", value: "計算テンプレート型。計算式と項目構成のみ提示。" },
-    { id: "at3", label: "C", value: "一次情報型。法令名・制度名で参照を示し、外部URLは本文に載せない。" },
+    {
+      id: "at1",
+      label: "A",
+      value:
+        "現場・見積もりの手順型。見積もり・工程・現場の確認項目を手順で示す。計算式全面は稀。法令解説はしない。",
+    },
+    {
+      id: "at2",
+      label: "B",
+      value:
+        "経営・組織・人材型。経営、採用、等級・評価、広報、育成・定着。計算テンプレにはしない。法令解説はしない。",
+    },
+    {
+      id: "at3",
+      label: "C",
+      value:
+        "業界動向・視点型。他業種比較やスタートアップ視点など（約1割）。法令解説はしない。",
+    },
   ],
 };
 

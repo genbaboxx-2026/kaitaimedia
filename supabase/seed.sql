@@ -109,9 +109,9 @@ where not exists (
 insert into public.masters (master_type, label, value, description, sort_order)
 select v.master_type::public.master_type, v.label, v.value, v.description, v.sort_order
 from (values
-  ('article_template', 'A', '手順・チェックリスト型。実務上の判断順序と確認項目を、番号付きの手順とチェックリストで示す。具体的な単価・金額・数量は書かない。', '型Aの構成雛形', 1),
-  ('article_template', 'B', '計算テンプレート型。計算式と項目構成のみを提示し、単価は読者が入力する前提で書く。数値そのものは埋めない。', '型Bの構成雛形', 2),
-  ('article_template', 'C', '一次情報型。法改正・制度・補助金を扱う。法令名・制度名で参照を示し、外部URLは本文に載せない。', '型Cの構成雛形', 3)
+  ('article_template', 'A', '現場・見積もりの手順型。見積もり・原価・工程・現場運営などの判断順序と確認項目を手順で示す。計算式を全面に出す構成は稀（月1本程度）とし、通常は数値を埋めず確認の観点で書く。法令・条文・許認可手続きの解説はしない。', '型Aの構成雛形', 1),
+  ('article_template', 'B', '経営・組織・人材型。経営、採用、等級制度、評価制度、広報・採用ブランディング、育成・定着など会社づくりを扱う。計算テンプレートにはしない。法令・条文・許認可手続きの解説はしない。', '型Bの構成雛形', 2),
+  ('article_template', 'C', '業界動向・視点型。業界の動き、他業種比較、スタートアップ視点など広い視野のテーマを扱う（全体の約1割）。法令・条文・許認可手続きの解説はしない。制度名に触れる場合も概要のみ。', '型Cの構成雛形', 3)
 ) as v(master_type, label, value, description, sort_order)
 where not exists (
   select 1 from public.masters m

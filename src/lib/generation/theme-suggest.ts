@@ -9,34 +9,39 @@ export interface ThemeSuggestion {
   priority: "high" | "medium" | "low";
 }
 
-// AI未設定・失敗時のダミー候補（動作確認用）
+/**
+ * 記事型の狙い（10本あたり A3 / B6 / C1）
+ * A: 現場・見積もりの手順（計算テンプレ調は月1程度）
+ * B: 経営・採用・等級/評価・広報
+ * C: 業界動向・視点（稀）
+ */
+// AI未設定・失敗時のダミー候補（配分・方針に寄せたもの）
 const MOCK_POOL: ThemeSuggestion[] = [
-  { title: "解体前の近隣挨拶で伝えるべきこと", categorySlug: "neighbor", targetKeyword: "解体 近隣 挨拶", articleType: "A", priority: "high" },
-  { title: "アスベスト事前調査の依頼先の選び方", categorySlug: "asbestos", targetKeyword: "アスベスト 事前調査 依頼", articleType: "A", priority: "high" },
+  // A（現場・見積もり手順）≈3/10
   { title: "解体工事の見積書の見方と比較のコツ", categorySlug: "estimate", targetKeyword: "解体 見積書 比較", articleType: "A", priority: "high" },
-  { title: "産業廃棄物の委託契約で確認する項目", categorySlug: "waste", targetKeyword: "産廃 委託契約", articleType: "A", priority: "medium" },
-  { title: "解体工事の工程表の作り方", categorySlug: "schedule", targetKeyword: "解体 工程表", articleType: "B", priority: "medium" },
-  { title: "解体現場の安全パトロールのチェック項目", categorySlug: "safety", targetKeyword: "解体 安全 パトロール", articleType: "A", priority: "medium" },
-  { title: "解体工事業登録と建設業許可の違い", categorySlug: "license", targetKeyword: "解体工事業登録 建設業許可", articleType: "C", priority: "medium" },
-  { title: "重機の回送計画の立て方", categorySlug: "machinery", targetKeyword: "重機 回送", articleType: "A", priority: "low" },
-  { title: "空き家解体の補助金申請の流れ", categorySlug: "subsidy", targetKeyword: "空き家 解体 補助金 申請", articleType: "C", priority: "high" },
-  { title: "解体の原価管理で使う実行予算書の項目", categorySlug: "cost", targetKeyword: "解体 実行予算", articleType: "B", priority: "medium" },
-  { title: "人工の見積もりでよくある誤差の原因", categorySlug: "labor", targetKeyword: "人工 見積もり 誤差", articleType: "A", priority: "low" },
-  { title: "解体業界の受注を増やす紹介の作り方", categorySlug: "management", targetKeyword: "解体 受注 紹介", articleType: "A", priority: "low" },
-  { title: "混合廃棄物を減らす現場分別の工夫", categorySlug: "waste", targetKeyword: "混合廃棄物 分別", articleType: "A", priority: "medium" },
   { title: "解体の追加工事を防ぐ契約時の確認", categorySlug: "estimate", targetKeyword: "解体 追加工事 契約", articleType: "A", priority: "high" },
-  { title: "騒音・振動の近隣クレームへの対応手順", categorySlug: "neighbor", targetKeyword: "解体 騒音 クレーム", articleType: "A", priority: "medium" },
-  { title: "建設リサイクル法の対象工事の判断", categorySlug: "law", targetKeyword: "建設リサイクル法 対象", articleType: "C", priority: "high" },
-  { title: "解体工事の工期が延びる主な要因", categorySlug: "schedule", targetKeyword: "解体 工期 遅延", articleType: "A", priority: "medium" },
-  { title: "石綿作業主任者の役割と選任", categorySlug: "asbestos", targetKeyword: "石綿作業主任者 選任", articleType: "A", priority: "medium" },
-  { title: "解体見積もりの内訳項目の標準化", categorySlug: "cost", targetKeyword: "解体 見積 内訳 標準化", articleType: "B", priority: "medium" },
-  { title: "解体現場でのKY活動の進め方", categorySlug: "safety", targetKeyword: "解体 KY活動", articleType: "A", priority: "low" },
+  { title: "騒音・振動の近隣クレームへの対応手順", categorySlug: "field", targetKeyword: "解体 騒音 クレーム", articleType: "A", priority: "medium" },
+  // B（経営・人事・広報）≈6/10
+  { title: "解体会社の採用面接で見るべき観点", categorySlug: "management", targetKeyword: "解体 採用 面接", articleType: "B", priority: "high" },
+  { title: "現場職の等級制度を小さく始める方法", categorySlug: "management", targetKeyword: "解体 等級制度", articleType: "B", priority: "high" },
+  { title: "解体業の人事評価で使う評価項目の作り方", categorySlug: "management", targetKeyword: "解体 人事評価", articleType: "B", priority: "high" },
+  { title: "解体会社の採用広報で伝えるべき強み", categorySlug: "management", targetKeyword: "解体 採用 広報", articleType: "B", priority: "medium" },
+  { title: "職長候補を育成する社内の進め方", categorySlug: "management", targetKeyword: "解体 職長 育成", articleType: "B", priority: "medium" },
+  { title: "解体業の定着率を上げる面談の設計", categorySlug: "management", targetKeyword: "解体 定着 面談", articleType: "B", priority: "medium" },
+  // C（動向・視点）≈1/10
+  { title: "他業種の組織づくりから学ぶ解体業のヒント", categorySlug: "industry", targetKeyword: "解体 組織づくり 他業種", articleType: "C", priority: "medium" },
+  // 予備
+  { title: "解体現場の朝礼を短くする進め方", categorySlug: "field", targetKeyword: "解体 朝礼", articleType: "A", priority: "low" },
+  { title: "協力会社との関係を保つ営業のコツ", categorySlug: "management", targetKeyword: "解体 協力会社 営業", articleType: "B", priority: "low" },
+  { title: "スタートアップ視点で見る解体業の始め方", categorySlug: "industry", targetKeyword: "解体業 スタートアップ", articleType: "C", priority: "low" },
+  { title: "見積もりの内訳を社内で揃える手順", categorySlug: "estimate", targetKeyword: "解体 見積 内訳", articleType: "A", priority: "medium" },
+  { title: "若手職人向けの評価フィードバックの型", categorySlug: "management", targetKeyword: "解体 評価 フィードバック", articleType: "B", priority: "medium" },
 ];
 
 function mock(count: number): ThemeSuggestion[] {
   const out: ThemeSuggestion[] = [];
   for (let i = 0; i < count; i += 1) out.push(MOCK_POOL[i % MOCK_POOL.length]);
-  return out;
+  return applyTypeQuota(out);
 }
 
 function currentYear(): number {
@@ -46,7 +51,6 @@ function currentYear(): number {
 /** 過去年の「◯年版」などを現行年に直す（AIの古い知識対策） */
 function sanitizeThemeYear(title: string, year: number): string {
   let t = title;
-  // 2020〜(今年-1)年版 → 今年年版
   t = t.replace(
     /\b(202[0-9]|203[0-9])\s*年版\b/g,
     (m, y: string) => {
@@ -54,7 +58,6 @@ function sanitizeThemeYear(title: string, year: number): string {
       return n < year ? `${year}年版` : m;
     },
   );
-  // 「2024年の〜」など、明らかに古い年だけを今年に寄せる（今年未満）
   t = t.replace(/\b(20[0-2]\d)年(?!版)/g, (m, y: string) => {
     const n = Number(y);
     return n < year && n >= 2020 ? `${year}年` : m;
@@ -66,10 +69,122 @@ function sanitizeThemes(
   themes: ThemeSuggestion[],
   year: number,
 ): ThemeSuggestion[] {
-  return themes.map((th) => ({
-    ...th,
-    title: sanitizeThemeYear(th.title, year),
+  return applyTypeQuota(
+    themes.map((th) => ({
+      ...th,
+      title: sanitizeThemeYear(th.title, year),
+      articleType: (["A", "B", "C"].includes(th.articleType)
+        ? th.articleType
+        : "B") as ArticleType,
+    })),
+  );
+}
+
+/** 10本あたり A3 / B6 / C1 に寄せる */
+export function typeQuotaFor(count: number): {
+  a: number;
+  b: number;
+  c: number;
+} {
+  const n = Math.max(0, Math.floor(count));
+  const a = Math.round((n * 3) / 10);
+  const c = Math.round((n * 1) / 10);
+  const b = Math.max(0, n - a - c);
+  return { a, b, c };
+}
+
+function preferredType(title: string, slug: string): ArticleType {
+  const t = `${title} ${slug}`;
+  if (
+    /採用|等級|評価|広報|定着|育成|経営|組織|面接|等級制度|人事|ブランディング|社内制度/.test(
+      t,
+    )
+  ) {
+    return "B";
+  }
+  if (
+    /業界動向|他業種|スタートアップ|比較から学ぶ|視点|ホワイトカラー|市場/.test(t) ||
+    slug === "industry"
+  ) {
+    return "C";
+  }
+  if (
+    /見積|原価|工程|現場|近隣|安全|分別|重機|職長|内訳|追加工事|挨拶/.test(t) ||
+    ["estimate", "schedule", "field", "waste"].includes(slug)
+  ) {
+    return "A";
+  }
+  return "B";
+}
+
+/** AI出力の型を、希望配分に合わせて付け直す（タイトルとの相性を優先） */
+function applyTypeQuota(themes: ThemeSuggestion[]): ThemeSuggestion[] {
+  const n = themes.length;
+  if (n === 0) return themes;
+  const { a: wantA, b: wantB, c: wantC } = typeQuotaFor(n);
+
+  const scored = themes.map((th, index) => ({
+    th,
+    index,
+    pref: preferredType(th.title, th.categorySlug),
   }));
+
+  const assigned: (ArticleType | null)[] = Array(n).fill(null);
+  const counts = { A: 0, B: 0, C: 0 };
+  const want = { A: wantA, B: wantB, C: wantC };
+
+  // 1) 希望型が空き枠にあるものから確定
+  for (const s of scored) {
+    if (counts[s.pref] < want[s.pref]) {
+      assigned[s.index] = s.pref;
+      counts[s.pref] += 1;
+    }
+  }
+
+  // 2) 未割当を空き枠へ
+  const fillOrder: ArticleType[] = ["B", "A", "C"];
+  for (let i = 0; i < n; i += 1) {
+    if (assigned[i]) continue;
+    const pref = scored.find((s) => s.index === i)?.pref ?? "B";
+    const order = [pref, ...fillOrder.filter((x) => x !== pref)];
+    const pick = order.find((t) => counts[t] < want[t]) ?? "B";
+    assigned[i] = pick;
+    counts[pick] += 1;
+  }
+
+  return themes.map((th, i) => ({
+    ...th,
+    articleType: assigned[i] ?? "B",
+  }));
+}
+
+const CALC_HINT_RE =
+  /計算テンプレ|計算式|単価×|原価の計算|実行予算の計算|人工数の計算/;
+
+async function recentCalcTemplateUsed(): Promise<boolean> {
+  try {
+    const { restSelect } = await import("@/lib/supabase/rest");
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const iso = since.toISOString();
+    const [articles, themes] = await Promise.all([
+      restSelect<{ title: string }>(
+        `articles?select=title&created_at=gte.${encodeURIComponent(iso)}`,
+        0,
+      ),
+      restSelect<{ title: string }>(
+        `themes?select=title&created_at=gte.${encodeURIComponent(iso)}`,
+        0,
+      ),
+    ]);
+    const titles = [
+      ...(articles ?? []).map((r) => r.title),
+      ...(themes ?? []).map((r) => r.title),
+    ];
+    return titles.some((t) => CALC_HINT_RE.test(t));
+  } catch {
+    return false;
+  }
 }
 
 // AIで記事テーマ案を生成する。ANTHROPIC_API_KEY 未設定・失敗時はダミーで返す。
@@ -84,12 +199,12 @@ export async function suggestThemes(
   try {
     const { callJson } = await import("@/lib/ai/client");
     const { restSelect } = await import("@/lib/supabase/rest");
-    // テーマ案は速い・安いモデル（Haiku）で生成する（本文生成モデルとは別。応答が速く、UIが固まらない）
     const suggestModel = "claude-haiku-4-5";
     const year = currentYear();
     const slugs = CATEGORIES.map((cat) => `${cat.slug}(${cat.name})`).join("、");
+    const quota = typeQuotaFor(c);
+    const calcUsed = await recentCalcTemplateUsed();
 
-    // 既存の記事タイトル＋既存テーマを取得し、重複しない切り口だけを出させる
     const [articleRows, themeRows] = await Promise.all([
       restSelect<{ title: string }>("articles?select=title", 0),
       restSelect<{ title: string }>("themes?select=title", 0),
@@ -106,24 +221,34 @@ export async function suggestThemes(
     const prompt =
       `あなたは解体業界の専門メディアの編集者です。SEOを意識した記事テーマ案を${c}件、JSON配列だけで出力してください。\n` +
       `各要素は {"title","categorySlug","targetKeyword","articleType","priority"}。\n` +
-      `articleType は A/B/C（A=手順, B=計算テンプレ, C=一次情報）。priority は high/medium/low。\n` +
-      `categorySlug は次から選ぶ：${slugs}。\n` +
-      `金額・単価・割合などの数値を主題にしないこと。実務者に役立つ具体的なお題にすること。\n` +
-      `\n【時点】いまは${year}年です。タイトルに過去の西暦（例: 2024年版・2025年）を付けないこと。` +
-      `年を入れるなら${year}年を使うか、「最新」「現行」など時点をぼかした表現にする。\n` +
-      `\n【編集方針】解体会社の経営・スタートアップ視点で役立つ幅広いテーマを、カテゴリーが偏らないよう分散させる。\n` +
-      `- estimate（見積もり・原価）：見積もりの精度/原価内訳/追加費用の防止 など\n` +
-      `- schedule（工程・人員）：工程管理/工期短縮/人員計画/多能工化 など\n` +
-      `- law（法規・許認可）：法改正/許認可・届出/補助金・制度（型C・外部URLは本文に載せない）\n` +
-      `- waste（産廃・アスベスト）：産廃・マニフェスト/石綿事前調査・除去 など\n` +
-      `- field（現場運営）：安全管理/重機・工法/近隣対応/職長マネジメント など\n` +
-      `- management（経営・採用）：集客・営業/採用・育成・定着/経営 など\n` +
-      `- industry（業界動向）：他業種比較（IT企業/ファストリテイリング等の大手/海外の解体会社）、` +
-      `スタートアップが解体業を始めるとき最初にやること、ホワイトカラーから見たブルーカラーの価値 など、視点の面白いもの\n` +
-      `同じカテゴリーに集中させず、上記7ジャンルを広くカバーすること。\n` +
+      `priority は high/medium/low。categorySlug は次から選ぶ：${slugs}。\n` +
+      `金額・単価・割合などの数値を主題にしないこと。\n` +
+      `\n【絶対禁止】法令・法律・条文・許認可手続き・コンプライアンス解説を主題にしない。` +
+      `「〜法の解説」「建設業許可の要件」「届出の書き方」など法律記事は出さない。` +
+      `law（法規）カテゴリは原則使わない。\n` +
+      `\n【記事型と件数配分（厳守）】今回${c}件のうち articleType はおおよそ` +
+      ` A=${quota.a} / B=${quota.b} / C=${quota.c}（比率の目安は10本なら A3・B6・C1）。\n` +
+      `- A：現場・見積もりの手順型。見積もり比較、追加工事防止、工程・現場運営の手順・確認項目。` +
+      `計算式を前面に出す「計算テンプレート調」は通常出さない。\n` +
+      `- B：経営・組織・人材型。経営、採用、等級制度、評価制度、広報、育成・定着。最多数にする。\n` +
+      `- C：業界動向・視点型。他業種比較、スタートアップ視点など広い話題。少数。\n` +
+      (calcUsed
+        ? `【計算テンプレ】直近1ヶ月に計算テンプレ調の題材があるため、今回は計算式メインのテーマを出さない。見積もりは型Aの手順・確認で扱う。\n`
+        : `【計算テンプレ】計算式メインのテーマは多くて月1本。出すなら型Aにし、数値は埋め込まない。今回の${c}件では0〜1本まで。\n`) +
+      `\n【時点】いまは${year}年です。タイトルに過去の西暦を付けないこと。` +
+      `年を入れるなら${year}年か、「最新」「現行」などぼかした表現にする。\n` +
+      `\n【カテゴリーの目安】\n` +
+      `- estimate：見積もり精度/内訳の揃え方/追加費用防止 → 主にA\n` +
+      `- schedule：工程管理/人員計画 → 主にA\n` +
+      `- field：安全管理/近隣対応/現場運営 → 主にA\n` +
+      `- waste：分別・運用の実務手順（法律解説はしない） → A\n` +
+      `- management：採用/等級/評価/広報/育成/経営 → 主にB\n` +
+      `- industry：他業種比較、始め方の視点 → 主にC\n` +
+      `- law / subsidy：原則使わない（法令・制度解説をしない方針）\n` +
       existingBlock +
       (instruction ? `追加の方針：${instruction}\n` : "") +
       `出力はJSON配列のみ。`;
+
     const { data } = await callJson<ThemeSuggestion[]>({
       prompt,
       model: suggestModel,
