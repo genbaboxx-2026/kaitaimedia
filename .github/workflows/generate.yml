@@ -5,7 +5,7 @@ on:
     # GitHub の */15 cron は高負荷時に1〜2時間遅延し、枠を丸ごと飛ばすことがある。
     # そのため「実行時刻直後を厚く＋日中は毎時追い上げ」で毎日必ず起こす。
     # scripts 側で settings.generation_time（JST）以降かつ当日未生成なら実行する。
-    # --- JST 07:30〜09:00（UTC 22:30〜00:00）を厚く ---
+    # --- JST 07:30〜12:00 を厚く（よく使う実行時刻帯） ---
     - cron: "30 22 * * *" # 07:30 JST
     - cron: "40 22 * * *" # 07:40 JST
     - cron: "50 22 * * *" # 07:50 JST
@@ -14,14 +14,24 @@ on:
     - cron: "30 23 * * *" # 08:30 JST
     - cron: "45 23 * * *" # 08:45 JST
     - cron: "0 0 * * *" # 09:00 JST
-    # --- 以降は毎時追い上げ（:10 UTC = JST :10、遅延しても別枠で再挑戦） ---
+    - cron: "15 0 * * *" # 09:15 JST
+    - cron: "30 0 * * *" # 09:30 JST
+    - cron: "45 0 * * *" # 09:45 JST
+    - cron: "0 1 * * *" # 10:00 JST
+    - cron: "10 1 * * *" # 10:10 JST
+    - cron: "20 1 * * *" # 10:20 JST
+    - cron: "30 1 * * *" # 10:30 JST
+    - cron: "0 2 * * *" # 11:00 JST
+    - cron: "0 3 * * *" # 12:00 JST
+    # --- 以降は毎時追い上げ（:10 UTC = JST :10） ---
     - cron: "10 * * * *"
   workflow_dispatch: {} # 手動トリガー可（時刻判定をスキップして即実行）
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 1日3本だと1本あたり数分かかるため余裕を持たせる
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
