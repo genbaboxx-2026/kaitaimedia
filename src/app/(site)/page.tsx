@@ -66,7 +66,7 @@ export const revalidate = 300; // ISR: 5分
 
 export default async function HomePage() {
   const [news, articles, ranking, snsTrends] = await Promise.all([
-    getLatestNews(10),
+    getLatestNews(12),
     getLatestArticles(13),
     getRankingArticles(5),
     getApprovedSnsTrends(5),
@@ -74,7 +74,7 @@ export default async function HomePage() {
 
   const [lead, ...rest] = articles;
   const secondary = rest.slice(0, 6); // 注目の記事：3列×2行
-  const newsRows = news.slice(0, 10);
+  const newsRows = news.slice(0, 12); // デスクトップ：2列×6行
   const snsRows = snsTrends.slice(0, 5);
   const rankingRows = ranking.slice(0, 5);
   const articleFeed = rest.slice(0, 10); // モバイル「記事」セクション：最新記事の次から公開順に最大10件
