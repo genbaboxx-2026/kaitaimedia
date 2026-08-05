@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   type Answers,
@@ -60,7 +60,72 @@ function BotAvatar() {
   );
 }
 
-function ScoreBar({ score }: { score: IndexScore }) {
+/** 5角形の星（塗り／枠のみを切り替え） */
+function StarIcon({ filled = false }: { filled?: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden className="ninku-star">
+      <path
+        d="M12 2.4l2.85 6.02 6.65.62-5.02 4.42 1.5 6.54L12 16.9l-5.98 3.5 1.5-6.54L2.5 9.44l6.65-.62z"
+        fill={filled ? "#fbbf24" : "none"}
+        stroke={filled ? "#f59e0b" : "rgba(255,255,255,0.55)"}
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** 0〜5（小数可）の星評価。塗り星を幅クリップして端数も表現し、左から伸びるアニメ付き。 */
+function StarRating({ value }: { value: number }) {
+  const pct = Math.max(0, Math.min(100, (value / 5) * 100));
+  const stars = [0, 1, 2, 3, 4];
+  return (
+    <div
+      className="ninku-stars"
+      role="img"
+      aria-label={`健全度 5点満点中 約${value.toFixed(1)}点`}
+    >
+      <div className="ninku-stars-row">
+        {stars.map((i) => (
+          <StarIcon key={`bg-${i}`} />
+        ))}
+      </div>
+      <div
+        className="ninku-stars-row ninku-stars-fg"
+        style={{ "--star-w": `${pct}%` } as unknown as CSSProperties}
+      >
+        {stars.map((i) => (
+          <StarIcon key={`fg-${i}`} filled />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** 数値を 0 → target までカウントアップ（結果表示の演出用） */
+function useCountUp(target: number | null, duration = 1000): number {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (target == null) {
+      setVal(0);
+      return;
+    }
+    let raf = 0;
+    let startTs = 0;
+    const tick = (ts: number) => {
+      if (!startTs) startTs = ts;
+      const p = Math.min(1, (ts - startTs) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(target * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+}
+
+function ScoreBar({ score, index = 0 }: { score: IndexScore; index?: number }) {
   return (
     <div className="ninku-score">
       <div className="ninku-score-head">
@@ -72,10 +137,13 @@ function ScoreBar({ score }: { score: IndexScore }) {
       <div className="ninku-score-track">
         <div
           className="ninku-score-fill"
-          style={{
-            width: `${score.value}%`,
-            background: `linear-gradient(90deg, ${score.color}cc, ${score.color})`,
-          }}
+          style={
+            {
+              "--w": `${score.value}%`,
+              background: `linear-gradient(90deg, ${score.color}cc, ${score.color})`,
+              animationDelay: `${0.2 + index * 0.09}s`,
+            } as unknown as CSSProperties
+          }
         />
       </div>
     </div>
@@ -121,14 +189,14 @@ function ModalStyles() {
         margin-bottom: 12px;
       }
       .ninku-brand {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 900;
         letter-spacing: 0.02em;
         color: #0f766e;
       }
       .ninku-close {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         border-radius: 999px;
         background: #fff;
         border: 1px solid #dbe7ea;
@@ -141,24 +209,24 @@ function ModalStyles() {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 12px;
+        padding: 7px 13px;
         border-radius: 999px;
         background: #e6f7f4;
         color: #0f766e;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 800;
         margin-bottom: 10px;
       }
       .ninku-title {
         margin: 0 0 4px;
-        font-size: 24px;
+        font-size: 27px;
         font-weight: 900;
         letter-spacing: -0.03em;
         color: #0f172a;
       }
       .ninku-sub {
         margin: 0 0 14px;
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 600;
         color: #64748b;
       }
@@ -167,13 +235,13 @@ function ModalStyles() {
         align-items: center;
         justify-content: space-between;
         margin-bottom: 6px;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 800;
         color: #0f766e;
       }
       .ninku-progress-pct { color: #94a3b8; }
       .ninku-progress-track {
-        height: 6px;
+        height: 7px;
         border-radius: 999px;
         background: #e2e8f0;
         overflow: hidden;
@@ -182,7 +250,7 @@ function ModalStyles() {
         height: 100%;
         border-radius: 999px;
         background: linear-gradient(90deg, #2dd4bf, #0f766e);
-        transition: width .35s ease;
+        transition: width .45s cubic-bezier(.22,1,.36,1);
       }
       /* チャット内（メッセージ帯） */
       .ninku-scroll {
@@ -218,10 +286,10 @@ function ModalStyles() {
       }
       .ninku-bubble {
         border-radius: 4px 16px 16px 16px;
-        padding: 10px 12px;
-        font-size: 13.5px;
+        padding: 12px 14px;
+        font-size: 16px;
         font-weight: 700;
-        line-height: 1.55;
+        line-height: 1.6;
         box-shadow: 0 1px 2px rgba(15,23,42,.06);
       }
       .ninku-bubble--bot {
@@ -237,7 +305,7 @@ function ModalStyles() {
         border-radius: 12px;
         background: #c7f0e8;
         color: #0f766e;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         line-height: 1.35;
         width: fit-content;
@@ -248,11 +316,11 @@ function ModalStyles() {
         border: none;
         color: #fff;
         border-radius: 16px 16px 4px 16px;
-        min-width: 44px;
+        min-width: 48px;
         text-align: center;
-        font-size: 17px;
+        font-size: 20px;
         font-weight: 900;
-        padding: 8px 14px;
+        padding: 9px 16px;
         box-shadow: 0 4px 12px rgba(15, 118, 110, 0.28);
       }
       .ninku-user-meta {
@@ -261,21 +329,21 @@ function ModalStyles() {
         justify-content: flex-end;
         gap: 4px;
         margin-top: 2px;
-        font-size: 10px;
+        font-size: 12px;
         font-weight: 700;
         color: #5b7c76;
       }
       .ninku-typing {
         display: inline-flex;
         gap: 4px;
-        padding: 10px 14px;
+        padding: 12px 16px;
         background: #fff;
         border: 1px solid #b7ddd6;
         border-radius: 4px 16px 16px 16px;
       }
       .ninku-typing i {
-        width: 6px;
-        height: 6px;
+        width: 7px;
+        height: 7px;
         border-radius: 999px;
         background: #14b8a6;
         animation: ninku-dot 1s ease-in-out infinite;
@@ -289,6 +357,26 @@ function ModalStyles() {
       @keyframes ninku-rise {
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
+      }
+      /* 分析中のスキャンバー */
+      .ninku-analyzing {
+        height: 7px;
+        border-radius: 999px;
+        background: #cdeee8;
+        overflow: hidden;
+        margin-top: 2px;
+      }
+      .ninku-analyzing span {
+        display: block;
+        height: 100%;
+        width: 42%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #2dd4bf, #0f766e);
+        animation: ninku-scan 1.1s ease-in-out infinite;
+      }
+      @keyframes ninku-scan {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(320%); }
       }
       /* チャット外：回答バー（クイック返信） */
       .ninku-composer {
@@ -307,18 +395,18 @@ function ModalStyles() {
       }
       .ninku-composer-title {
         margin: 0;
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 900;
         color: #0f172a;
       }
       .ninku-remain {
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 800;
         color: #0f766e;
         white-space: nowrap;
       }
       .ninku-scale-wrap {
-        width: min(280px, 100%);
+        width: min(300px, 100%);
         margin: 0 auto;
       }
       .ninku-scale {
@@ -330,24 +418,40 @@ function ModalStyles() {
         overflow: hidden;
         background: #f0fdfa;
       }
+      .ninku-scale.is-active {
+        animation: ninku-scale-breathe 2.4s ease-in-out infinite;
+      }
+      @keyframes ninku-scale-breathe {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(20,184,166,0); }
+        50% { box-shadow: 0 0 0 5px rgba(20,184,166,.16); }
+      }
       .ninku-scale button {
-        height: 40px;
+        height: 54px;
         border: none;
         border-right: 1px solid #ccfbf1;
         background: transparent;
-        font-size: 15px;
+        font-size: 21px;
         font-weight: 900;
         color: #0f766e;
         cursor: pointer;
-        transition: background .12s ease, color .12s ease;
+        transition: background .12s ease, color .12s ease, transform .1s ease;
       }
       .ninku-scale button:last-child { border-right: none; }
       .ninku-scale button:hover:not(:disabled) {
         background: #ccfbf1;
       }
+      .ninku-scale button:active:not(:disabled) {
+        transform: scale(.92);
+      }
       .ninku-scale button.is-on {
         background: #0f766e;
         color: #fff;
+        animation: ninku-pick .3s ease;
+      }
+      @keyframes ninku-pick {
+        0% { transform: scale(1); }
+        45% { transform: scale(1.12); }
+        100% { transform: scale(1); }
       }
       .ninku-scale button:disabled {
         opacity: 0.45;
@@ -357,18 +461,18 @@ function ModalStyles() {
         display: flex;
         justify-content: space-between;
         gap: 10px;
-        margin-top: 7px;
-        font-size: 10.5px;
+        margin-top: 8px;
+        font-size: 13px;
         font-weight: 700;
         color: #64748b;
-        line-height: 1.35;
+        line-height: 1.4;
       }
       .ninku-scale-ends span:first-child { text-align: left; max-width: 48%; }
       .ninku-scale-ends span:last-child { text-align: right; max-width: 48%; }
       .ninku-composer-tip {
         margin: 8px 0 0;
         text-align: center;
-        font-size: 11px;
+        font-size: 13px;
         font-weight: 700;
         color: #94a3b8;
       }
@@ -382,40 +486,112 @@ function ModalStyles() {
         scroll-margin-top: 12px;
         align-self: stretch;
         max-width: 100%;
+        animation: ninku-pop .5s cubic-bezier(.22,1,.36,1) both;
+      }
+      @keyframes ninku-pop {
+        from { opacity: 0; transform: translateY(10px) scale(.985); }
+        to { opacity: 1; transform: none; }
       }
       .ninku-overall {
+        position: relative;
+        overflow: hidden;
         border-radius: 14px;
-        padding: 14px;
+        padding: 16px;
         margin-bottom: 14px;
         background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
         color: #fff;
       }
+      .ninku-overall::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.20) 50%, transparent 70%);
+        transform: translateX(-100%);
+        animation: ninku-sheen 1.5s .25s ease both;
+        pointer-events: none;
+      }
+      @keyframes ninku-sheen { to { transform: translateX(100%); } }
+      .ninku-overall-top {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .ninku-overall-score {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
       .ninku-overall-num {
-        font-size: 36px;
+        font-size: 46px;
         font-weight: 900;
         line-height: 1;
+        font-variant-numeric: tabular-nums;
       }
+      .ninku-overall-unit {
+        font-size: 15px;
+        font-weight: 800;
+        opacity: .8;
+      }
+      .ninku-overall-stars {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+      }
+      .ninku-stars-caption {
+        font-size: 12px;
+        font-weight: 800;
+        opacity: .9;
+        letter-spacing: .02em;
+      }
+      .ninku-stars {
+        position: relative;
+        display: inline-block;
+        line-height: 0;
+      }
+      .ninku-stars-row { display: flex; gap: 3px; }
+      .ninku-stars-fg {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        width: var(--star-w);
+        animation: ninku-star-grow 1.1s .35s cubic-bezier(.22,1,.36,1) both;
+      }
+      .ninku-star { filter: drop-shadow(0 1px 1px rgba(0,0,0,.14)); }
+      @keyframes ninku-star-grow { from { width: 0; } to { width: var(--star-w); } }
       .ninku-overall-label {
-        margin: 8px 0 0;
-        font-size: 13px;
+        position: relative;
+        z-index: 1;
+        margin: 12px 0 0;
+        font-size: 16px;
         font-weight: 700;
-        line-height: 1.55;
+        line-height: 1.6;
       }
-      .ninku-score { margin-bottom: 10px; }
+      .ninku-score { margin-bottom: 12px; }
       .ninku-score-head {
         display: flex;
         justify-content: space-between;
         margin-bottom: 5px;
       }
-      .ninku-score-label { font-size: 12px; font-weight: 800; color: #0f172a; }
-      .ninku-score-value { font-size: 16px; font-weight: 900; }
+      .ninku-score-label { font-size: 15px; font-weight: 800; color: #0f172a; }
+      .ninku-score-value { font-size: 21px; font-weight: 900; font-variant-numeric: tabular-nums; }
       .ninku-score-track {
-        height: 8px;
+        height: 10px;
         border-radius: 999px;
         background: #e2e8f0;
         overflow: hidden;
       }
-      .ninku-score-fill { height: 100%; border-radius: 999px; transition: width .45s ease; }
+      .ninku-score-fill {
+        height: 100%;
+        border-radius: 999px;
+        width: var(--w);
+        animation: ninku-fill 1s cubic-bezier(.22,1,.36,1) both;
+      }
+      @keyframes ninku-fill { from { width: 0; } to { width: var(--w); } }
       .ninku-fb {
         margin: 14px 0;
         padding: 14px;
@@ -425,15 +601,15 @@ function ModalStyles() {
       }
       .ninku-fb h3 {
         margin: 0 0 8px;
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 900;
         color: #0f766e;
       }
       .ninku-fb p {
         margin: 0 0 7px;
-        font-size: 13px;
+        font-size: 15.5px;
         font-weight: 600;
-        line-height: 1.65;
+        line-height: 1.7;
         color: #1e293b;
       }
       .ninku-fb p:last-child { margin-bottom: 0; }
@@ -442,26 +618,38 @@ function ModalStyles() {
         align-items: center;
         justify-content: center;
         width: 100%;
-        min-height: 48px;
+        min-height: 54px;
         border-radius: 999px;
         background: linear-gradient(180deg, #2dd4bf 0%, #0f766e 100%);
         color: #fff;
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 900;
         text-decoration: none;
         box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
+        animation: ninku-cta-pulse 2.6s ease-in-out infinite;
+      }
+      @keyframes ninku-cta-pulse {
+        0%, 100% { box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25); }
+        50% { box-shadow: 0 8px 26px rgba(15, 118, 110, 0.45); }
       }
       .ninku-note {
         margin: 8px 0 0;
-        font-size: 11px;
-        color: rgba(255,255,255,.7);
+        font-size: 13px;
+        color: rgba(255,255,255,.72);
         font-weight: 600;
+        position: relative;
+        z-index: 1;
       }
       .ninku-error {
         margin: 8px 0 0;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 700;
         color: #dc2626;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ninku-overall::after,
+        .ninku-cta,
+        .ninku-scale.is-active { animation: none; }
       }
       @media (max-width: 640px) {
         .ninku-shell {
@@ -470,7 +658,7 @@ function ModalStyles() {
           max-height: 100dvh;
           border-radius: 0;
         }
-        .ninku-title { font-size: 22px; }
+        .ninku-title { font-size: 24px; }
       }
     `}</style>
   );
@@ -496,6 +684,10 @@ function Modal({ onClose }: { onClose: () => void }) {
   const remaining = Math.max(0, TOTAL - answeredCount);
   const inputLocked = busy || typing || loading || done;
   const currentQ = !done && !inputLocked && cursor < TOTAL ? QUESTIONS[cursor] : null;
+
+  // 結果表示の演出：総合スコアのカウントアップ＆星の健全度（高いほど良い）
+  const displayOverall = useCountUp(result ? result.overall : null);
+  const healthStars = result ? (100 - result.overall) / 20 : 0;
 
   const clearTimers = () => {
     for (const id of timersRef.current) window.clearTimeout(id);
@@ -704,11 +896,20 @@ function Modal({ onClose }: { onClose: () => void }) {
               return (
                 <div key={`d-${i}`} className="ninku-row ninku-row--bot">
                   <BotAvatar />
-                  <div className="ninku-bubble ninku-bubble--bot">
-                    {loading
-                      ? "回答をもとに組織課題を分析しています…"
-                      : "診断が完了しました。下に結果を表示しています。"}
-                  </div>
+                  {loading ? (
+                    <div className="ninku-col">
+                      <div className="ninku-bubble ninku-bubble--bot">
+                        回答をもとに組織課題を分析しています…
+                      </div>
+                      <div className="ninku-analyzing" aria-hidden>
+                        <span />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="ninku-bubble ninku-bubble--bot">
+                      診断が完了しました。下に結果を表示しています。
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -727,14 +928,25 @@ function Modal({ onClose }: { onClose: () => void }) {
             {result ? (
               <section className="ninku-result" ref={resultRef} aria-label="診断結果">
                 <div className="ninku-overall">
-                  <div className="ninku-overall-num">{result.overall}</div>
+                  <div className="ninku-overall-top">
+                    <div className="ninku-overall-score">
+                      <span className="ninku-overall-num">{displayOverall}</span>
+                      <span className="ninku-overall-unit">/ 100</span>
+                    </div>
+                    <div className="ninku-overall-stars">
+                      <StarRating value={healthStars} />
+                      <span className="ninku-stars-caption">
+                        健全度 {healthStars.toFixed(1)}/5
+                      </span>
+                    </div>
+                  </div>
                   <p className="ninku-overall-label">{result.overallLabel}</p>
                   <p className="ninku-note">
-                    ※指数は0〜100。高いほど課題が大きい目安です。
+                    ※指数は0〜100（高いほど課題が大きい）。★は健全度で高いほど良い状態です。
                   </p>
                 </div>
-                {result.scores.map((s) => (
-                  <ScoreBar key={s.id} score={s} />
+                {result.scores.map((s, i) => (
+                  <ScoreBar key={s.id} score={s} index={i} />
                 ))}
                 <div className="ninku-fb">
                   <h3>いま起きうる可能性</h3>
@@ -763,7 +975,7 @@ function Modal({ onClose }: { onClose: () => void }) {
             </div>
             <div className="ninku-scale-wrap">
               <div
-                className="ninku-scale"
+                className={`ninku-scale${currentQ && !inputLocked ? " is-active" : ""}`}
                 role="group"
                 aria-label="1から5で回答"
               >
