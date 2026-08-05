@@ -60,45 +60,101 @@ function BotAvatar() {
   );
 }
 
-/** 5角形の星（塗り／枠のみを切り替え） */
-function StarIcon({ filled = false }: { filled?: boolean }) {
+/** 5指標を五角形のレーダーチャートで表示（値0〜100・外側ほど課題が大きい） */
+function RadarChart({ scores }: { scores: IndexScore[] }) {
+  const cx = 170;
+  const cy = 145;
+  const R = 94;
+  const n = scores.length; // 5指標＝五角形
+  const angleAt = (i: number) => ((-90 + (360 / n) * i) * Math.PI) / 180;
+  const point = (i: number, r: number): [number, number] => {
+    const a = angleAt(i);
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  const polyPoints = (r: (i: number) => number) =>
+    scores
+      .map((_, i) =>
+        point(i, r(i))
+          .map((v) => v.toFixed(1))
+          .join(","),
+      )
+      .join(" ");
+
+  const rings = [0.25, 0.5, 0.75, 1];
+  const dataPoly = polyPoints((i) => (R * scores[i].value) / 100);
+
   return (
-    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden className="ninku-star">
-      <path
-        d="M12 2.4l2.85 6.02 6.65.62-5.02 4.42 1.5 6.54L12 16.9l-5.98 3.5 1.5-6.54L2.5 9.44l6.65-.62z"
-        fill={filled ? "#fbbf24" : "none"}
-        stroke={filled ? "#f59e0b" : "rgba(255,255,255,0.55)"}
-        strokeWidth="1.4"
+    <svg
+      viewBox="0 0 340 300"
+      className="ninku-radar-svg"
+      role="img"
+      aria-label="5指標のレーダーチャート"
+    >
+      {/* グリッド（同心五角形） */}
+      {rings.map((f) => (
+        <polygon
+          key={f}
+          points={polyPoints(() => R * f)}
+          fill={f === 1 ? "#f8fafc" : "none"}
+          stroke="#cbd5e1"
+          strokeWidth="1"
+        />
+      ))}
+      {/* 軸線 */}
+      {scores.map((s, i) => {
+        const [x, y] = point(i, R);
+        return (
+          <line key={s.id} x1={cx} y1={cy} x2={x} y2={y} stroke="#cbd5e1" strokeWidth="1" />
+        );
+      })}
+      {/* データ多角形 */}
+      <polygon
+        className="ninku-radar-poly"
+        points={dataPoly}
+        fill="rgba(13,148,136,0.20)"
+        stroke="#0f766e"
+        strokeWidth="2.5"
         strokeLinejoin="round"
       />
+      {/* 頂点ドット */}
+      {scores.map((s, i) => {
+        const [x, y] = point(i, (R * s.value) / 100);
+        return (
+          <circle
+            key={`dot-${s.id}`}
+            className="ninku-radar-dot"
+            cx={x}
+            cy={y}
+            r="4.5"
+            fill={s.color}
+            stroke="#fff"
+            strokeWidth="1.5"
+          />
+        );
+      })}
+      {/* ラベル（指標名＋数値） */}
+      {scores.map((s, i) => {
+        const [lx, ly] = point(i, R + 20);
+        const anchor =
+          Math.abs(lx - cx) < 8 ? "middle" : lx > cx ? "start" : "end";
+        return (
+          <g key={`lb-${s.id}`}>
+            <text x={lx} y={ly - 2} textAnchor={anchor} className="ninku-radar-label">
+              {s.short}
+            </text>
+            <text
+              x={lx}
+              y={ly + 14}
+              textAnchor={anchor}
+              className="ninku-radar-num"
+              fill={s.color}
+            >
+              {s.value}
+            </text>
+          </g>
+        );
+      })}
     </svg>
-  );
-}
-
-/** 0〜5（小数可）の星評価。塗り星を幅クリップして端数も表現し、左から伸びるアニメ付き。 */
-function StarRating({ value }: { value: number }) {
-  const pct = Math.max(0, Math.min(100, (value / 5) * 100));
-  const stars = [0, 1, 2, 3, 4];
-  return (
-    <div
-      className="ninku-stars"
-      role="img"
-      aria-label={`健全度 5点満点中 約${value.toFixed(1)}点`}
-    >
-      <div className="ninku-stars-row">
-        {stars.map((i) => (
-          <StarIcon key={`bg-${i}`} />
-        ))}
-      </div>
-      <div
-        className="ninku-stars-row ninku-stars-fg"
-        style={{ "--star-w": `${pct}%` } as unknown as CSSProperties}
-      >
-        {stars.map((i) => (
-          <StarIcon key={`fg-${i}`} filled />
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -511,15 +567,9 @@ function ModalStyles() {
         pointer-events: none;
       }
       @keyframes ninku-sheen { to { transform: translateX(100%); } }
-      .ninku-overall-top {
+      .ninku-overall-score {
         position: relative;
         z-index: 1;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-      .ninku-overall-score {
         display: flex;
         align-items: baseline;
         gap: 6px;
@@ -535,34 +585,40 @@ function ModalStyles() {
         font-weight: 800;
         opacity: .8;
       }
-      .ninku-overall-stars {
+      /* レーダーチャート（課題マップ） */
+      .ninku-radar-head {
+        margin: 2px 0 0;
+        font-size: 15px;
+        font-weight: 900;
+        color: #0f172a;
+        text-align: center;
+      }
+      .ninku-radar {
         display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 4px;
+        justify-content: center;
+        padding: 2px 0 0;
       }
-      .ninku-stars-caption {
-        font-size: 12px;
-        font-weight: 800;
-        opacity: .9;
-        letter-spacing: .02em;
+      .ninku-radar-svg { width: 100%; max-width: 340px; height: auto; }
+      .ninku-radar-label { font-size: 12.5px; font-weight: 800; fill: #334155; }
+      .ninku-radar-num { font-size: 13.5px; font-weight: 900; }
+      .ninku-radar-poly {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: ninku-radar-in .8s .25s cubic-bezier(.22,1,.36,1) both;
       }
-      .ninku-stars {
-        position: relative;
-        display: inline-block;
-        line-height: 0;
+      @keyframes ninku-radar-in {
+        from { opacity: 0; transform: scale(.25); }
+        to { opacity: 1; transform: scale(1); }
       }
-      .ninku-stars-row { display: flex; gap: 3px; }
-      .ninku-stars-fg {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-        white-space: nowrap;
-        width: var(--star-w);
-        animation: ninku-star-grow 1.1s .35s cubic-bezier(.22,1,.36,1) both;
+      .ninku-radar-dot { animation: ninku-radar-dot-in .3s .95s ease both; }
+      @keyframes ninku-radar-dot-in { from { opacity: 0; } to { opacity: 1; } }
+      .ninku-radar-caption {
+        margin: 0 0 10px;
+        text-align: center;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #64748b;
       }
-      .ninku-star { filter: drop-shadow(0 1px 1px rgba(0,0,0,.14)); }
-      @keyframes ninku-star-grow { from { width: 0; } to { width: var(--star-w); } }
       .ninku-overall-label {
         position: relative;
         z-index: 1;
@@ -685,9 +741,8 @@ function Modal({ onClose }: { onClose: () => void }) {
   const inputLocked = busy || typing || loading || done;
   const currentQ = !done && !inputLocked && cursor < TOTAL ? QUESTIONS[cursor] : null;
 
-  // 結果表示の演出：総合スコアのカウントアップ＆星の健全度（高いほど良い）
+  // 結果表示の演出：総合スコアのカウントアップ
   const displayOverall = useCountUp(result ? result.overall : null);
-  const healthStars = result ? (100 - result.overall) / 20 : 0;
 
   const clearTimers = () => {
     for (const id of timersRef.current) window.clearTimeout(id);
@@ -928,23 +983,24 @@ function Modal({ onClose }: { onClose: () => void }) {
             {result ? (
               <section className="ninku-result" ref={resultRef} aria-label="診断結果">
                 <div className="ninku-overall">
-                  <div className="ninku-overall-top">
-                    <div className="ninku-overall-score">
-                      <span className="ninku-overall-num">{displayOverall}</span>
-                      <span className="ninku-overall-unit">/ 100</span>
-                    </div>
-                    <div className="ninku-overall-stars">
-                      <StarRating value={healthStars} />
-                      <span className="ninku-stars-caption">
-                        健全度 {healthStars.toFixed(1)}/5
-                      </span>
-                    </div>
+                  <div className="ninku-overall-score">
+                    <span className="ninku-overall-num">{displayOverall}</span>
+                    <span className="ninku-overall-unit">/ 100</span>
                   </div>
                   <p className="ninku-overall-label">{result.overallLabel}</p>
                   <p className="ninku-note">
-                    ※指数は0〜100（高いほど課題が大きい）。★は健全度で高いほど良い状態です。
+                    ※指数は0〜100。高いほど課題が大きい目安です。
                   </p>
                 </div>
+
+                <h3 className="ninku-radar-head">課題マップ（5指標）</h3>
+                <div className="ninku-radar">
+                  <RadarChart scores={result.scores} />
+                </div>
+                <p className="ninku-radar-caption">
+                  外側に広がるほど課題が大きい状態です。
+                </p>
+
                 {result.scores.map((s, i) => (
                   <ScoreBar key={s.id} score={s} index={i} />
                 ))}
