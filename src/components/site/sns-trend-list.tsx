@@ -6,7 +6,7 @@ function formatLikes(n: number): string {
   return n.toLocaleString("ja-JP");
 }
 
-/** 公開サイト用：採用済みSNSトレンド（いいね順） */
+/** 公開サイト用：採用済みSNSトレンド（2日以内優先 → いいね順） */
 export function SnsTrendList({
   items,
   compact = false,

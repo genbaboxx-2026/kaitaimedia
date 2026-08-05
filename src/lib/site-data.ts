@@ -372,12 +372,38 @@ function mapSnsTrend(r: SnsTrendRow): SnsTrendPost {
   };
 }
 
-/** 公開サイト用：採用済みをいいね順 */
+const SNS_RECENT_DAYS = 2;
+
+function isWithinDays(iso: string | undefined, days: number): boolean {
+  if (!iso) return false;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return false;
+  return Date.now() - t <= days * 24 * 60 * 60 * 1000;
+}
+
+/** 公開サイト用：採用済みを「2日以内優先 → いいね順」 */
 export async function getApprovedSnsTrends(limit = 8): Promise<SnsTrendPost[]> {
+  // いいね上位だけ取ると新着が落ちるので多めに取ってから並べ替え
+  const fetchLimit = Math.min(100, Math.max(limit * 5, 40));
   const rows = await restSelect<SnsTrendRow>(
-    `sns_trend_posts?select=${SNS_TREND_SELECT}&status=eq.approved&order=like_count.desc.nullslast,fetched_at.desc&limit=${limit}`,
+    `sns_trend_posts?select=${SNS_TREND_SELECT}&status=eq.approved&order=like_count.desc.nullslast,fetched_at.desc&limit=${fetchLimit}`,
     REVALIDATE,
   );
-  if (rows && rows.length > 0) return rows.map(mapSnsTrend);
-  return [];
+  if (!rows || rows.length === 0) return [];
+
+  const items = rows.map(mapSnsTrend);
+  items.sort((a, b) => {
+    const aRecent = isWithinDays(a.postedAt ?? a.fetchedAt, SNS_RECENT_DAYS)
+      ? 1
+      : 0;
+    const bRecent = isWithinDays(b.postedAt ?? b.fetchedAt, SNS_RECENT_DAYS)
+      ? 1
+      : 0;
+    if (aRecent !== bRecent) return bRecent - aRecent;
+    if (b.likeCount !== a.likeCount) return b.likeCount - a.likeCount;
+    const at = new Date(a.postedAt ?? a.fetchedAt).getTime();
+    const bt = new Date(b.postedAt ?? b.fetchedAt).getTime();
+    return bt - at;
+  });
+  return items.slice(0, limit);
 }

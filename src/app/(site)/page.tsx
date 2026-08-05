@@ -308,7 +308,7 @@ export default async function HomePage() {
                     <span className="text-base">SNSトレンド</span>
                   </SectionTitle>
                   <p className="mt-1 text-[11px] text-slate-400">
-                    いいね順 · タップで投稿を表示
+                    2日以内を優先 · いいね順 · タップで投稿を表示
                   </p>
                   <div className="mt-2">
                     <SnsTrendList items={snsRows} compact />
