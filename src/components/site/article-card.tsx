@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Article } from "@/lib/types";
 import { getCategoryName } from "@/lib/dummy-data";
 import { formatJaDate } from "@/lib/format";
-import { ArticleTypeBadge } from "@/components/site/badges";
 import { Eyecatch } from "@/components/site/eyecatch";
 
 export function ArticleCard({ article }: { article: Article }) {
@@ -33,15 +32,10 @@ export function ArticleCard({ article }: { article: Article }) {
           {article.excerpt}
         </p>
 
-        <div className="mt-3 flex items-center gap-2.5 text-xs text-slate-400">
-          <ArticleTypeBadge type={article.articleType} />
-          <span className="ml-auto flex items-center gap-2">
-            <time dateTime={article.publishedAt}>
-              {formatJaDate(article.publishedAt)}
-            </time>
-            <span aria-hidden>·</span>
-            <span>約{article.readingMinutes}分</span>
-          </span>
+        <div className="mt-3 text-xs text-slate-400">
+          <time dateTime={article.publishedAt}>
+            {formatJaDate(article.publishedAt)}
+          </time>
         </div>
       </div>
     </article>
