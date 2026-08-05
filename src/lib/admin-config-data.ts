@@ -83,7 +83,8 @@ export type PromptStep =
   | "fix"
   | "quality"
   | "news_editorial"
-  | "sns_trends";
+  | "sns_trends"
+  | "ninkuboxx_diag";
 
 export const PROMPT_STEP_LABEL: Record<PromptStep, string> = {
   structure: "構成生成",
@@ -93,6 +94,7 @@ export const PROMPT_STEP_LABEL: Record<PromptStep, string> = {
   quality: "AI品質判定",
   news_editorial: "ニュース自社解説",
   sns_trends: "SNSトレンド取得",
+  ninkuboxx_diag: "NiNKU BOXX組織診断",
 };
 
 export interface PromptVersion {
@@ -188,6 +190,20 @@ export const PROMPTS: PromptStepData[] = [
         createdAt: "2026-08-02",
         content:
           "Xを複数回検索し、解体・産廃・建設の実務向け投稿をできるだけ{{max_count}}件。いいね目安{{min_likes}}、{{from_date}}以降。JSON配列のみ。",
+      },
+    ],
+  },
+  {
+    step: "ninkuboxx_diag",
+    variables: ["{{scores}}", "{{answers_summary}}", "{{overall_label}}"],
+    activeVersion: 1,
+    versions: [
+      {
+        version: 1,
+        note: "NiNKU BOXX組織診断フィードバック",
+        createdAt: "2026-08-05",
+        content:
+          "NiNKU BOXX組織診断のフィードバックを5文で書く。スコア: {{scores}} / 回答: {{answers_summary}} / 総合: {{overall_label}}",
       },
     ],
   },

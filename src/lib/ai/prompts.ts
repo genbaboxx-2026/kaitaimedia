@@ -8,7 +8,8 @@ export type PromptStep =
   | "fix"
   | "quality"
   | "news_editorial"
-  | "sns_trends";
+  | "sns_trends"
+  | "ninkuboxx_diag";
 
 interface PromptRow {
   content: string;
