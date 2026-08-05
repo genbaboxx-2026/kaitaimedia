@@ -8,11 +8,12 @@ export const maxDuration = 300;
 function authorize(req: Request): boolean {
   const secret = process.env.CRON_SECRET?.trim();
   const auth = req.headers.get("authorization");
-  if (secret) {
-    return auth === `Bearer ${secret}`;
-  }
-  // CRON_SECRET 未設定時は Vercel Cron ヘッダのみ許可
-  return req.headers.get("x-vercel-cron") === "1";
+  // Vercel が CRON_SECRET を付与して呼ぶ場合
+  if (secret && auth === `Bearer ${secret}`) return true;
+  // Cron 本体の識別ヘッダ（secret 未設定・不一致でも定時起動を落とさない）
+  if (req.headers.get("x-vercel-cron") === "1") return true;
+  if (req.headers.get("x-vercel-cron-schedule")) return true;
+  return false;
 }
 
 /**
