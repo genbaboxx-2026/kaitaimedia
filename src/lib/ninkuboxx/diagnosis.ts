@@ -76,9 +76,9 @@ export const QUESTIONS: DiagnosisQuestion[] = [
   },
   {
     id: "q_boss",
-    label: "評価や処遇の最終決定は、社長・役員ひとりに依存していませんか？",
-    help: "1 = 仕組みで回っている / 5 = ほぼひとりで決めている",
-    higherIsWorse: true,
+    label: "評価や処遇の決定は、社長ひとりではなく仕組みで回っていますか？",
+    help: "1 = ほぼ社長ひとりで決めている / 5 = 仕組みで回っている",
+    higherIsWorse: false,
     affects: ["dependency", "ambiguity", "trust"],
   },
   {
