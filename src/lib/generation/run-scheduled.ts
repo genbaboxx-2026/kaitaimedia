@@ -90,7 +90,7 @@ export async function runScheduledGeneration(
   const maxAttempts = resolveMaxScheduledAttempts(articlesPerDay);
   let todayCount = await countTodaysGeneratedArticles(gate.jstDate);
   let todayAttempts = await countTodaysGenerationAttempts(gate.jstDate);
-  let remaining = Math.max(0, articlesPerDay - todayCount);
+  const remaining = Math.max(0, articlesPerDay - todayCount);
 
   if (remaining === 0) {
     await releaseScheduleLock(lockOwner);
