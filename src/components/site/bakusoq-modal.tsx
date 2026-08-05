@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 
 /* ============================================================
    BAKUSOQ 紹介モーダル
-   カードの枠線を減らし、薄い水色の面でまとめる（モック1枚目準拠）
+   参考完成イメージ準拠（独自再設計なし・寸法固定）
    ============================================================ */
 
 const BAKUSOQ_HP_URL = "https://bakusoq-hp.vercel.app/";
@@ -13,146 +13,245 @@ const BAKUSOQ_LINE_URL =
   process.env.NEXT_PUBLIC_BAKUSOQ_LINE_URL || BAKUSOQ_HP_URL;
 const ILLUST = "/promo/bakusoq-illust";
 
-const WORRIES = [
+const WORRIES: { text: ReactNode; icon: ReactNode }[] = [
   {
     text: (
       <>
-        まだ
-        <span className="font-black text-[#1677E6]">平米単価や坪単価</span>
-        で見積もりを作っていませんか？
+        まだ平米単価や坪単価で
+        <br />
+        見積もりを作っていませんか？
       </>
     ),
-    img: `${ILLUST}/worry-01.png`,
+    icon: <IconCalc />,
   },
   {
     text: (
       <>
         その単価、いつから
-        <span className="font-black text-[#1677E6]">前の単価</span>
-        を使っていますか？
+        <br />
+        前の単価を使っていますか？
       </>
     ),
-    img: `${ILLUST}/worry-02.png`,
+    icon: <IconClock />,
   },
   {
     text: (
       <>
-        <span className="font-black text-[#1677E6]">利益率</span>
-        が見えないまま、値引きしていませんか？
+        利益率が見えないまま、
+        <br />
+        値引きしていませんか？
       </>
     ),
-    img: `${ILLUST}/worry-03.png`,
+    icon: <IconChartDown />,
   },
   {
     text: (
       <>
         営業が入ったはいいけど、
-        <span className="font-black text-[#1677E6]">教育</span>
-        が難しくありませんか？
+        <br />
+        教育が難しい
       </>
     ),
-    img: `${ILLUST}/worry-04.png`,
+    icon: <IconPerson />,
   },
-] as const;
+];
 
 const REASONS = [
   "現場ごとに条件が違いすぎる",
   "単価や原価の更新が後回しになる",
   "データが属人化し、共有しづらい",
   "新人が経験を積むには時間がかかる",
-] as const;
+];
 
 const SOLUTIONS = [
   {
-    n: "01",
-    title: "しっかり爆速",
-    body: "見積もり作成を圧倒的なスピードでサポート！",
+    no: "01",
+    title: (
+      <>
+        しっかり爆速
+      </>
+    ),
+    body: (
+      <>
+        見積もり作成を
+        <br />
+        圧倒的なスピードでサポート！
+      </>
+    ),
     img: `${ILLUST}/sol-rocket.png`,
   },
   {
-    n: "02",
-    title: "原価を積み上げるので精度が高い",
-    body: "すべての原価を積み上げるから、根拠のある見積もりが作れる！",
+    no: "02",
+    title: (
+      <>
+        原価を積み上げるので
+        <br />
+        精度が高い
+      </>
+    ),
+    body: <>根拠のある見積もりが作れる！</>,
     img: `${ILLUST}/sol-blocks.png`,
   },
   {
-    n: "03",
-    title: "解体経験がない営業でも作れる",
-    body: "誰でも使いこなせるから、新人も早く成長し即戦力に！",
+    no: "03",
+    title: <>解体経験がない営業でも作れる</>,
+    body: (
+      <>
+        新人も早く成長し、
+        <br />
+        即戦力に！
+      </>
+    ),
     img: `${ILLUST}/sol-growth.png`,
   },
   {
-    n: "04",
-    title: "根拠がわかるのでチェックが早い",
-    body: "根拠が明確だから、社内チェックや施主への説明もスムーズ！",
+    no: "04",
+    title: (
+      <>
+        根拠がわかるので
+        <br />
+        チェックが早い
+      </>
+    ),
+    body: <>社内確認や説明もスムーズ！</>,
     img: `${ILLUST}/sol-check.png`,
   },
-] as const;
+];
 
-function CloseIcon({ className }: { className?: string }) {
+function IconCalc() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+      <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
+      <rect x="11" y="9" width="16" height="20" rx="2.5" fill="#1674E8" />
+      <rect x="13.5" y="11.5" width="11" height="5" rx="1" fill="#fff" />
+      {[0, 1, 2].map((r) =>
+        [0, 1, 2].map((c) => (
+          <rect
+            key={`${r}-${c}`}
+            x={13.5 + c * 4}
+            y={18.5 + r * 3.2}
+            width="2.8"
+            height="2.2"
+            rx="0.4"
+            fill="#fff"
+          />
+        )),
+      )}
+    </svg>
+  );
+}
+
+function IconClock() {
+  return (
+    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+      <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
+      <circle cx="19" cy="19" r="10" fill="#1674E8" />
+      <circle cx="19" cy="19" r="7.5" fill="#fff" />
       <path
-        d="M6 6l12 12M18 6L6 18"
-        stroke="currentColor"
-        strokeWidth="2"
+        d="M19 13.5v6l4 2.5"
+        stroke="#1674E8"
+        strokeWidth="1.8"
         strokeLinecap="round"
+        fill="none"
       />
     </svg>
   );
 }
 
-function CheckIcon({ className }: { className?: string }) {
+function IconChartDown() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+      <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
       <path
-        d="M20 6L9 17l-5-5"
-        stroke="currentColor"
-        strokeWidth="2.4"
+        d="M10 14l5 5 4-3 9 9"
+        stroke="#1674E8"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function Sparkle({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="#F59E0B">
-      <path d="M12 2l1.6 6.2L20 10l-6.4 1.8L12 18l-1.6-6.2L4 10l6.4-1.8L12 2z" />
-    </svg>
-  );
-}
-
-function LineMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 36 36" className={className} aria-hidden>
-      <rect width="36" height="36" rx="8" fill="#06C755" />
-      <path
-        d="M27.5 16.9c0-5.1-5.1-9.2-11.4-9.2S4.7 11.8 4.7 16.9c0 4.4 3.9 8.1 9.2 8.8.36.07.85.22 1 .5.12.26.08.67.04 1l-.18.9c-.06.3-.26 1.16 1.02.63 1.28-.53 6.9-4.07 9.4-6.96 1.73-1.9 2.32-3.8 2.32-5.85z"
-        fill="#fff"
-      />
-    </svg>
-  );
-}
-
-function GlobeMark({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" className={className} aria-hidden>
-      <circle cx="20" cy="20" r="18" fill="#1677E6" />
-      <ellipse
-        cx="20"
-        cy="20"
-        rx="7"
-        ry="16"
         fill="none"
-        stroke="#fff"
-        strokeWidth="1.8"
       />
       <path
-        d="M5 20h30M7 13h26M7 27h26"
+        d="M22 25h6v-6"
+        stroke="#1674E8"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function IconPerson() {
+  return (
+    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+      <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
+      <circle cx="19" cy="14" r="4.5" fill="#1674E8" />
+      <path
+        d="M10.5 27.5c1.6-5 5-7.5 8.5-7.5s6.9 2.5 8.5 7.5"
+        fill="#1674E8"
+      />
+    </svg>
+  );
+}
+
+function IconCheck() {
+  return (
+    <svg viewBox="0 0 21 21" className="h-[21px] w-[21px] shrink-0" aria-hidden>
+      <circle cx="10.5" cy="10.5" r="10.5" fill="#1674E8" />
+      <path
+        d="M6 10.8l3 3 6.2-6.5"
         stroke="#fff"
-        strokeWidth="1.6"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function IconGlobe() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-7 w-7 shrink-0 text-white" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <ellipse cx="12" cy="12" rx="4" ry="9" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path d="M3.5 12h17M12 3.5c2.5 2.8 3.8 5.6 3.8 8.5S14.5 17.7 12 20.5M12 3.5C9.5 6.3 8.2 9.1 8.2 12s1.3 5.7 3.8 8.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+    </svg>
+  );
+}
+
+function LineMark() {
+  return (
+    <svg viewBox="0 0 48 48" className="h-[60px] w-[60px] shrink-0" aria-hidden>
+      <circle cx="24" cy="24" r="24" fill="#fff" />
+      <path
+        d="M24 10.5c-7.3 0-13.2 4.9-13.2 11 0 5.4 4.8 9.9 11.3 10.8.4.1.9.2 1 .5.1.3.1.7 0 1.1l-.2 1.2c0 .4-.2 1.4 1.2.8 0 0 6.6-3.9 9-6.7 1.7-1.8 2.9-3.7 2.9-6.7 0-6.1-5.9-11-13-11z"
+        fill="#06C755"
+      />
+      <text
+        x="24"
+        y="24.5"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fill="#fff"
+        fontSize="9"
+        fontWeight="800"
+        fontFamily="Arial, sans-serif"
+      >
+        LINE
+      </text>
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
+      <path
+        d="M7 7l10 10M17 7L7 17"
+        stroke="currentColor"
+        strokeWidth="2"
         strokeLinecap="round"
       />
     </svg>
@@ -162,13 +261,377 @@ function GlobeMark({ className }: { className?: string }) {
 function ModalStyles() {
   return (
     <style>{`
-      @keyframes baku-in {
-        from { opacity: 0; transform: translateY(14px) scale(0.985); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+      .baku-shell {
+        width: min(1080px, calc(100vw - 48px));
+        height: min(880px, calc(100vh - 32px));
+        max-height: calc(100vh - 32px);
+        border-radius: 24px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow: 0 24px 64px rgba(15, 23, 42, 0.28);
+        display: flex;
+        flex-direction: column;
       }
-      .baku-in { animation: baku-in 0.4s cubic-bezier(0.22,1,0.36,1) both; }
-      @media (prefers-reduced-motion: reduce) {
-        .baku-in { animation: none !important; }
+      .baku-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: #ffffff;
+        padding: 24px 32px;
+      }
+      .baku-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-height: 100%;
+      }
+      .baku-header {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+      .baku-logo {
+        font-size: 27px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        line-height: 1;
+        color: #1674e8;
+        font-style: italic;
+      }
+      .baku-close {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: #fff;
+        color: #334155;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+        border: 1px solid #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .baku-hero {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 32px;
+        align-items: center;
+        min-height: 160px;
+        max-height: 190px;
+      }
+      .baku-title {
+        font-size: 42px;
+        line-height: 1.25;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin: 0;
+        color: #0f172a;
+      }
+      .baku-title-blue { color: #1674e8; }
+      .baku-sub {
+        font-size: 15px;
+        line-height: 1.6;
+        margin-top: 12px;
+        color: #1e293b;
+      }
+      .baku-hero-visual {
+        width: 340px;
+        height: 160px;
+        max-width: 100%;
+        margin-left: auto;
+        padding: 10px;
+        border-radius: 18px;
+        background: #eef7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .baku-hero-visual img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .baku-mid {
+        display: grid;
+        grid-template-columns: 1fr 34px 1fr;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .baku-worry, .baku-reason {
+        height: 220px;
+        min-height: 220px;
+        max-height: 220px;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .baku-worry {
+        background: #f4f9ff;
+        padding: 18px 22px;
+      }
+      .baku-reason {
+        background: #eef6ff;
+        border: 1px solid #b9d8ff;
+        padding: 22px 24px;
+      }
+      .baku-pill {
+        display: inline-flex;
+        align-items: center;
+        height: 34px;
+        padding: 0 18px;
+        border-radius: 999px;
+        background: #1674e8;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      .baku-worry-row {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        align-items: center;
+        min-height: 40px;
+        gap: 12px;
+        padding: 4px 0;
+        border-bottom: 1px dashed #cbdff5;
+      }
+      .baku-worry-row:last-child { border-bottom: none; }
+      .baku-worry-text {
+        font-size: 13px;
+        line-height: 1.45;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .baku-arrow {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #1674e8;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(22, 116, 232, 0.28);
+      }
+      .baku-reason-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: #1674e8;
+        margin: 0 0 8px;
+      }
+      .baku-reason-sub {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1674e8;
+        margin: 0 0 10px;
+      }
+      .baku-reason-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+        z-index: 1;
+        max-width: calc(100% - 110px);
+      }
+      .baku-reason-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .baku-reason-illust {
+        position: absolute;
+        right: 12px;
+        bottom: 8px;
+        width: 125px;
+        height: 90px;
+        object-fit: contain;
+        pointer-events: none;
+      }
+      .baku-solve {
+        height: 48px;
+        margin-top: -6px;
+        margin-bottom: -6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+      }
+      .baku-solve-brand {
+        font-size: 29px;
+        color: #1269d3;
+        font-style: italic;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+      .baku-sols {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .baku-sol {
+        height: 170px;
+        min-height: 170px;
+        max-height: 170px;
+        border-radius: 14px;
+        padding: 12px;
+        border: 1px solid #cfe3fb;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .baku-sol-no {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        background: #1674e8;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .baku-sol-img {
+        width: 55px;
+        height: 55px;
+        margin: 10px auto 6px;
+        object-fit: contain;
+      }
+      .baku-sol-title {
+        font-size: 14px;
+        line-height: 1.35;
+        font-weight: 800;
+        color: #075bbd;
+        text-align: center;
+        margin: 0 0 4px;
+      }
+      .baku-sol-body {
+        font-size: 11px;
+        line-height: 1.45;
+        text-align: center;
+        color: #1e293b;
+        margin: 0;
+      }
+      .baku-cta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: -2px;
+      }
+      .baku-cta-a, .baku-cta-b {
+        height: 86px;
+        border-radius: 16px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        text-decoration: none;
+        color: #fff;
+        overflow: hidden;
+      }
+      .baku-cta-a {
+        background: linear-gradient(135deg, #16cf63, #05b950);
+      }
+      .baku-cta-b {
+        background: linear-gradient(135deg, #2681ed, #0b63cf);
+      }
+      .baku-cta-copy { min-width: 0; flex: 1; }
+      .baku-cta-lead {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.35;
+        margin: 0 0 6px;
+      }
+      .baku-cta-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 34px;
+        padding: 0 16px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 800;
+        background: rgba(255,255,255,0.22);
+        border: 1px solid rgba(255,255,255,0.35);
+      }
+      .baku-cta-a .baku-cta-btn { background: #06a849; border-color: transparent; }
+      .baku-cta-url {
+        display: inline-flex;
+        align-items: center;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.18);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .baku-cta-side {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        flex-shrink: 0;
+      }
+      .baku-foot {
+        margin-top: -4px;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #64748b;
+        text-align: center;
+      }
+      @media (max-width: 960px) {
+        .baku-shell {
+          width: 100vw;
+          height: 100dvh;
+          max-height: 100dvh;
+          border-radius: 0;
+        }
+        .baku-scroll { padding: 16px; }
+        .baku-hero {
+          grid-template-columns: 1fr;
+          max-height: none;
+          min-height: 0;
+          gap: 12px;
+        }
+        .baku-title { font-size: 30px; }
+        .baku-hero-visual {
+          width: 100%;
+          height: 140px;
+          margin-left: 0;
+        }
+        .baku-mid {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        .baku-arrow { display: none; }
+        .baku-worry, .baku-reason {
+          height: auto;
+          min-height: 0;
+          max-height: none;
+        }
+        .baku-reason-list { max-width: 100%; }
+        .baku-reason-illust { opacity: 0.35; }
+        .baku-sols { grid-template-columns: 1fr 1fr; }
+        .baku-sol { height: auto; min-height: 150px; max-height: none; }
+        .baku-cta { grid-template-columns: 1fr; }
+        .baku-cta-a, .baku-cta-b { height: auto; min-height: 76px; }
       }
     `}</style>
   );
@@ -190,7 +653,7 @@ function Modal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-stretch justify-center p-0 sm:items-center sm:p-5 lg:p-8"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/55 p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-label="BAKUSOQ サービス紹介"
@@ -200,214 +663,165 @@ function Modal({ onClose }: { onClose: () => void }) {
         type="button"
         aria-label="閉じる"
         onClick={onClose}
-        className="absolute inset-0 bg-slate-900/45"
+        className="absolute inset-0"
       />
 
-      <div className="baku-in relative flex h-full w-full flex-col overflow-hidden bg-[#F4F9FF] shadow-2xl ring-1 ring-[#C7E0FF] sm:h-[min(100dvh-2.5rem,920px)] sm:w-[min(96vw,1200px)] sm:rounded-[28px] lg:w-[min(94vw,1280px)]">
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="閉じる"
-          className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-400 transition hover:bg-white hover:text-slate-700"
-        >
-          <CloseIcon className="h-5 w-5" />
-        </button>
+      <div className="baku-shell relative z-10">
+        <div className="baku-scroll">
+          <div className="baku-stack">
+            {/* 1. Header */}
+            <div className="baku-header">
+              <div className="baku-logo">BAKUSOQ</div>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="閉じる"
+                className="baku-close"
+              >
+                <CloseIcon />
+              </button>
+            </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          {/* Hero：白面なし、水色の地続き */}
-          <header className="px-6 pb-2 pt-6 sm:px-10 sm:pt-8 lg:px-14">
-            <p className="text-[26px] font-black tracking-[0.06em] text-[#0A4D9C] sm:text-[30px]">
-              BAKUSOQ
-            </p>
-            <div className="mt-4 grid items-center gap-6 sm:mt-5 sm:grid-cols-[1.15fr_0.85fr] lg:gap-10">
-              <div className="min-w-0">
-                <h2 className="text-[28px] font-black leading-[1.3] tracking-tight text-slate-900 sm:text-[34px] lg:text-[40px]">
+            {/* 2. Hero */}
+            <section className="baku-hero">
+              <div>
+                <h2 className="baku-title">
                   こんな悩み、
-                  <span className="relative inline-block text-[#1677E6]">
-                    ありませんか？
-                    <svg
-                      viewBox="0 0 240 12"
-                      className="absolute -bottom-1 left-0 w-full text-[#1677E6]"
-                      aria-hidden
-                    >
-                      <path
-                        d="M2 8 Q50 2 100 8 T200 7 T238 8"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
+                  <br />
+                  <span className="baku-title-blue">ありませんか？</span>
                 </h2>
-                <p className="mt-4 text-[15px] font-bold leading-relaxed text-slate-600 sm:text-[17px]">
-                  見積の
-                  <span className="text-slate-800">“なんとなく”</span>
-                  を、根拠とスピードに変える。
+                <p className="baku-sub">
+                  見積の“なんとなく”を、根拠とスピードに変える。
                 </p>
               </div>
-              <div className="relative mx-auto h-[190px] w-full max-w-[300px] overflow-hidden rounded-2xl bg-[#E8F3FF] sm:mx-0 sm:h-[210px] sm:max-w-none lg:h-[230px]">
+              <div className="baku-hero-visual">
+                <Image
+                  src={`${ILLUST}/hero.png`}
+                  alt=""
+                  width={340}
+                  height={160}
+                  unoptimized
+                />
+              </div>
+            </section>
+
+            {/* 3. Worry / Reason */}
+            <section className="baku-mid">
+              <div className="baku-worry">
+                <div className="baku-pill">こんな悩み、ありませんか？</div>
+                {WORRIES.map((w, i) => (
+                  <div key={i} className="baku-worry-row">
+                    {w.icon}
+                    <div className="baku-worry-text">{w.text}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="baku-arrow" aria-hidden>
+                <svg viewBox="0 0 24 24" className="h-4 w-4">
+                  <path
+                    d="M5 12h12M13 6l6 6-6 6"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+
+              <div className="baku-reason">
+                <h3 className="baku-reason-title">それは仕方ないです。</h3>
+                <p className="baku-reason-sub">理由は…</p>
+                <ul className="baku-reason-list">
+                  {REASONS.map((r) => (
+                    <li key={r} className="baku-reason-item">
+                      <IconCheck />
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
                 <Image
                   src={`${ILLUST}/reason-worker.png`}
                   alt=""
-                  fill
-                  className="object-contain object-bottom p-2"
-                  sizes="(max-width: 640px) 300px, 380px"
-                  priority
+                  width={125}
+                  height={90}
+                  className="baku-reason-illust"
+                  unoptimized
                 />
               </div>
-            </div>
-          </header>
+            </section>
 
-          <div className="space-y-6 px-5 pb-8 pt-5 sm:space-y-7 sm:px-10 sm:pb-10 lg:px-14">
-            {/* 悩み／理由：枠線少なめのやわらかい面 */}
-            <div className="grid items-stretch gap-3 md:grid-cols-[1fr_auto_1fr] md:gap-4">
-              <section className="rounded-3xl bg-[#E8F3FF] px-5 py-5 sm:px-6 sm:py-6">
-                <p className="inline-flex rounded-full bg-[#1677E6] px-4 py-1.5 text-[13px] font-black text-white sm:text-[14px]">
-                  こんな悩み、ありませんか？
-                </p>
-                <ul className="mt-4 space-y-3.5">
-                  {WORRIES.map((w, i) => (
-                    <li key={i} className="flex items-center gap-3">
-                      <span className="relative h-11 w-11 shrink-0 sm:h-12 sm:w-12">
-                        <Image
-                          src={w.img}
-                          alt=""
-                          fill
-                          className="object-contain"
-                          sizes="48px"
-                        />
-                      </span>
-                      <p className="min-w-0 text-[13px] font-bold leading-snug text-slate-800 sm:text-[15px]">
-                        {w.text}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <div
-                className="flex items-center justify-center text-[#1677E6]"
-                aria-hidden
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-xl font-black text-[#1677E6] shadow-sm">
-                  →
-                </span>
-              </div>
-
-              <section className="rounded-3xl bg-[#E8F3FF] px-5 py-5 sm:px-6 sm:py-6">
-                <p className="text-[18px] font-black leading-snug text-[#1677E6] sm:text-[20px]">
-                  それは仕方ないです。
-                </p>
-                <p className="mt-1 text-[14px] font-bold text-[#1677E6]">
-                  理由は…
-                </p>
-                <ul className="mt-4 space-y-3.5">
-                  {REASONS.map((r) => (
-                    <li
-                      key={r}
-                      className="flex items-start gap-2.5 text-[13px] font-bold leading-snug text-slate-700 sm:text-[15px]"
-                    >
-                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1677E6] text-white">
-                        <CheckIcon className="h-3.5 w-3.5" />
-                      </span>
-                      {r}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+            {/* 4. Solve message */}
+            <div className="baku-solve">
+              <span aria-hidden>✦</span>
+              <span>
+                そこを <span className="baku-solve-brand">BAKUSOQ</span>{" "}
+                が解決します
+              </span>
+              <span aria-hidden>✦</span>
             </div>
 
-            <p className="flex flex-wrap items-center justify-center gap-2 text-center text-[17px] font-black text-slate-800 sm:text-[19px]">
-              <Sparkle className="h-5 w-5" />
-              そこを{" "}
-              <span className="tracking-[0.04em] text-[#0A4D9C]">BAKUSOQ</span>{" "}
-              が解決します
-              <Sparkle className="h-5 w-5" />
-            </p>
-
-            {/* 解決：枠を薄くし、面で並べる */}
-            <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+            {/* 5. Solutions */}
+            <section className="baku-sols">
               {SOLUTIONS.map((s) => (
-                <li
-                  key={s.n}
-                  className="relative rounded-2xl bg-white/90 px-3 pb-5 pt-5 text-center shadow-[0_8px_24px_-16px_rgba(22,119,230,0.45)]"
-                >
-                  <span className="absolute left-3 top-3 text-[12px] font-black text-[#1677E6]">
-                    {s.n}
-                  </span>
-                  <div className="relative mx-auto h-[4.5rem] w-[4.5rem] sm:h-20 sm:w-20">
-                    <Image
-                      src={s.img}
-                      alt=""
-                      fill
-                      className="object-contain"
-                      sizes="80px"
-                    />
-                  </div>
-                  <p className="mt-3 text-[13px] font-black leading-snug text-[#1677E6] sm:text-[14px]">
-                    {s.title}
-                  </p>
-                  <p className="mt-1.5 text-[11px] font-bold leading-snug text-slate-600 sm:text-[12px]">
-                    {s.body}
-                  </p>
-                </li>
+                <article key={s.no} className="baku-sol">
+                  <span className="baku-sol-no">{s.no}</span>
+                  <Image
+                    src={s.img}
+                    alt=""
+                    width={55}
+                    height={55}
+                    className="baku-sol-img"
+                    unoptimized
+                  />
+                  <h4 className="baku-sol-title">{s.title}</h4>
+                  <p className="baku-sol-body">{s.body}</p>
+                </article>
               ))}
-            </ul>
+            </section>
 
-            {/* CTA */}
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-              <div className="rounded-2xl bg-[#E7F8EE] px-5 py-5">
-                <div className="flex items-center gap-3">
-                  <LineMark className="h-11 w-11 shrink-0" />
-                  <p className="text-[15px] font-black leading-snug text-slate-800 sm:text-[16px]">
+            {/* 6. CTA — 参考画像準拠 */}
+            <section className="baku-cta">
+              <a
+                href={BAKUSOQ_LINE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="baku-cta-a"
+              >
+                <LineMark />
+                <div className="baku-cta-copy">
+                  <p className="baku-cta-lead">
                     ぜひLINE登録して情報を集めよう！
                   </p>
+                  <span className="baku-cta-btn">LINE登録はこちら &gt;</span>
                 </div>
-                <a
-                  href={BAKUSOQ_LINE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 flex items-center justify-center gap-1 rounded-full bg-[#06C755] px-5 py-3 text-[15px] font-black text-white transition hover:bg-[#05b34c]"
-                >
-                  LINE登録はこちら
-                  <span aria-hidden>›</span>
-                </a>
-              </div>
+              </a>
 
-              <div className="rounded-2xl bg-[#E8F3FF] px-5 py-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2.5">
-                      <GlobeMark className="h-10 w-10 shrink-0" />
-                      <a
-                        href={BAKUSOQ_HP_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[16px] font-black text-[#1677E6] underline-offset-2 hover:underline"
-                      >
-                        HPはこちら ›
-                      </a>
-                    </div>
-                    <p className="mt-2 break-all text-[12px] font-medium text-slate-500">
-                      {BAKUSOQ_HP_URL}
-                    </p>
-                  </div>
-                  <span className="relative h-16 w-20 shrink-0 sm:h-[4.5rem] sm:w-24">
-                    <Image
-                      src={`${ILLUST}/cta-dash.png`}
-                      alt=""
-                      fill
-                      className="object-contain object-right"
-                      sizes="96px"
-                    />
-                  </span>
+              <a
+                href={BAKUSOQ_HP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="baku-cta-b"
+              >
+                <IconGlobe />
+                <div className="baku-cta-copy">
+                  <p className="baku-cta-lead">HPはこちら &gt;</p>
+                  <span className="baku-cta-url">{BAKUSOQ_HP_URL}</span>
                 </div>
-              </div>
-            </div>
+                <Image
+                  src={`${ILLUST}/cta-dash.png`}
+                  alt=""
+                  width={60}
+                  height={60}
+                  className="baku-cta-side"
+                  unoptimized
+                />
+              </a>
+            </section>
 
-            <p className="text-center text-[11px] leading-relaxed text-slate-400 sm:text-[12px]">
-              最新事例やノウハウなど、お役立ち情報をお届けします。登録は30秒で完了、いつでも解除できます。
+            <p className="baku-foot">
+              最新事例や活用ノウハウなど、すぐに役立つ情報をお届けします。登録は30秒で完了・いつでも解除できます。
             </p>
           </div>
         </div>

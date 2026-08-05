@@ -46,7 +46,7 @@ export async function generateMetadata({
     alternates: { canonical: url },
     openGraph: {
       type: "article",
-      title: item.title,
+      title: `解体ナレッジ | ${item.title}`,
       description,
       url,
       siteName: "解体ナレッジ",
@@ -56,7 +56,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: item.title,
+      title: `解体ナレッジ | ${item.title}`,
       description,
       images: item.imageUrl ? [item.imageUrl] : undefined,
     },

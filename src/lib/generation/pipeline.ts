@@ -22,6 +22,7 @@ import { USD_JPY_RATE } from "@/lib/ai/pricing";
 import { excerptFrom } from "@/lib/excerpt";
 import type { ArticleType } from "@/lib/types";
 import { isBlockedTheme } from "@/lib/generation/theme-policy";
+import { stripBrandFromTitle } from "@/lib/seo";
 
 interface ThemeRow {
   /** テーマ在庫は廃止。その場生成なので id は持たない（null） */
@@ -452,7 +453,9 @@ export async function runGenerationPipeline(opts?: {
     });
     const seoRes = await callJson<SeoData>({ prompt: seoPrompt, model, maxTokens: 800 });
     track(seoRes);
-    const seoTitle = seoRes.data.seo_title ?? theme.title;
+    const seoTitle = stripBrandFromTitle(
+      seoRes.data.seo_title ?? theme.title,
+    ) || theme.title;
     const metaDescription = seoRes.data.meta_description ?? excerptFrom(body);
 
     // アイキャッチ（表紙1枚目）：Nano Banana 図解サムネ。

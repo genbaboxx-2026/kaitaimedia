@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "解体・建設・産廃に関する業界ニュースを紹介しています。詳細ページから元記事も確認できます。",
   alternates: { canonical: `${SITE_URL}/news` },
   openGraph: {
-    title: "業界ニュース | 解体ナレッジ",
+    title: "解体ナレッジ | ニュース",
     description:
       "解体・建設・産廃に関する業界ニュースを紹介しています。詳細ページから元記事も確認できます。",
     url: `${SITE_URL}/news`,

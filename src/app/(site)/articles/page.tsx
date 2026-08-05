@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "解体業界の実務に役立つ記事の一覧。見積もり・原価管理・工期・産廃・法改正・補助金などのテーマを扱います。",
   alternates: { canonical: `${SITE_URL}/articles` },
   openGraph: {
-    title: "記事一覧 | 解体ナレッジ",
+    title: "解体ナレッジ | 記事一覧",
     description:
       "解体業界の実務に役立つ記事の一覧。見積もり・原価管理・工期・産廃・法改正・補助金などのテーマを扱います。",
     url: `${SITE_URL}/articles`,

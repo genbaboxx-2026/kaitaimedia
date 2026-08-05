@@ -38,7 +38,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: `${title} | 解体ナレッジ`,
+      title: `解体ナレッジ | ${title}`,
       description,
       url,
     },

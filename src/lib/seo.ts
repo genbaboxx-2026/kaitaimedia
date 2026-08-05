@@ -6,9 +6,25 @@ import { SITE_URL } from "@/lib/site-url";
 export const SITE_DESCRIPTION =
   "解体業界の実務者向け専門メディア。見積もり・原価管理・工程・産廃・法改正など、解体企業の判断に役立つ情報を発信します。";
 
-/** SEO用：表示タイトル・説明の解決 */
+/** ページ名だけを返す（ルートの title.template で「解体ナレッジ | …」になる） */
+export function stripBrandFromTitle(raw: string): string {
+  return raw
+    .replace(/\s*[|\-–—]\s*GENBA\s*BOXX\s*$/i, "")
+    .replace(/\s*[|\-–—]\s*GENBABOXX\s*$/i, "")
+    .replace(/\s*[|\-–—]\s*解体ナレッジ(?:\s*[|\-–—]\s*GENBA\s*BOXX)?\s*$/i, "")
+    .replace(/^解体ナレッジ\s*[|\-–—]\s*/i, "")
+    .trim();
+}
+
+/** 「解体ナレッジ | ページ名」。トップはサイト名のみ */
+export function brandedTitle(pageName?: string | null): string {
+  const bare = pageName ? stripBrandFromTitle(pageName) : "";
+  return bare ? `${SITE_NAME} | ${bare}` : SITE_NAME;
+}
+
+/** SEO用：表示タイトル・説明の解決（ブランド名は template 側で付与） */
 export function articleSeoTitle(a: Article): string {
-  return a.seoTitle || a.title;
+  return stripBrandFromTitle(a.seoTitle || a.title) || a.title;
 }
 
 export function articleSeoDescription(a: Article): string {
@@ -24,8 +40,10 @@ export function organizationWebSiteLd() {
       {
         "@type": "Organization",
         "@id": `${SITE_URL}/#organization`,
-        name: OPERATOR_NAME,
+        name: SITE_NAME,
+        alternateName: OPERATOR_NAME,
         url: SITE_URL,
+        logo: `${SITE_URL}/brand/k-mark.png`,
       },
       {
         "@type": "WebSite",
@@ -80,14 +98,18 @@ export function articleJsonLd(article: Article, categoryName: string) {
       : undefined,
     author: {
       "@type": "Organization",
-      name: OPERATOR_NAME,
+      name: SITE_NAME,
       url: SITE_URL,
     },
     publisher: {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
-      name: OPERATOR_NAME,
+      name: SITE_NAME,
       url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/brand/k-mark.png`,
+      },
     },
   };
 }

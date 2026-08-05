@@ -39,20 +39,21 @@ export async function generateMetadata({
   if (!article) return { title: "記事が見つかりません" };
 
   const url = `${SITE_URL}/articles/${article.slug}`;
-  const title = articleSeoTitle(article);
+  const bareTitle = articleSeoTitle(article);
   const description = articleSeoDescription(article);
   const images = article.imageUrl
     ? [{ url: article.imageUrl, alt: article.title }]
     : undefined;
 
   return {
-    title,
+    // template: 「解体ナレッジ | %s」
+    title: bareTitle,
     description,
     keywords: article.tags,
     alternates: { canonical: url },
     openGraph: {
       type: "article",
-      title,
+      title: `解体ナレッジ | ${bareTitle}`,
       description,
       url,
       siteName: "解体ナレッジ",
@@ -65,7 +66,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: `解体ナレッジ | ${bareTitle}`,
       description,
       images: article.imageUrl ? [article.imageUrl] : undefined,
     },

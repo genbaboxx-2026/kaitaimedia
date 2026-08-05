@@ -9,16 +9,20 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#002060",
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "解体ナレッジ",
-    template: "%s | 解体ナレッジ",
+    template: "解体ナレッジ | %s",
   },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: [{ url: "/brand/k-mark.png", type: "image/png" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png" }],
+  },
   keywords: [
     "解体",
     "解体工事",
