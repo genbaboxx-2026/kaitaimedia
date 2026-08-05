@@ -4,7 +4,6 @@ import { getCategoryName } from "@/lib/dummy-data";
 import { getCategoryMeta } from "@/lib/categories-meta";
 import { formatRelativeJa } from "@/lib/format";
 import { CategoryIcon } from "@/components/site/icons";
-import { BookmarkIcon } from "@/components/site/nav-icons";
 
 /**
  * NewsPicks風：左に見出し＋メタ、右にサムネ。
@@ -34,21 +33,6 @@ export function ArticleListItem({ article }: { article: Article }) {
               {formatRelativeJa(article.publishedAt)}
             </time>
           </p>
-
-          <div className="mt-2.5 flex items-center gap-2">
-            <span
-              className="inline-flex h-5 items-center rounded-full px-2 text-[10px] font-bold text-white"
-              style={{ backgroundColor: meta.accent }}
-            >
-              {categoryName}
-            </span>
-            <span className="text-[11px] font-semibold text-slate-500">
-              約{article.readingMinutes}分
-            </span>
-            <span className="ml-auto text-slate-300 md:hidden">
-              <BookmarkIcon className="h-4 w-4" />
-            </span>
-          </div>
         </div>
 
         <div className="relative mt-0.5 aspect-video w-[104px] shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-slate-100 to-slate-200 sm:w-28">
