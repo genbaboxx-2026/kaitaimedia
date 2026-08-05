@@ -28,6 +28,43 @@ interface DbArticle {
   category: { slug: string; name: string } | null;
 }
 
+interface DbDailyView {
+  article_id: string;
+  view_count: number | null;
+}
+
+/** JST の「昨日」を YYYY-MM-DD で返す */
+function tokyoYesterdayIso(): string {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const todayTokyo = fmt.format(new Date()); // YYYY-MM-DD
+  const [y, m, d] = todayTokyo.split("-").map(Number);
+  const utc = Date.UTC(y, m - 1, d - 1);
+  return fmt.format(new Date(utc));
+}
+
+async function fetchYesterdayViewCounts(
+  articleIds: string[],
+): Promise<Map<string, number>> {
+  const map = new Map<string, number>();
+  if (articleIds.length === 0) return map;
+  const yesterday = tokyoYesterdayIso();
+  const inList = articleIds.map(encodeURIComponent).join(",");
+  const rows = await restSelect<DbDailyView>(
+    `article_daily_views?select=article_id,view_count&view_date=eq.${yesterday}&article_id=in.(${inList})`,
+    0,
+  );
+  if (!rows) return map;
+  for (const r of rows) {
+    map.set(r.article_id, r.view_count ?? 0);
+  }
+  return map;
+}
+
 const STATUSES: AdminStatus[] = ["published", "draft", "unpublished", "failed"];
 
 /** 一覧用（本文なし。一覧で body を取ると遷移が遅くなる） */
@@ -39,7 +76,7 @@ const LIST_SELECT =
 /** 編集画面用（本文あり） */
 const DETAIL_SELECT = `${LIST_SELECT},body`;
 
-function toAdmin(r: DbArticle): AdminArticle {
+function toAdmin(r: DbArticle, viewCountYesterday = 0): AdminArticle {
   const failedChecks = filterActiveFailedChecks(r.failed_check_items ?? []);
   const allPass = failedChecks.length === 0;
   const status = (STATUSES.includes(r.status as AdminStatus)
@@ -55,6 +92,7 @@ function toAdmin(r: DbArticle): AdminArticle {
     status,
     charCount: r.char_count ?? 0,
     viewCount: r.view_count ?? 0,
+    viewCountYesterday,
     revisionCount: r.revision_count ?? 0,
     // 3層UIは廃止。互換のため同値で埋める
     quality: { layer1: allPass, layer2: allPass, layer3: allPass },
@@ -87,7 +125,8 @@ export async function fetchAdminArticles(
     0,
   );
   if (!rows) return null;
-  return rows.map(toAdmin);
+  const yesterdayMap = await fetchYesterdayViewCounts(rows.map((r) => r.id));
+  return rows.map((r) => toAdmin(r, yesterdayMap.get(r.id) ?? 0));
 }
 
 // 単一記事をIDで取得（編集画面用）。
@@ -97,5 +136,6 @@ export async function fetchAdminArticle(id: string): Promise<AdminArticle | null
     0,
   );
   if (!rows || rows.length === 0) return null;
-  return toAdmin(rows[0]);
+  const yesterdayMap = await fetchYesterdayViewCounts([rows[0].id]);
+  return toAdmin(rows[0], yesterdayMap.get(rows[0].id) ?? 0);
 }

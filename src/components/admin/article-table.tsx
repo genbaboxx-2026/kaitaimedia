@@ -224,7 +224,8 @@ export function ArticleTable({
               {a.title}
             </p>
             <p className="mt-1.5 text-[11px] text-slate-400">
-              品質 {quality.label} · {a.charCount.toLocaleString()}字 · {a.viewCount.toLocaleString()}PV ·{" "}
+              品質 {quality.label} · {a.charCount.toLocaleString()}字 ·{" "}
+              {a.viewCount.toLocaleString()} ({a.viewCountYesterday.toLocaleString()})PV ·{" "}
               {formatJaDateTime(a.createdAt)}
             </p>
             {a.failedChecks.length > 0 && (
@@ -344,8 +345,11 @@ export function ArticleTable({
           <td className="px-4 py-2.5 align-top text-slate-500">
             {a.charCount.toLocaleString()}
           </td>
-          <td className="px-4 py-2.5 align-top text-slate-500">
-            {a.viewCount.toLocaleString()}
+          <td
+            className="px-4 py-2.5 align-top whitespace-nowrap text-slate-500"
+            title="累計PV（昨日のPV）"
+          >
+            {a.viewCount.toLocaleString()} ({a.viewCountYesterday.toLocaleString()})
           </td>
           <td className="px-4 py-2.5 align-top whitespace-nowrap text-slate-500">
             {formatJaDateTime(a.createdAt)}
@@ -447,7 +451,12 @@ export function ArticleTable({
                       品質
                     </th>
                     <th className="px-4 py-2.5 font-semibold">文字数</th>
-                    <th className="whitespace-nowrap px-4 py-2.5 font-semibold">PV</th>
+                    <th
+                      className="whitespace-nowrap px-4 py-2.5 font-semibold"
+                      title="累計PV（昨日のPV）"
+                    >
+                      PV
+                    </th>
                     <th className="px-4 py-2.5 font-semibold">生成日</th>
                     <th className="px-4 py-2.5 text-right font-semibold">操作</th>
                   </tr>
