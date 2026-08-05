@@ -120,7 +120,7 @@ const SOLUTIONS = [
 
 function IconCalc() {
   return (
-    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+    <svg viewBox="0 0 38 38" className="baku-wicon" aria-hidden>
       <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
       <rect x="11" y="9" width="16" height="20" rx="2.5" fill="#1674E8" />
       <rect x="13.5" y="11.5" width="11" height="5" rx="1" fill="#fff" />
@@ -143,7 +143,7 @@ function IconCalc() {
 
 function IconClock() {
   return (
-    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+    <svg viewBox="0 0 38 38" className="baku-wicon" aria-hidden>
       <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
       <circle cx="19" cy="19" r="10" fill="#1674E8" />
       <circle cx="19" cy="19" r="7.5" fill="#fff" />
@@ -160,7 +160,7 @@ function IconClock() {
 
 function IconChartDown() {
   return (
-    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+    <svg viewBox="0 0 38 38" className="baku-wicon" aria-hidden>
       <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
       <path
         d="M10 14l5 5 4-3 9 9"
@@ -184,7 +184,7 @@ function IconChartDown() {
 
 function IconPerson() {
   return (
-    <svg viewBox="0 0 38 38" className="h-[38px] w-[38px]" aria-hidden>
+    <svg viewBox="0 0 38 38" className="baku-wicon" aria-hidden>
       <circle cx="19" cy="19" r="19" fill="#E8F2FF" />
       <circle cx="19" cy="14" r="4.5" fill="#1674E8" />
       <path
@@ -197,7 +197,7 @@ function IconPerson() {
 
 function IconCheck() {
   return (
-    <svg viewBox="0 0 21 21" className="h-[21px] w-[21px] shrink-0" aria-hidden>
+    <svg viewBox="0 0 21 21" className="h-[18px] w-[18px] shrink-0" aria-hidden>
       <circle cx="10.5" cy="10.5" r="10.5" fill="#1674E8" />
       <path
         d="M6 10.8l3 3 6.2-6.5"
@@ -213,7 +213,7 @@ function IconCheck() {
 
 function IconGlobe() {
   return (
-    <svg viewBox="0 0 24 24" className="h-7 w-7 shrink-0 text-white" aria-hidden>
+    <svg viewBox="0 0 24 24" className="h-9 w-9 shrink-0 text-white" aria-hidden>
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" fill="none" />
       <ellipse cx="12" cy="12" rx="4" ry="9" stroke="currentColor" strokeWidth="1.5" fill="none" />
       <path d="M3.5 12h17M12 3.5c2.5 2.8 3.8 5.6 3.8 8.5S14.5 17.7 12 20.5M12 3.5C9.5 6.3 8.2 9.1 8.2 12s1.3 5.7 3.8 8.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
@@ -223,7 +223,7 @@ function IconGlobe() {
 
 function LineMark() {
   return (
-    <svg viewBox="0 0 48 48" className="h-[60px] w-[60px] shrink-0" aria-hidden>
+    <svg viewBox="0 0 48 48" className="h-16 w-16 shrink-0" aria-hidden>
       <circle cx="24" cy="24" r="24" fill="#fff" />
       <path
         d="M24 10.5c-7.3 0-13.2 4.9-13.2 11 0 5.4 4.8 9.9 11.3 10.8.4.1.9.2 1 .5.1.3.1.7 0 1.1l-.2 1.2c0 .4-.2 1.4 1.2.8 0 0 6.6-3.9 9-6.7 1.7-1.8 2.9-3.7 2.9-6.7 0-6.1-5.9-11-13-11z"
@@ -278,23 +278,22 @@ function ModalStyles() {
         overflow-y: auto;
         overflow-x: hidden;
         background: #ffffff;
-        padding: 24px 32px;
+        padding: 20px 32px 18px;
       }
       .baku-stack {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        min-height: 100%;
+        gap: 12px;
       }
       .baku-header {
-        height: 52px;
+        height: 44px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         flex-shrink: 0;
       }
       .baku-logo {
-        font-size: 27px;
+        font-size: 26px;
         font-weight: 800;
         letter-spacing: 0.04em;
         line-height: 1;
@@ -302,8 +301,8 @@ function ModalStyles() {
         font-style: italic;
       }
       .baku-close {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         border-radius: 999px;
         background: #fff;
         color: #334155;
@@ -316,14 +315,14 @@ function ModalStyles() {
       .baku-hero {
         display: grid;
         grid-template-columns: 1.15fr 0.85fr;
-        gap: 32px;
+        gap: 24px;
         align-items: center;
-        min-height: 160px;
-        max-height: 190px;
+        min-height: 132px;
+        max-height: 148px;
       }
       .baku-title {
-        font-size: 42px;
-        line-height: 1.25;
+        font-size: 36px;
+        line-height: 1.22;
         font-weight: 800;
         letter-spacing: -0.03em;
         margin: 0;
@@ -331,18 +330,18 @@ function ModalStyles() {
       }
       .baku-title-blue { color: #1674e8; }
       .baku-sub {
-        font-size: 15px;
-        line-height: 1.6;
-        margin-top: 12px;
+        font-size: 14px;
+        line-height: 1.55;
+        margin-top: 8px;
         color: #1e293b;
       }
       .baku-hero-visual {
-        width: 340px;
-        height: 160px;
+        width: 300px;
+        height: 132px;
         max-width: 100%;
         margin-left: auto;
-        padding: 10px;
-        border-radius: 18px;
+        padding: 8px;
+        border-radius: 16px;
         background: #eef7ff;
         display: flex;
         align-items: center;
@@ -356,51 +355,70 @@ function ModalStyles() {
       .baku-mid {
         display: grid;
         grid-template-columns: 1fr 34px 1fr;
-        gap: 12px;
+        gap: 14px;
         align-items: stretch;
       }
       .baku-worry, .baku-reason {
-        height: 220px;
-        min-height: 220px;
-        max-height: 220px;
-        border-radius: 20px;
+        height: 248px;
+        min-height: 248px;
+        max-height: 248px;
+        border-radius: 18px;
         position: relative;
-        overflow: hidden;
+        box-sizing: border-box;
       }
       .baku-worry {
         background: #f4f9ff;
-        padding: 18px 22px;
+        padding: 14px 18px 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       .baku-reason {
         background: #eef6ff;
         border: 1px solid #b9d8ff;
-        padding: 22px 24px;
+        padding: 16px 18px 14px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       .baku-pill {
         display: inline-flex;
         align-items: center;
-        height: 34px;
-        padding: 0 18px;
+        align-self: flex-start;
+        height: 30px;
+        padding: 0 14px;
         border-radius: 999px;
         background: #1674e8;
         color: #fff;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
+        flex-shrink: 0;
+      }
+      .baku-worry-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        min-height: 0;
       }
       .baku-worry-row {
         display: grid;
-        grid-template-columns: 42px 1fr;
+        grid-template-columns: 34px 1fr;
         align-items: center;
-        min-height: 40px;
-        gap: 12px;
-        padding: 4px 0;
+        gap: 10px;
+        padding: 5px 0;
         border-bottom: 1px dashed #cbdff5;
       }
-      .baku-worry-row:last-child { border-bottom: none; }
+      .baku-worry-row:last-child { border-bottom: none; padding-bottom: 0; }
+      .baku-wicon {
+        width: 32px;
+        height: 32px;
+        display: block;
+      }
       .baku-worry-text {
-        font-size: 13px;
-        line-height: 1.45;
+        font-size: 12.5px;
+        line-height: 1.35;
         font-weight: 600;
         color: #0f172a;
       }
@@ -414,61 +432,68 @@ function ModalStyles() {
         align-items: center;
         justify-content: center;
         align-self: center;
+        justify-self: center;
         flex-shrink: 0;
         box-shadow: 0 4px 10px rgba(22, 116, 232, 0.28);
       }
       .baku-reason-title {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 800;
         color: #1674e8;
-        margin: 0 0 8px;
+        margin: 0 0 4px;
+        flex-shrink: 0;
       }
       .baku-reason-sub {
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 700;
         color: #1674e8;
         margin: 0 0 10px;
+        flex-shrink: 0;
       }
       .baku-reason-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        justify-content: space-evenly;
+        gap: 0;
+        flex: 1;
         position: relative;
         z-index: 1;
-        max-width: calc(100% - 110px);
+        max-width: calc(100% - 96px);
+        min-height: 0;
+        padding-bottom: 4px;
       }
       .baku-reason-item {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 8px;
-        font-size: 13px;
-        line-height: 1.5;
+        font-size: 12.5px;
+        line-height: 1.4;
         font-weight: 600;
         color: #0f172a;
       }
       .baku-reason-illust {
         position: absolute;
-        right: 12px;
-        bottom: 8px;
-        width: 125px;
-        height: 90px;
+        right: 10px;
+        bottom: 10px;
+        width: 96px;
+        height: 72px;
         object-fit: contain;
         pointer-events: none;
+        opacity: 0.92;
       }
       .baku-solve {
-        height: 48px;
-        margin-top: -6px;
-        margin-bottom: -6px;
+        height: 40px;
+        margin: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 800;
         color: #0f172a;
       }
       .baku-solve-brand {
-        font-size: 29px;
+        font-size: 26px;
         color: #1269d3;
         font-style: italic;
         font-weight: 800;
@@ -480,11 +505,11 @@ function ModalStyles() {
         gap: 10px;
       }
       .baku-sol {
-        height: 170px;
-        min-height: 170px;
-        max-height: 170px;
+        height: 168px;
+        min-height: 168px;
+        max-height: 168px;
         border-radius: 14px;
-        padding: 12px;
+        padding: 12px 10px 12px;
         border: 1px solid #cfe3fb;
         background: #fff;
         display: flex;
@@ -492,6 +517,7 @@ function ModalStyles() {
         align-items: center;
         position: relative;
         overflow: hidden;
+        box-sizing: border-box;
       }
       .baku-sol-no {
         position: absolute;
@@ -509,90 +535,112 @@ function ModalStyles() {
         justify-content: center;
       }
       .baku-sol-img {
-        width: 55px;
-        height: 55px;
-        margin: 10px auto 6px;
+        width: 56px;
+        height: 56px;
+        margin: 22px auto 8px;
         object-fit: contain;
+        flex-shrink: 0;
       }
       .baku-sol-title {
-        font-size: 14px;
+        font-size: 13.5px;
         line-height: 1.35;
         font-weight: 800;
         color: #075bbd;
         text-align: center;
-        margin: 0 0 4px;
+        margin: 0;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .baku-sol-body {
-        font-size: 11px;
-        line-height: 1.45;
+        font-size: 11.5px;
+        line-height: 1.4;
         text-align: center;
         color: #1e293b;
         margin: 0;
+        flex-shrink: 0;
       }
       .baku-cta {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-        margin-top: -2px;
       }
       .baku-cta-a, .baku-cta-b {
-        height: 86px;
+        height: 96px;
         border-radius: 16px;
-        padding: 14px 20px;
+        padding: 16px 22px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 16px;
         text-decoration: none;
         color: #fff;
         overflow: hidden;
+        box-sizing: border-box;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .baku-cta-a:hover, .baku-cta-b:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
       }
       .baku-cta-a {
-        background: linear-gradient(135deg, #16cf63, #05b950);
+        background: linear-gradient(135deg, #1ad66a, #06b34f);
       }
       .baku-cta-b {
-        background: linear-gradient(135deg, #2681ed, #0b63cf);
+        background: linear-gradient(135deg, #2d88f0, #0b63cf);
       }
-      .baku-cta-copy { min-width: 0; flex: 1; }
+      .baku-cta-copy {
+        min-width: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+      }
       .baku-cta-lead {
-        font-size: 13px;
-        font-weight: 700;
-        line-height: 1.35;
-        margin: 0 0 6px;
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.3;
+        margin: 0;
       }
       .baku-cta-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 34px;
-        padding: 0 16px;
+        align-self: flex-start;
+        height: 36px;
+        padding: 0 18px;
         border-radius: 999px;
         font-size: 14px;
         font-weight: 800;
-        background: rgba(255,255,255,0.22);
-        border: 1px solid rgba(255,255,255,0.35);
+        background: #06a849;
+        border: none;
+        box-shadow: 0 2px 0 rgba(0,0,0,0.08);
       }
-      .baku-cta-a .baku-cta-btn { background: #06a849; border-color: transparent; }
       .baku-cta-url {
         display: inline-flex;
         align-items: center;
-        height: 28px;
+        align-self: flex-start;
+        height: 32px;
         padding: 0 12px;
         border-radius: 8px;
-        background: rgba(255,255,255,0.18);
-        font-size: 12px;
+        background: rgba(255,255,255,0.2);
+        font-size: 12.5px;
         font-weight: 700;
         letter-spacing: -0.01em;
       }
       .baku-cta-side {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         object-fit: contain;
         flex-shrink: 0;
       }
       .baku-foot {
-        margin-top: -4px;
+        margin: 2px 0 0;
+        padding: 0;
         font-size: 11px;
-        line-height: 1.5;
+        line-height: 1.45;
         color: #64748b;
         text-align: center;
       }
@@ -631,7 +679,7 @@ function ModalStyles() {
         .baku-sols { grid-template-columns: 1fr 1fr; }
         .baku-sol { height: auto; min-height: 150px; max-height: none; }
         .baku-cta { grid-template-columns: 1fr; }
-        .baku-cta-a, .baku-cta-b { height: auto; min-height: 76px; }
+        .baku-cta-a, .baku-cta-b { height: auto; min-height: 84px; }
       }
     `}</style>
   );
@@ -709,12 +757,14 @@ function Modal({ onClose }: { onClose: () => void }) {
             <section className="baku-mid">
               <div className="baku-worry">
                 <div className="baku-pill">こんな悩み、ありませんか？</div>
-                {WORRIES.map((w, i) => (
-                  <div key={i} className="baku-worry-row">
-                    {w.icon}
-                    <div className="baku-worry-text">{w.text}</div>
-                  </div>
-                ))}
+                <div className="baku-worry-list">
+                  {WORRIES.map((w, i) => (
+                    <div key={i} className="baku-worry-row">
+                      {w.icon}
+                      <div className="baku-worry-text">{w.text}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="baku-arrow" aria-hidden>
@@ -744,8 +794,8 @@ function Modal({ onClose }: { onClose: () => void }) {
                 <Image
                   src={`${ILLUST}/reason-worker.png`}
                   alt=""
-                  width={125}
-                  height={90}
+                  width={96}
+                  height={72}
                   className="baku-reason-illust"
                   unoptimized
                 />
