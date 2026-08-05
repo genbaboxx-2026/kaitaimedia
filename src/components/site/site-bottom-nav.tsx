@@ -7,7 +7,6 @@ import {
   GridIcon,
   HomeIcon,
   HomeIconFilled,
-  UserIcon,
 } from "@/components/site/nav-icons";
 
 const ITEMS = [
@@ -32,13 +31,6 @@ const ITEMS = [
     Icon: ArticleIcon,
     ActiveIcon: ArticleIcon,
   },
-  {
-    href: "/company",
-    label: "運営会社",
-    match: (p: string) => p.startsWith("/company"),
-    Icon: UserIcon,
-    ActiveIcon: UserIcon,
-  },
 ] as const;
 
 export function SiteBottomNav() {
@@ -50,7 +42,7 @@ export function SiteBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="メインメニュー"
     >
-      <ul className="mx-auto grid h-14 max-w-lg grid-cols-4">
+      <ul className="mx-auto grid h-14 max-w-lg grid-cols-3">
         {ITEMS.map((item) => {
           const active = item.match(pathname);
           const Icon = active && item.ActiveIcon ? item.ActiveIcon : item.Icon;
