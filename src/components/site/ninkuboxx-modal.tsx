@@ -241,18 +241,29 @@ function tierOf(overall: number): Tier {
   return TIERS.find((t) => overall >= t.min) ?? TIERS[TIERS.length - 1];
 }
 
-/** 各指標が高いと「具体的に何が起きるか」（解体業のリアル・緊急度順の箇条書き用） */
-const RISK_TEXT: Record<IndexId, string> = {
-  exhaustion:
-    "営業と現場がかみ合わず負担が現場に偏り、すれ違いと疲労から事故・ミスや突然の離脱が起きやすくなります。",
-  trust:
-    "社長が“鉛筆なめ”の感覚で給与を決め基準が見えないため、「何を見て判断されているのか」への不信が広がります。",
-  dissatisfaction:
-    "給料をもらっていても「なぜこの額なのか」の理由が分からず、金額に関係なく不満だけが静かに溜まっていきます。",
-  ambiguity:
-    "「何を頑張れば評価・給料が上がるのか」が示されず、やる気のある人ほど答えを求めて辞めていきます。",
-  dependency:
-    "会社の目標や方針が社長の頭の中だけにあり、社員が向かう先を見失って“会社離れ”が進みます。",
+/** 各指標が高いときの「状況」と「その結果どうなるか」（解体業のリアル・緊急度順） */
+const RISK_TEXT: Record<IndexId, { cause: string; result: string }> = {
+  exhaustion: {
+    cause: "営業と現場がかみ合わず負担が現場に偏り、すれ違いと疲労が積み重なります。",
+    result: "現場が疲弊し、事故・ミスや突然の離職につながります。",
+  },
+  trust: {
+    cause: "社長が“鉛筆なめ”の感覚で給与を決め、判断基準が見えません。",
+    result:
+      "「何を見て評価されているのか」への不信が広がり、優秀な人ほど会社を見限ります。",
+  },
+  dissatisfaction: {
+    cause: "給料をもらっていても「なぜこの額なのか」の理由が分かりません。",
+    result: "金額に関係なく不満が静かに溜まり、やがて離職や職場の空気の悪化を招きます。",
+  },
+  ambiguity: {
+    cause: "「何を頑張れば評価・給料が上がるのか」が示されていません。",
+    result: "やる気のある人ほど答えを求めて他社へ流れ、伸びる人材から抜けていきます。",
+  },
+  dependency: {
+    cause: "会社の目標や方針が社長の頭の中だけにあります。",
+    result: "社員が向かう先を見失って“会社離れ”が進み、社長が動けないと現場が止まります。",
+  },
 };
 
 /** 点数に応じて表情・付帯（汗・絆創膏）が変わる病状フェイス */
@@ -840,11 +851,23 @@ function ModalStyles() {
         font-size: 15px;
         font-weight: 700;
         line-height: 1.55;
-        color: #1e293b;
+        color: #334155;
+      }
+      .ninku-risk-result {
+        margin: 5px 0 0;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.5;
+        color: #b91c1c;
+      }
+      .ninku-risk-arrow {
+        margin-right: 5px;
+        font-size: 11px;
+        vertical-align: 1px;
       }
       .ninku-risk-tag {
         display: inline-block;
-        margin-top: 3px;
+        margin-top: 5px;
         font-size: 12px;
         font-weight: 800;
       }
@@ -1198,7 +1221,15 @@ function Modal({ onClose }: { onClose: () => void }) {
                             {i + 1}
                           </span>
                           <div>
-                            <p className="ninku-risk-text">{RISK_TEXT[s.id]}</p>
+                            <p className="ninku-risk-text">
+                              {RISK_TEXT[s.id].cause}
+                            </p>
+                            <p className="ninku-risk-result">
+                              <span aria-hidden className="ninku-risk-arrow">
+                                ▶
+                              </span>
+                              {RISK_TEXT[s.id].result}
+                            </p>
                             <span
                               className="ninku-risk-tag"
                               style={{ color: s.color }}
