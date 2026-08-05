@@ -88,6 +88,7 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
       { key: "auto_publish_enabled", value: String(s.autoPublishEnabled) },
       { key: "generation_enabled", value: String(s.generationEnabled) },
       { key: "generation_time", value: s.generationTime },
+      { key: "generation_interval_days", value: String(s.generationIntervalDays) },
       { key: "articles_per_day", value: String(s.articlesPerDay) },
       { key: "min_char_count", value: String(s.minCharCount) },
       { key: "max_char_count", value: String(s.maxCharCount) },
@@ -161,10 +162,40 @@ export function SettingsForm({ initial }: { initial?: GenerationSettings }) {
             <input type="time" value={s.generationTime} onChange={(e) => set("generationTime", e.target.value)} className={sel} />
           </Row>
           <Row
-            label="1日の生成本数"
-            hint="成功（公開または合格下書き）の上限。不合格下書きは成功数に含みません。試行上限は自動でこの値×2です"
+            label="何日ごとに生成するか"
+            hint="1=毎日 / 2=2日に1回 / 3=3日に1回。前回の定時完了日から数えます。保存するだけで反映されます"
           >
-            <input type="number" min={0} value={s.articlesPerDay} onChange={(e) => set("articlesPerDay", Number(e.target.value))} className={num} />
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={s.generationIntervalDays}
+                onChange={(e) =>
+                  set(
+                    "generationIntervalDays",
+                    Math.max(1, Math.floor(Number(e.target.value) || 1)),
+                  )
+                }
+                className={num}
+              />
+              <span className="text-sm font-medium text-slate-600">日ごと</span>
+            </div>
+          </Row>
+          <Row
+            label="1回あたりの生成本数"
+            hint="生成日に成功させる本数の上限（公開または合格下書き）。不合格下書きは成功数に含みません。試行上限は自動でこの値×2です"
+          >
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                value={s.articlesPerDay}
+                onChange={(e) => set("articlesPerDay", Number(e.target.value))}
+                className={num}
+              />
+              <span className="text-sm font-medium text-slate-600">本</span>
+            </div>
           </Row>
         </Section>
 

@@ -96,6 +96,14 @@ export function jstDayStartUtcIso(jstDate: string): string {
   return new Date(`${jstDate}T00:00:00+09:00`).toISOString();
 }
 
+/** JST 日付文字列同士の差（日数）。to - from */
+export function jstDateDiffDays(from: string, to: string): number {
+  const a = new Date(`${from}T00:00:00+09:00`).getTime();
+  const b = new Date(`${to}T00:00:00+09:00`).getTime();
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+  return Math.round((b - a) / (24 * 60 * 60 * 1000));
+}
+
 function parseLock(raw: string): ScheduleLock | null {
   if (!raw.trim()) return null;
   try {
@@ -155,6 +163,10 @@ export interface ScheduleGateResult {
   reason: string;
   jstDate: string;
   generationTime: string;
+  /** 何日ごとに生成するか（1=毎日） */
+  generationIntervalDays: number;
+  /** 前回定時完了日（JST）。未記録は空文字 */
+  lastScheduledDate: string;
   /** 本日あと何本生成するか（articles_per_day − 本日成功数） */
   remaining: number;
   articlesPerDay: number;
@@ -165,13 +177,18 @@ export interface ScheduleGateResult {
 
 /**
  * 定時トリガー時に「今すぐバッチを回してよいか」を判定する。
- * generation_time 以降で、本日の成功生成数が articles_per_day 未達なら実行する。
+ * generation_interval_days 間隔を空け、generation_time 以降で
+ * 本日の成功生成数が articles_per_day 未達なら実行する。
  */
 export async function evaluateScheduleGate(
   now = new Date(),
 ): Promise<ScheduleGateResult> {
   const settings = await loadSettings();
   const generationTime = getString(settings, "generation_time", "03:00");
+  const generationIntervalDays = Math.max(
+    1,
+    Math.floor(getNumber(settings, "generation_interval_days", 1)),
+  );
   const articlesPerDay = Math.max(
     0,
     Math.floor(getNumber(settings, "articles_per_day", 1)),
@@ -179,6 +196,7 @@ export async function evaluateScheduleGate(
   const maxAttempts = resolveMaxScheduledAttempts(articlesPerDay);
   const jst = jstNow(now);
   const nowLabel = `${String(jst.hour).padStart(2, "0")}:${String(jst.minute).padStart(2, "0")}`;
+  const lastScheduledDate = String(settings[LAST_RUN_KEY] ?? "").trim();
   const todayCount = await countTodaysGeneratedArticles(jst.date);
   const todayAttempts = await countTodaysGenerationAttempts(jst.date);
   const remaining = Math.max(0, articlesPerDay - todayCount);
@@ -186,6 +204,8 @@ export async function evaluateScheduleGate(
   const base = {
     jstDate: jst.date,
     generationTime,
+    generationIntervalDays,
+    lastScheduledDate,
     remaining,
     articlesPerDay,
     todayCount,
@@ -217,6 +237,18 @@ export async function evaluateScheduleGate(
     };
   }
 
+  // 前回完了日から間隔が足りない日はスキップ（当日の未完了追い上げは許可）
+  if (lastScheduledDate && todayCount === 0) {
+    const daysSince = jstDateDiffDays(lastScheduledDate, jst.date);
+    if (daysSince >= 0 && daysSince < generationIntervalDays) {
+      return {
+        ...base,
+        run: false,
+        reason: `生成間隔未達（前回完了 ${lastScheduledDate} / ${generationIntervalDays}日ごと / 経過 ${daysSince}日）`,
+      };
+    }
+  }
+
   if (remaining === 0) {
     return {
       ...base,
@@ -244,12 +276,14 @@ export async function evaluateScheduleGate(
   }
 
   const onTime = isInGenerationWindow(generationTime, now);
+  const intervalNote =
+    generationIntervalDays > 1 ? ` / ${generationIntervalDays}日ごと` : "";
   return {
     ...base,
     run: true,
     reason: onTime
-      ? `定時枠ヒット（設定 ${generationTime} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`
-      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`,
+      ? `定時枠ヒット（設定 ${generationTime}${intervalNote} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`
+      : `当日追い上げ（設定 ${generationTime}${intervalNote} / いま JST ${nowLabel} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`,
   };
 }
 

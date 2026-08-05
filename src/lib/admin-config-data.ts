@@ -10,6 +10,9 @@ export interface GenerationSettings {
   generationEnabled: boolean;
   generationInstruction: string;
   generationTime: string;
+  /** 何日ごとに定時生成するか（1=毎日、2=2日に1回） */
+  generationIntervalDays: number;
+  /** 生成日に何本成功させるか */
   articlesPerDay: number;
   minCharCount: number;
   maxCharCount: number;
@@ -51,6 +54,7 @@ export const DEFAULT_SETTINGS: GenerationSettings = {
   generationEnabled: true,
   generationInstruction: "",
   generationTime: "03:00",
+  generationIntervalDays: 1,
   articlesPerDay: 1,
   minCharCount: 3500,
   maxCharCount: 5000,

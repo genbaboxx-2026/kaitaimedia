@@ -58,6 +58,10 @@ export async function fetchGenerationSettings(): Promise<GenerationSettings> {
     generationEnabled: b("generation_enabled", DEFAULT_SETTINGS.generationEnabled),
     generationInstruction: s("generation_instruction", DEFAULT_SETTINGS.generationInstruction),
     generationTime: s("generation_time", DEFAULT_SETTINGS.generationTime),
+    generationIntervalDays: Math.max(
+      1,
+      Math.floor(n("generation_interval_days", DEFAULT_SETTINGS.generationIntervalDays)),
+    ),
     articlesPerDay: n("articles_per_day", DEFAULT_SETTINGS.articlesPerDay),
     minCharCount: n("min_char_count", DEFAULT_SETTINGS.minCharCount),
     maxCharCount: n("max_char_count", DEFAULT_SETTINGS.maxCharCount),
