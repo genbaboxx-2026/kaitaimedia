@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   type Answers,
   type AnswerValue,
+  type IndexId,
   type IndexScore,
   QUESTIONS,
 } from "@/lib/ninkuboxx/diagnosis";
@@ -239,6 +240,20 @@ const TIERS: Tier[] = [
 function tierOf(overall: number): Tier {
   return TIERS.find((t) => overall >= t.min) ?? TIERS[TIERS.length - 1];
 }
+
+/** 各指標が高いと「具体的に何が起きるか」（緊急度順の箇条書き用） */
+const RISK_TEXT: Record<IndexId, string> = {
+  exhaustion:
+    "現場の疲労が限界に近づき、事故・ミスや突然の欠勤が増えやすくなります。",
+  trust:
+    "「社長に言っても変わらない」と諦めが広がり、腕のいい職人ほど静かに辞めていきます。",
+  dissatisfaction:
+    "待遇や扱いへの不満が口コミ・SNSに漏れ、応募が集まらず採用が回らなくなります。",
+  ambiguity:
+    "「何を頑張れば評価されるか」が伝わらず、若手が育たず戦力化が遅れます。",
+  dependency:
+    "判断が社長に集中し、社長が現場を離れた瞬間に仕事が止まるリスクが高まります。",
+};
 
 /** 点数に応じて表情・付帯（汗・絆創膏）が変わる病状フェイス */
 function HealthFace({ tier }: { tier: Tier }) {
@@ -775,25 +790,64 @@ function ModalStyles() {
       @keyframes ninku-fill { from { width: 0; } to { width: var(--w); } }
       .ninku-fb {
         margin: 14px 0;
-        padding: 14px;
+        padding: 14px 16px;
         border-radius: 14px;
-        background: #f0fdfa;
-        border: 1px solid #99f6e4;
+        background: #fff7f6;
+        border: 1px solid #fecdd3;
       }
       .ninku-fb h3 {
-        margin: 0 0 8px;
+        margin: 0 0 2px;
         font-size: 16px;
         font-weight: 900;
-        color: #0f766e;
+        color: #b91c1c;
       }
-      .ninku-fb p {
-        margin: 0 0 7px;
-        font-size: 15.5px;
-        font-weight: 600;
-        line-height: 1.7;
+      .ninku-fb-note {
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+      }
+      .ninku-risks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .ninku-risk {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        animation: ninku-rise .4s both;
+      }
+      .ninku-risk-rank {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1px;
+        box-shadow: 0 2px 5px rgba(0,0,0,.12);
+      }
+      .ninku-risk-text {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.55;
         color: #1e293b;
       }
-      .ninku-fb p:last-child { margin-bottom: 0; }
+      .ninku-risk-tag {
+        display: inline-block;
+        margin-top: 3px;
+        font-size: 12px;
+        font-weight: 800;
+      }
       .ninku-cta {
         display: flex;
         align-items: center;
@@ -1125,10 +1179,36 @@ function Modal({ onClose }: { onClose: () => void }) {
                   外側に広がるほど課題が大きい状態です。
                 </p>
                 <div className="ninku-fb">
-                  <h3>いま起きうる可能性</h3>
-                  {result.feedback.split("\n").filter(Boolean).map((line, i) => (
-                    <p key={`${i}-${line.slice(0, 12)}`}>{line}</p>
-                  ))}
+                  <h3>このまま放置すると起きやすいこと</h3>
+                  <p className="ninku-fb-note">危険度が高い順に表示しています。</p>
+                  <ul className="ninku-risks">
+                    {[...result.scores]
+                      .sort((a, b) => b.value - a.value)
+                      .slice(0, 3)
+                      .map((s, i) => (
+                        <li
+                          key={s.id}
+                          className="ninku-risk"
+                          style={{ animationDelay: `${0.1 + i * 0.12}s` }}
+                        >
+                          <span
+                            className="ninku-risk-rank"
+                            style={{ background: s.color }}
+                          >
+                            {i + 1}
+                          </span>
+                          <div>
+                            <p className="ninku-risk-text">{RISK_TEXT[s.id]}</p>
+                            <span
+                              className="ninku-risk-tag"
+                              style={{ color: s.color }}
+                            >
+                              {s.short}指数 {s.value}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
                 </div>
                 <a
                   href={NINKUBOXX_URL}
