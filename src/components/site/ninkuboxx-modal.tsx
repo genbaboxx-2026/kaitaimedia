@@ -23,7 +23,6 @@ interface DiagnoseResponse {
 type ChatItem =
   | { kind: "bot-q"; qIndex: number }
   | { kind: "user"; qIndex: number; value: AnswerValue; at: string }
-  | { kind: "bot-ack"; qIndex: number }
   | { kind: "bot-done" };
 
 function CloseIcon() {
@@ -818,17 +817,11 @@ function Modal({ onClose }: { onClose: () => void }) {
       ]);
     });
 
-    later(420, () => setTyping(true));
-
-    later(1100, () => {
-      setTyping(false);
-      setItems((prev) => [...prev, { kind: "bot-ack", qIndex }]);
-    });
+    later(480, () => setTyping(true));
 
     const isLast = qIndex >= TOTAL - 1;
     if (isLast) {
-      later(1500, () => setTyping(true));
-      later(2200, () => {
+      later(1300, () => {
         setTyping(false);
         setItems((prev) => [...prev, { kind: "bot-done" }]);
         setDone(true);
@@ -837,8 +830,7 @@ function Modal({ onClose }: { onClose: () => void }) {
         void runDiagnosis(nextAnswers);
       });
     } else {
-      later(1550, () => setTyping(true));
-      later(2300, () => {
+      later(1300, () => {
         setTyping(false);
         setItems((prev) => [...prev, { kind: "bot-q", qIndex: qIndex + 1 }]);
         setCursor(qIndex + 1);
@@ -932,18 +924,6 @@ function Modal({ onClose }: { onClose: () => void }) {
                         <span>{item.at}</span>
                         <span aria-hidden>✓✓</span>
                       </div>
-                    </div>
-                  </div>
-                );
-              }
-              if (item.kind === "bot-ack") {
-                return (
-                  <div key={`a-${item.qIndex}-${i}`} className="ninku-row ninku-row--bot">
-                    <BotAvatar />
-                    <div className="ninku-bubble ninku-bubble--bot">
-                      {item.qIndex >= TOTAL - 1
-                        ? "ありがとうございます！結果をまとめますね。"
-                        : "ありがとうございます！次の質問に進みますね。"}
                     </div>
                   </div>
                 );
