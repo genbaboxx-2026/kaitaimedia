@@ -120,7 +120,7 @@ function lockActive(lock: ScheduleLock | null, jstDate: string, now = Date.now()
 
 /**
  * 本日の「成功した生成」だけを数える。
- * 品質不合格で error_message 付きの下書きは枠を消費しない（再試行可能）。
+ * 品質不合格で error_message 付きの下書きは成功数に含めない（再試行可能）。
  */
 export async function countTodaysGeneratedArticles(
   jstDate: string,
@@ -133,6 +133,27 @@ export async function countTodaysGeneratedArticles(
   return logs?.length ?? 0;
 }
 
+/** 本日の定時・手動を含む生成試行数（不合格下書き・失敗も含む） */
+export async function countTodaysGenerationAttempts(
+  jstDate: string,
+): Promise<number> {
+  const dayStartUtc = jstDayStartUtcIso(jstDate);
+  const logs = await restSelect<{ id: string }>(
+    `generation_logs?select=id&started_at=gte.${encodeURIComponent(dayStartUtc)}`,
+    0,
+  );
+  return logs?.length ?? 0;
+}
+
+/** 試行上限。設定が 0 なら成功本数の2倍（最低1） */
+export function resolveMaxScheduledAttempts(
+  articlesPerDay: number,
+  configuredMax: number,
+): number {
+  if (configuredMax > 0) return configuredMax;
+  return Math.max(1, articlesPerDay * 2);
+}
+
 export interface ScheduleGateResult {
   run: boolean;
   reason: string;
@@ -142,6 +163,8 @@ export interface ScheduleGateResult {
   remaining: number;
   articlesPerDay: number;
   todayCount: number;
+  todayAttempts: number;
+  maxAttempts: number;
 }
 
 /**
@@ -157,9 +180,14 @@ export async function evaluateScheduleGate(
     0,
     Math.floor(getNumber(settings, "articles_per_day", 1)),
   );
+  const maxAttempts = resolveMaxScheduledAttempts(
+    articlesPerDay,
+    Math.floor(getNumber(settings, "max_scheduled_attempts_per_day", 0)),
+  );
   const jst = jstNow(now);
   const nowLabel = `${String(jst.hour).padStart(2, "0")}:${String(jst.minute).padStart(2, "0")}`;
   const todayCount = await countTodaysGeneratedArticles(jst.date);
+  const todayAttempts = await countTodaysGenerationAttempts(jst.date);
   const remaining = Math.max(0, articlesPerDay - todayCount);
 
   const base = {
@@ -168,6 +196,8 @@ export async function evaluateScheduleGate(
     remaining,
     articlesPerDay,
     todayCount,
+    todayAttempts,
+    maxAttempts,
   };
 
   if (!getBool(settings, "generation_enabled", true)) {
@@ -202,6 +232,15 @@ export async function evaluateScheduleGate(
     };
   }
 
+  // 不合格下書きは成功数に入れないが、試行自体は上限で止める（無限再試行防止）
+  if (todayAttempts >= maxAttempts) {
+    return {
+      ...base,
+      run: false,
+      reason: `本日の試行上限に到達（試行 ${todayAttempts}/${maxAttempts}・成功 ${todayCount}/${articlesPerDay}）。不合格続きのため停止`,
+    };
+  }
+
   const lock = parseLock(String(settings[LOCK_KEY] ?? ""));
   if (lockActive(lock, jst.date)) {
     return {
@@ -216,8 +255,8 @@ export async function evaluateScheduleGate(
     ...base,
     run: true,
     reason: onTime
-      ? `定時枠ヒット（設定 ${generationTime} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}）`
-      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}）`,
+      ? `定時枠ヒット（設定 ${generationTime} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`
+      : `当日追い上げ（設定 ${generationTime} / いま JST ${nowLabel} / 不足 ${remaining}本・成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`,
   };
 }
 

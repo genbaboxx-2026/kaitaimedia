@@ -27,6 +27,8 @@ async function main(): Promise<void> {
       tryAcquireScheduleLock,
       releaseScheduleLock,
       countTodaysGeneratedArticles,
+      countTodaysGenerationAttempts,
+      resolveMaxScheduledAttempts,
     } = await import("../src/lib/generation/schedule-gate");
     const { getNumber, loadSettings } = await import("../src/lib/ai/settings");
 
@@ -49,7 +51,12 @@ async function main(): Promise<void> {
       0,
       Math.floor(getNumber(settings, "articles_per_day", 1)),
     );
+    const maxAttempts = resolveMaxScheduledAttempts(
+      articlesPerDay,
+      Math.floor(getNumber(settings, "max_scheduled_attempts_per_day", 0)),
+    );
     const todayCount = await countTodaysGeneratedArticles(gate.jstDate);
+    const todayAttempts = await countTodaysGenerationAttempts(gate.jstDate);
     const remaining = Math.max(0, articlesPerDay - todayCount);
     if (remaining === 0) {
       console.log(
@@ -58,10 +65,17 @@ async function main(): Promise<void> {
       await releaseScheduleLock(lockOwner);
       process.exit(0);
     }
+    if (todayAttempts >= maxAttempts) {
+      console.log(
+        `[schedule] ロック後再確認で試行上限（試行 ${todayAttempts}/${maxAttempts}）`,
+      );
+      await releaseScheduleLock(lockOwner);
+      process.exit(0);
+    }
 
     scheduledJstDate = gate.jstDate;
     console.log(
-      `[schedule] ロック取得 owner=${lockOwner} / 不足 ${remaining}本（成功 ${todayCount}/${articlesPerDay}）`,
+      `[schedule] ロック取得 owner=${lockOwner} / 不足 ${remaining}本（成功 ${todayCount}/${articlesPerDay}・試行 ${todayAttempts}/${maxAttempts}）`,
     );
 
     // 不足分を1本ずつ生成し、毎本の前に再カウントする
@@ -93,10 +107,17 @@ async function main(): Promise<void> {
     try {
       for (let i = 0; i < remaining; i++) {
         const current = await countTodaysGeneratedArticles(scheduledJstDate);
+        const attempts = await countTodaysGenerationAttempts(scheduledJstDate);
         const left = Math.max(0, articlesPerDay - current);
         if (left === 0) {
           console.log(
             `[schedule] 生成前再確認で本数到達（成功 ${current}/${articlesPerDay}）。打ち切り`,
+          );
+          break;
+        }
+        if (attempts >= maxAttempts) {
+          console.log(
+            `[schedule] 生成前再確認で試行上限（試行 ${attempts}/${maxAttempts}）。打ち切り`,
           );
           break;
         }
