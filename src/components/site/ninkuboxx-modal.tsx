@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   type Answers,
@@ -180,28 +180,118 @@ function useCountUp(target: number | null, duration = 1000): number {
   return val;
 }
 
-function ScoreBar({ score, index = 0 }: { score: IndexScore; index?: number }) {
+type TierKey = "low" | "mid" | "high" | "critical";
+
+interface Tier {
+  key: TierKey;
+  min: number;
+  title: string;
+  c1: string;
+  c2: string;
+  accent: string;
+  message: string;
+}
+
+/** 総合スコア（高いほど課題が大きい）→ 危機感を段階で表現 */
+const TIERS: Tier[] = [
+  {
+    key: "critical",
+    min: 55,
+    title: "危険水域",
+    c1: "#dc2626",
+    c2: "#991b1b",
+    accent: "#dc2626",
+    message:
+      "属人化と評価のひずみが重なり、離職やトラブルが起きてもおかしくない状態です。今すぐ制度の立て直しを。",
+  },
+  {
+    key: "high",
+    min: 35,
+    title: "要注意",
+    c1: "#ea580c",
+    c2: "#c2410c",
+    accent: "#ea580c",
+    message:
+      "課題が表面化し始めています。人が抜け、社長依存がさらに強まる前に手を打つべき段階です。",
+  },
+  {
+    key: "mid",
+    min: 18,
+    title: "黄信号",
+    c1: "#d97706",
+    c2: "#b45309",
+    accent: "#d97706",
+    message:
+      "今はまだ回っていますが、評価のあいまいさが不満の火種に。伸びるか停滞するかの分かれ道です。",
+  },
+  {
+    key: "low",
+    min: 0,
+    title: "初期段階",
+    c1: "#0f766e",
+    c2: "#115e59",
+    accent: "#0f766e",
+    message:
+      "大きな問題はまだ出ていませんが、属人化の芽は静かに育ちます。整えるなら“今”が一番ラクなタイミングです。",
+  },
+];
+
+function tierOf(overall: number): Tier {
+  return TIERS.find((t) => overall >= t.min) ?? TIERS[TIERS.length - 1];
+}
+
+/** 点数に応じて表情・付帯（汗・絆創膏）が変わる病状フェイス */
+function HealthFace({ tier }: { tier: Tier }) {
+  const { key, accent } = tier;
+  const mouth: Record<TierKey, string> = {
+    low: "M43 71 Q60 83 77 71",
+    mid: "M44 75 H76",
+    high: "M43 80 Q60 70 77 80",
+    critical: "M43 82 Q60 66 77 82",
+  };
   return (
-    <div className="ninku-score">
-      <div className="ninku-score-head">
-        <span className="ninku-score-label">{score.label}</span>
-        <span className="ninku-score-value" style={{ color: score.color }}>
-          {score.value}
-        </span>
-      </div>
-      <div className="ninku-score-track">
-        <div
-          className="ninku-score-fill"
-          style={
-            {
-              "--w": `${score.value}%`,
-              background: `linear-gradient(90deg, ${score.color}cc, ${score.color})`,
-              animationDelay: `${0.2 + index * 0.09}s`,
-            } as unknown as CSSProperties
-          }
+    <svg
+      viewBox="0 0 120 120"
+      className="ninku-face"
+      role="img"
+      aria-label={`組織の状態：${tier.title}`}
+    >
+      <circle cx="60" cy="60" r="46" fill="rgba(255,255,255,0.92)" stroke={accent} strokeWidth="4" />
+      {key === "critical" ? (
+        <g stroke={accent} strokeWidth="4" strokeLinecap="round">
+          <path d="M40 47l12 10M52 47l-12 10" />
+          <path d="M68 47l12 10M80 47l-12 10" />
+        </g>
+      ) : (
+        <g fill={accent}>
+          <circle cx="47" cy="52" r="5" />
+          <circle cx="73" cy="52" r="5" />
+        </g>
+      )}
+      <path
+        d={mouth[key]}
+        stroke={accent}
+        strokeWidth="4"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {key !== "low" ? (
+        <path
+          d="M95 38c0 5-4 7-4 11a4 4 0 008 0c0-4-4-6-4-11z"
+          fill={accent}
+          opacity="0.85"
         />
-      </div>
-    </div>
+      ) : null}
+      {key === "critical" ? (
+        <g transform="rotate(30 32 32)">
+          <rect x="14" y="26" width="30" height="13" rx="6.5" fill={accent} />
+          <line x1="22" y1="28" x2="22" y2="37" stroke="#fff" strokeWidth="1.6" />
+          <line x1="29" y1="28" x2="29" y2="37" stroke="#fff" strokeWidth="1.6" />
+          <line x1="36" y1="28" x2="36" y2="37" stroke="#fff" strokeWidth="1.6" />
+        </g>
+      ) : null}
+    </svg>
   );
 }
 
@@ -566,9 +656,45 @@ function ModalStyles() {
         pointer-events: none;
       }
       @keyframes ninku-sheen { to { transform: translateX(100%); } }
-      .ninku-overall-score {
+      .ninku-overall-top {
         position: relative;
         z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .ninku-overall-main {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+      }
+      .ninku-overall-badge {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 13px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.24);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: .05em;
+        color: #fff;
+      }
+      .ninku-face-wrap { flex-shrink: 0; }
+      .ninku-face {
+        width: 82px;
+        height: 82px;
+        display: block;
+        filter: drop-shadow(0 4px 10px rgba(0,0,0,.18));
+        animation: ninku-face-in .55s .2s cubic-bezier(.22,1,.36,1) both;
+      }
+      @keyframes ninku-face-in {
+        from { opacity: 0; transform: scale(.4) rotate(-10deg); }
+        to { opacity: 1; transform: none; }
+      }
+      .ninku-overall-score {
         display: flex;
         align-items: baseline;
         gap: 6px;
@@ -962,16 +1088,34 @@ function Modal({ onClose }: { onClose: () => void }) {
 
             {result ? (
               <section className="ninku-result" ref={resultRef} aria-label="診断結果">
-                <div className="ninku-overall">
-                  <div className="ninku-overall-score">
-                    <span className="ninku-overall-num">{displayOverall}</span>
-                    <span className="ninku-overall-unit">/ 100</span>
-                  </div>
-                  <p className="ninku-overall-label">{result.overallLabel}</p>
-                  <p className="ninku-note">
-                    ※指数は0〜100。高いほど課題が大きい目安です。
-                  </p>
-                </div>
+                {(() => {
+                  const tier = tierOf(result.overall);
+                  return (
+                    <div
+                      className="ninku-overall"
+                      style={{
+                        background: `linear-gradient(135deg, ${tier.c1} 0%, ${tier.c2} 100%)`,
+                      }}
+                    >
+                      <div className="ninku-overall-top">
+                        <div className="ninku-overall-main">
+                          <span className="ninku-overall-badge">{tier.title}</span>
+                          <div className="ninku-overall-score">
+                            <span className="ninku-overall-num">{displayOverall}</span>
+                            <span className="ninku-overall-unit">/ 100</span>
+                          </div>
+                        </div>
+                        <div className="ninku-face-wrap">
+                          <HealthFace tier={tier} />
+                        </div>
+                      </div>
+                      <p className="ninku-overall-label">{tier.message}</p>
+                      <p className="ninku-note">
+                        ※指数は0〜100。高いほど課題が大きい状態です。
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 <h3 className="ninku-radar-head">課題マップ（5指標）</h3>
                 <div className="ninku-radar">
@@ -980,10 +1124,6 @@ function Modal({ onClose }: { onClose: () => void }) {
                 <p className="ninku-radar-caption">
                   外側に広がるほど課題が大きい状態です。
                 </p>
-
-                {result.scores.map((s, i) => (
-                  <ScoreBar key={s.id} score={s} index={i} />
-                ))}
                 <div className="ninku-fb">
                   <h3>いま起きうる可能性</h3>
                   {result.feedback.split("\n").filter(Boolean).map((line, i) => (
