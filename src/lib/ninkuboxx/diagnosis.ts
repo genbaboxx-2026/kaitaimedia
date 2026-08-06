@@ -28,40 +28,41 @@ export interface IndexDef {
   color: string;
 }
 
+/** レーダー表示順（上から時計回り）= 定着率 → 社員満足 → 経営余裕 → 人材育成 → 将来性 */
 export const INDEX_DEFS: IndexDef[] = [
-  {
-    id: "exhaustion",
-    label: "従業員疲弊指数",
-    short: "疲弊",
-    healthShort: "余裕",
-    color: "#0d9488",
-  },
   {
     id: "trust",
     label: "経営者の信頼不足指数",
     short: "信頼不足",
-    healthShort: "信頼",
+    healthShort: "定着率",
     color: "#ea580c",
   },
   {
     id: "dissatisfaction",
     label: "従業員の不満指数",
     short: "不満",
-    healthShort: "納得",
+    healthShort: "社員満足",
     color: "#7c3aed",
+  },
+  {
+    id: "exhaustion",
+    label: "従業員疲弊指数",
+    short: "疲弊",
+    healthShort: "経営余裕",
+    color: "#0d9488",
   },
   {
     id: "ambiguity",
     label: "評価あいまい指数",
     short: "評価あいまい",
-    healthShort: "評価明確",
+    healthShort: "人材育成",
     color: "#0284c7",
   },
   {
     id: "dependency",
     label: "社長属人依存指数",
     short: "属人依存",
-    healthShort: "仕組み化",
+    healthShort: "将来性",
     color: "#be123c",
   },
 ];
