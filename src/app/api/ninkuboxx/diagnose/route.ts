@@ -7,7 +7,9 @@ import {
   buildFallbackFeedback,
   computeDiagnosis,
   formatScoresForPrompt,
+  getHealthBand,
   isCompleteAnswers,
+  parseDiagnosisFeedback,
   QUESTIONS,
   summarizeAnswers,
 } from "@/lib/ninkuboxx/diagnosis";
@@ -39,41 +41,42 @@ export async function POST(req: Request) {
     }
 
     const result = computeDiagnosis(answers);
-    let feedback: string;
+    const health = 100 - result.overall;
+    const band = getHealthBand(health);
+    let feedback = buildFallbackFeedback(result);
     let source: "ai" | "fallback" = "fallback";
 
     try {
       const template = await getActivePrompt("ninkuboxx_diag");
       const prompt = interpolate(template, {
+        health_score: String(health),
+        band_range: band.range,
         scores: formatScoresForPrompt(result.scores),
         answers_summary: summarizeAnswers(answers),
+        // 旧プロンプト互換（未使用変数は残っても害なし）
         overall_label: result.overallLabel,
       });
       const ai = await callText({
         prompt,
         model: "claude-haiku-4-5",
-        maxTokens: 800,
+        maxTokens: 500,
       });
-      const text = ai.text.trim();
-      const lines = text
-        .split(/\n+/)
-        .map((l) => l.replace(/^\s*[-・*\d.]+\s*/, "").trim())
-        .filter(Boolean)
-        .slice(0, 5);
-      feedback =
-        lines.length >= 3 ? lines.join("\n") : buildFallbackFeedback(result);
-      source = lines.length >= 3 ? "ai" : "fallback";
+      const parsed = parseDiagnosisFeedback(ai.text);
+      if (parsed) {
+        feedback = parsed;
+        source = "ai";
+      }
     } catch (err) {
       console.error("[ninkuboxx/diagnose] AI fallback:", err);
-      feedback = buildFallbackFeedback(result);
-      source = "fallback";
     }
 
     return NextResponse.json({
       scores: result.scores,
       overall: result.overall,
       overallLabel: result.overallLabel,
-      feedback,
+      feedbackTitle: feedback.title,
+      feedbackBody: feedback.body,
+      feedback: `${feedback.title}\n${feedback.body}`,
       source,
     });
   } catch (err) {

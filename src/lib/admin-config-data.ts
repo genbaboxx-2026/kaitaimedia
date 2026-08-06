@@ -199,9 +199,21 @@ export const PROMPTS: PromptStepData[] = [
   },
   {
     step: "ninkuboxx_diag",
-    variables: ["{{scores}}", "{{answers_summary}}", "{{overall_label}}"],
-    activeVersion: 1,
+    variables: [
+      "{{health_score}}",
+      "{{band_range}}",
+      "{{scores}}",
+      "{{answers_summary}}",
+    ],
+    activeVersion: 2,
     versions: [
+      {
+        version: 2,
+        note: "NiNKU BOXX組織診断AIメッセージ v2",
+        createdAt: "2026-08-06",
+        content:
+          "健全度{{health_score}}点（{{band_range}}）の見出し・本文を2行で生成。課題指数: {{scores}} / 回答: {{answers_summary}}",
+      },
       {
         version: 1,
         note: "NiNKU BOXX組織診断フィードバック",

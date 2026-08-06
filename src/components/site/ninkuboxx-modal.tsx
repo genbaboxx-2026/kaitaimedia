@@ -7,6 +7,8 @@ import {
   type AnswerValue,
   type IndexId,
   type IndexScore,
+  ANSWER_LABELS,
+  elevatedRisks,
   QUESTIONS,
 } from "@/lib/ninkuboxx/diagnosis";
 
@@ -17,7 +19,10 @@ interface DiagnoseResponse {
   scores: IndexScore[];
   overall: number;
   overallLabel: string;
+  feedbackTitle: string;
+  feedbackBody: string;
   feedback: string;
+  source?: "ai" | "fallback";
   error?: string;
 }
 
@@ -60,12 +65,13 @@ function BotAvatar() {
   );
 }
 
-/** 5指標を五角形のレーダーチャートで表示（値0〜100・外側ほど課題が大きい） */
+/** 5指標を五角形のレーダーチャートで表示（健全度0〜100・外側ほど健全） */
 function RadarChart({ scores }: { scores: IndexScore[] }) {
   const cx = 170;
   const cy = 145;
   const R = 94;
   const n = scores.length; // 5指標＝五角形
+  const healthOf = (s: IndexScore) => 100 - s.value;
   const angleAt = (i: number) => ((-90 + (360 / n) * i) * Math.PI) / 180;
   const point = (i: number, r: number): [number, number] => {
     const a = angleAt(i);
@@ -81,14 +87,14 @@ function RadarChart({ scores }: { scores: IndexScore[] }) {
       .join(" ");
 
   const rings = [0.25, 0.5, 0.75, 1];
-  const dataPoly = polyPoints((i) => (R * scores[i].value) / 100);
+  const dataPoly = polyPoints((i) => (R * healthOf(scores[i])) / 100);
 
   return (
     <svg
       viewBox="0 0 340 300"
       className="ninku-radar-svg"
       role="img"
-      aria-label="5指標のレーダーチャート"
+      aria-label="5指標の健全度レーダーチャート"
     >
       {/* グリッド（同心五角形） */}
       {rings.map((f) => (
@@ -107,7 +113,7 @@ function RadarChart({ scores }: { scores: IndexScore[] }) {
           <line key={s.id} x1={cx} y1={cy} x2={x} y2={y} stroke="#cbd5e1" strokeWidth="1" />
         );
       })}
-      {/* データ多角形 */}
+      {/* データ多角形（健全度＝100−課題） */}
       <polygon
         className="ninku-radar-poly"
         points={dataPoly}
@@ -118,7 +124,7 @@ function RadarChart({ scores }: { scores: IndexScore[] }) {
       />
       {/* 頂点ドット */}
       {scores.map((s, i) => {
-        const [x, y] = point(i, (R * s.value) / 100);
+        const [x, y] = point(i, (R * healthOf(s)) / 100);
         return (
           <circle
             key={`dot-${s.id}`}
@@ -132,15 +138,16 @@ function RadarChart({ scores }: { scores: IndexScore[] }) {
           />
         );
       })}
-      {/* ラベル（指標名＋数値） */}
+      {/* ラベル（健全度名＋数値） */}
       {scores.map((s, i) => {
         const [lx, ly] = point(i, R + 20);
         const anchor =
           Math.abs(lx - cx) < 8 ? "middle" : lx > cx ? "start" : "end";
+        const health = healthOf(s);
         return (
           <g key={`lb-${s.id}`}>
             <text x={lx} y={ly - 2} textAnchor={anchor} className="ninku-radar-label">
-              {s.short}
+              {s.healthShort}
             </text>
             <text
               x={lx}
@@ -149,7 +156,7 @@ function RadarChart({ scores }: { scores: IndexScore[] }) {
               className="ninku-radar-num"
               fill={s.color}
             >
-              {s.value}
+              {health}
             </text>
           </g>
         );
@@ -181,11 +188,14 @@ function useCountUp(target: number | null, duration = 1000): number {
   return val;
 }
 
-type TierKey = "good" | "watch" | "warn" | "danger";
+type TierKey = "good" | "watch" | "danger";
 
 interface Tier {
   key: TierKey;
   min: number;
+  /** バッジ用の点数帯 */
+  range: string;
+  /** 見出し */
   title: string;
   c1: string;
   c2: string;
@@ -193,47 +203,43 @@ interface Tier {
   message: string;
 }
 
-/** 健全度スコア（0〜100・高いほど良い）→ 段階を表現 */
+/**
+ * 健全度スコア（0〜100・高いほど良い）
+ * 緑: 76以上 / 黄: 51〜75 / 赤: 50以下
+ */
 const TIERS: Tier[] = [
   {
     key: "good",
-    min: 75,
-    title: "良好",
+    min: 76,
+    range: "76点以上",
+    title: "制度の運用状況を確認しましょう",
     c1: "#0f766e",
     c2: "#115e59",
     accent: "#0f766e",
     message:
-      "評価と役割の土台ができています。この状態を保てば、人が育ち定着する強い現場になります。",
+      "基本的な仕組みは整っています。制度が社員に伝わっているか、実際の昇給や育成に活用されているかを確認しましょう。",
   },
   {
     key: "watch",
-    min: 55,
-    title: "黄信号",
+    min: 51,
+    range: "75点以下",
+    title: "仕組みを整えるタイミングです",
     c1: "#d97706",
     c2: "#b45309",
     accent: "#d97706",
     message:
-      "大きな問題はまだ出ていませんが、評価のあいまいさが不満の火種に。今が整えるベストタイミングです。",
-  },
-  {
-    key: "warn",
-    min: 35,
-    title: "要注意",
-    c1: "#ea580c",
-    c2: "#c2410c",
-    accent: "#ea580c",
-    message:
-      "課題が表面化し始めています。人が抜け、社長依存がさらに強まる前に手を打つべき段階です。",
+      "一部のルールはありますが、評価・給与・育成が十分につながっていません。今のうちに整理することで、社員数が増えても組織が回りやすくなります。",
   },
   {
     key: "danger",
     min: 0,
-    title: "危険水域",
+    range: "50点以下",
+    title: "今すぐ見直しが必要です",
     c1: "#dc2626",
     c2: "#991b1b",
     accent: "#dc2626",
     message:
-      "属人化と評価のひずみが重なり、離職やトラブルが起きてもおかしくない状態です。今すぐ制度の立て直しを。",
+      "評価や給料の決め方が、社長の感覚やその場の判断に頼っている状態です。社員の不満や離職、給与決定の迷いが起きやすくなっています。",
   },
 ];
 
@@ -273,7 +279,6 @@ function HealthFace({ tier }: { tier: Tier }) {
   const mouth: Record<TierKey, string> = {
     good: "M43 71 Q60 83 77 71",
     watch: "M44 75 H76",
-    warn: "M43 80 Q60 70 77 80",
     danger: "M43 82 Q60 66 77 82",
   };
   return (
@@ -327,13 +332,6 @@ function nowLabel() {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-/** "1 = A / 5 = B" → 両端ラベル */
-function parseScaleEnds(help?: string): { low: string; high: string } {
-  if (!help) return { low: "ほとんどない", high: "十分ある" };
-  const m = help.match(/1\s*=\s*(.+?)\s*\/\s*5\s*=\s*(.+)\s*$/);
-  if (m) return { low: m[1].trim(), high: m[2].trim() };
-  return { low: "低い", high: "高い" };
-}
 
 function ModalStyles() {
   return (
@@ -629,18 +627,26 @@ function ModalStyles() {
         opacity: 0.45;
         cursor: not-allowed;
       }
-      .ninku-scale-ends {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-        margin-top: 8px;
-        font-size: 13px;
+      .ninku-scale-legend {
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 3px;
+        font-size: 12px;
         font-weight: 700;
         color: #64748b;
-        line-height: 1.4;
+        line-height: 1.35;
       }
-      .ninku-scale-ends span:first-child { text-align: left; max-width: 48%; }
-      .ninku-scale-ends span:last-child { text-align: right; max-width: 48%; }
+      .ninku-scale-legend li {
+        display: flex;
+        gap: 6px;
+      }
+      .ninku-scale-legend b {
+        flex-shrink: 0;
+        width: 1.2em;
+        color: #0f766e;
+      }
       .ninku-composer-tip {
         margin: 8px 0 0;
         text-align: center;
@@ -737,7 +743,7 @@ function ModalStyles() {
         font-weight: 800;
         opacity: .8;
       }
-      /* レーダーチャート（課題マップ） */
+      /* レーダーチャート（健全度マップ） */
       .ninku-radar-head {
         margin: 2px 0 0;
         font-size: 15px;
@@ -771,13 +777,22 @@ function ModalStyles() {
         font-weight: 700;
         color: #64748b;
       }
-      .ninku-overall-label {
+      .ninku-overall-title {
         position: relative;
         z-index: 1;
         margin: 12px 0 0;
-        font-size: 16px;
+        font-size: 17px;
+        font-weight: 900;
+        line-height: 1.45;
+      }
+      .ninku-overall-label {
+        position: relative;
+        z-index: 1;
+        margin: 6px 0 0;
+        font-size: 15px;
         font-weight: 700;
         line-height: 1.6;
+        opacity: .95;
       }
       .ninku-score { margin-bottom: 12px; }
       .ninku-score-head {
@@ -807,17 +822,57 @@ function ModalStyles() {
         background: #fff7f6;
         border: 1px solid #fecdd3;
       }
+      .ninku-fb--ok {
+        background: #f0fdfa;
+        border-color: #99f6e4;
+      }
       .ninku-fb h3 {
         margin: 0 0 2px;
         font-size: 16px;
         font-weight: 900;
         color: #b91c1c;
       }
+      .ninku-fb--ok h3 { color: #0f766e; }
       .ninku-fb-note {
         margin: 0 0 12px;
         font-size: 12px;
         font-weight: 700;
         color: #64748b;
+      }
+      .ninku-keeps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ninku-keep {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        animation: ninku-rise .4s both;
+      }
+      .ninku-keep-mark {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        background: #0f766e;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1px;
+      }
+      .ninku-keep-text {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.55;
+        color: #334155;
       }
       .ninku-risks {
         list-style: none;
@@ -1123,7 +1178,7 @@ function Modal({ onClose }: { onClose: () => void }) {
                   <div key={`u-${item.qIndex}-${i}`} className="ninku-row ninku-row--user">
                     <div>
                       <div className="ninku-bubble ninku-bubble--user">
-                        {item.value}
+                        {item.value}｜{ANSWER_LABELS[item.value]}
                       </div>
                       <div className="ninku-user-meta">
                         <span>{item.at}</span>
@@ -1179,7 +1234,7 @@ function Modal({ onClose }: { onClose: () => void }) {
                       <div className="ninku-overall-top">
                         <div className="ninku-overall-main">
                           <span className="ninku-overall-badge">
-                            健全度スコア・{tier.title}
+                            健全度スコア・{tier.range}
                           </span>
                           <div className="ninku-overall-score">
                             <span className="ninku-overall-num">{displayHealth}</span>
@@ -1190,7 +1245,12 @@ function Modal({ onClose }: { onClose: () => void }) {
                           <HealthFace tier={tier} />
                         </div>
                       </div>
-                      <p className="ninku-overall-label">{tier.message}</p>
+                      <p className="ninku-overall-title">
+                        {result.feedbackTitle || tier.title}
+                      </p>
+                      <p className="ninku-overall-label">
+                        {result.feedbackBody || tier.message}
+                      </p>
                       <p className="ninku-note">
                         ※スコアは0〜100点。高いほど組織が健全な状態です。
                       </p>
@@ -1198,60 +1258,95 @@ function Modal({ onClose }: { onClose: () => void }) {
                   );
                 })()}
 
-                <h3 className="ninku-radar-head">課題マップ（5指標）</h3>
+                <h3 className="ninku-radar-head">健全度マップ（5指標）</h3>
                 <div className="ninku-radar">
                   <RadarChart scores={result.scores} />
                 </div>
                 <p className="ninku-radar-caption">
-                  外側に広がるほど課題が大きい状態です。
+                  外側に広がるほど健全な状態です。
                 </p>
-                <div className="ninku-fb">
-                  <h3>このまま放置すると起きやすいこと</h3>
-                  <p className="ninku-fb-note">危険度が高い順に表示しています。</p>
-                  <ul className="ninku-risks">
-                    {[...result.scores]
-                      .sort((a, b) => b.value - a.value)
-                      .slice(0, 3)
-                      .map((s, i) => (
-                        <li
-                          key={s.id}
-                          className="ninku-risk"
-                          style={{ animationDelay: `${0.1 + i * 0.12}s` }}
-                        >
-                          <span
-                            className="ninku-risk-rank"
-                            style={{ background: s.color }}
-                          >
-                            {i + 1}
-                          </span>
-                          <div>
-                            <p className="ninku-risk-text">
-                              {RISK_TEXT[s.id].cause}
-                            </p>
-                            <p className="ninku-risk-result">
-                              <span aria-hidden className="ninku-risk-arrow">
-                                ▶
-                              </span>
-                              {RISK_TEXT[s.id].result}
-                            </p>
-                            <span
-                              className="ninku-risk-tag"
-                              style={{ color: s.color }}
+                {(() => {
+                  const risks = elevatedRisks(result.scores, 3);
+                  if (risks.length === 0) {
+                    const keeps = [
+                      "評価基準の共有が「書いて終わり」にならないよう、現場で使える状態を保つ",
+                      "頑張りが等級・給与・役割に反映される運用を、感覚任せに戻さない",
+                      "育成ステップと将来像の言語化を、そのまま仕組みとして残す",
+                    ];
+                    return (
+                      <div className="ninku-fb ninku-fb--ok">
+                        <h3>重大な課題は検出されませんでした</h3>
+                        <p className="ninku-fb-note">
+                          回答どおりなら今は土台が整っています。無理に不安を煽る必要はありません。
+                        </p>
+                        <ul className="ninku-keeps">
+                          {keeps.map((text, i) => (
+                            <li
+                              key={text}
+                              className="ninku-keep"
+                              style={{ animationDelay: `${0.1 + i * 0.12}s` }}
                             >
-                              {s.short}指数 {s.value}
+                              <span className="ninku-keep-mark" aria-hidden>
+                                ✓
+                              </span>
+                              <p className="ninku-keep-text">{text}</p>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }
+                  return (
+                    <div className="ninku-fb">
+                      <h3>このまま放置すると起きやすいこと</h3>
+                      <p className="ninku-fb-note">
+                        危険度が一定以上の指標だけを、高い順に表示しています。
+                      </p>
+                      <ul className="ninku-risks">
+                        {risks.map((s, i) => (
+                          <li
+                            key={s.id}
+                            className="ninku-risk"
+                            style={{ animationDelay: `${0.1 + i * 0.12}s` }}
+                          >
+                            <span
+                              className="ninku-risk-rank"
+                              style={{ background: s.color }}
+                            >
+                              {i + 1}
                             </span>
-                          </div>
-                        </li>
-                      ))}
-                  </ul>
-                </div>
+                            <div>
+                              <p className="ninku-risk-text">
+                                {RISK_TEXT[s.id].cause}
+                              </p>
+                              <p className="ninku-risk-result">
+                                <span aria-hidden className="ninku-risk-arrow">
+                                  ▶
+                                </span>
+                                {RISK_TEXT[s.id].result}
+                              </p>
+                              <span
+                                className="ninku-risk-tag"
+                                style={{ color: s.color }}
+                              >
+                                {s.short}指数 {s.value}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
                 <a
                   href={NINKUBOXX_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="ninku-cta"
                 >
-                  無料相談はこちら
+                  {health >= 76
+                    ? "仕組みの点検・相談はこちら"
+                    : "無料相談はこちら"}
                 </a>
               </section>
             ) : null}
@@ -1283,15 +1378,14 @@ function Modal({ onClose }: { onClose: () => void }) {
                   </button>
                 ))}
               </div>
-              {(() => {
-                const ends = parseScaleEnds(currentQ?.help);
-                return (
-                  <div className="ninku-scale-ends">
-                    <span>1 … {ends.low}</span>
-                    <span>5 … {ends.high}</span>
-                  </div>
-                );
-              })()}
+              <ul className="ninku-scale-legend" aria-label="回答の意味">
+                {([1, 2, 3, 4, 5] as AnswerValue[]).map((n) => (
+                  <li key={n}>
+                    <b>{n}</b>
+                    <span>{ANSWER_LABELS[n]}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
             <p className="ninku-composer-tip">数字を押すと、すぐチャットに送信されます</p>
           </div>
