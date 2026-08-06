@@ -53,13 +53,12 @@ export async function POST(req: Request) {
         band_range: band.range,
         scores: formatScoresForPrompt(result.scores),
         answers_summary: summarizeAnswers(answers),
-        // 旧プロンプト互換（未使用変数は残っても害なし）
         overall_label: result.overallLabel,
       });
       const ai = await callText({
         prompt,
         model: "claude-haiku-4-5",
-        maxTokens: 500,
+        maxTokens: 900,
       });
       const parsed = parseDiagnosisFeedback(ai.text);
       if (parsed) {
@@ -76,6 +75,8 @@ export async function POST(req: Request) {
       overallLabel: result.overallLabel,
       feedbackTitle: feedback.title,
       feedbackBody: feedback.body,
+      actionTitle: feedback.actionTitle,
+      actions: feedback.actions,
       feedback: `${feedback.title}\n${feedback.body}`,
       source,
     });

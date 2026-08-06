@@ -156,6 +156,8 @@ export interface HealthBand {
 export interface DiagnosisFeedback {
   title: string;
   body: string;
+  actionTitle: string;
+  actions: string[];
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -262,44 +264,96 @@ export function summarizeAnswers(answers: Answers): string {
   }).join("\n");
 }
 
+/** プロンプト用：健全度指標名と点数（高いほど良い） */
 export function formatScoresForPrompt(scores: IndexScore[]): string {
-  return scores.map((s) => `- ${s.label}: ${s.value}`).join("\n");
+  return scores
+    .map((s) => `- ${s.healthShort}: ${100 - s.value}`)
+    .join("\n");
 }
 
-/** AI不可時の見出し＋本文（点数帯の方針に沿った固定フォールバック） */
+function fallbackActions(health: number, scores: IndexScore[]): string[] {
+  if (health >= 76) {
+    return [
+      "評価の基準が社員に伝わっているか、現場で聞き取り確認する",
+      "直近の昇給・役割変更で、評価が実際に使われたかを振り返る",
+      "新人育成の進め方が教える人で差がないか、月次でそろえる",
+    ];
+  }
+  const weak = [...scores]
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 3)
+    .map((s) => s.healthShort);
+  return [
+    `${weak[0] ?? "評価"}の基準を紙かデータに残し、社長以外も使える形にする`,
+    `${weak[1] ?? "給料"}の決め方を、感覚ではなく手順として書き出す`,
+    `${weak[2] ?? "育成"}の進め方を誰が教えても同じになるよう型を作る`,
+  ];
+}
+
+/** AI不可時の固定フォールバック */
 export function buildFallbackFeedback(
   result: DiagnosisResult,
 ): DiagnosisFeedback {
-  const band = getHealthBand(100 - result.overall);
-  return { title: band.fallbackTitle, body: band.fallbackBody };
+  const health = 100 - result.overall;
+  const band = getHealthBand(health);
+  return {
+    title: band.fallbackTitle,
+    body: band.fallbackBody,
+    actionTitle:
+      health >= 76 ? "次に確認すべき3つ" : "次に取り組むべき3つ",
+    actions: fallbackActions(health, result.scores),
+  };
 }
 
-/** AI出力を「見出し」「本文」にパース。失敗時は null */
+function asStringArray(v: unknown): string[] | null {
+  if (!Array.isArray(v)) return null;
+  const items = v
+    .map((x) => (typeof x === "string" ? x.trim() : ""))
+    .filter(Boolean);
+  return items.length >= 3 ? items.slice(0, 3) : null;
+}
+
+/** AI出力（JSON優先、旧2行形式も許容）をパース。失敗時は null */
 export function parseDiagnosisFeedback(raw: string): DiagnosisFeedback | null {
   const text = raw.trim();
   if (!text) return null;
 
-  const titleMatch = text.match(
-    /^(?:見出し|タイトル)\s*[:：]\s*(.+)$/m,
-  );
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      const obj = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+      const title =
+        typeof obj.feedbackTitle === "string" ? obj.feedbackTitle.trim() : "";
+      const body =
+        typeof obj.feedbackBody === "string" ? obj.feedbackBody.trim() : "";
+      const actionTitle =
+        typeof obj.actionTitle === "string" && obj.actionTitle.trim()
+          ? obj.actionTitle.trim()
+          : "次に取り組むべき3つ";
+      const actions = asStringArray(obj.actions);
+      if (title && body && actions) {
+        return { title, body, actionTitle, actions };
+      }
+    } catch {
+      // JSON以外の形式へフォールバック
+    }
+  }
+
+  const titleMatch = text.match(/^(?:見出し|タイトル)\s*[:：]\s*(.+)$/m);
   const bodyMatch = text.match(/^(?:本文|コメント)\s*[:：]\s*(.+)$/m);
   if (titleMatch && bodyMatch) {
     const title = titleMatch[1].trim();
     const body = bodyMatch[1].trim();
-    if (title && body) return { title, body };
+    if (title && body) {
+      return {
+        title,
+        body,
+        actionTitle: "次に取り組むべき3つ",
+        actions: fallbackActions(76, []),
+      };
+    }
   }
 
-  const lines = text
-    .split(/\n+/)
-    .map((l) => l.replace(/^\s*[-・*]\s*/, "").trim())
-    .filter(Boolean);
-  if (lines.length >= 2) {
-    return { title: lines[0], body: lines.slice(1).join("") };
-  }
-  if (lines.length === 1 && lines[0].length >= 20) {
-    // 1塊だけのときは先頭を見出し、残りを本文に分割できないので本文のみ扱い
-    return { title: "診断結果", body: lines[0] };
-  }
   return null;
 }
 

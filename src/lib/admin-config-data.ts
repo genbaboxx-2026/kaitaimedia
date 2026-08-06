@@ -205,8 +205,15 @@ export const PROMPTS: PromptStepData[] = [
       "{{scores}}",
       "{{answers_summary}}",
     ],
-    activeVersion: 2,
+    activeVersion: 3,
     versions: [
+      {
+        version: 3,
+        note: "NiNKU BOXX組織診断AIメッセージ v3 JSON",
+        createdAt: "2026-08-06",
+        content:
+          "健全度{{health_score}}点（{{band_range}}）をJSONで返す。feedbackTitle/feedbackBody/actionTitle/actions。指標: {{scores}} / 回答: {{answers_summary}}",
+      },
       {
         version: 2,
         note: "NiNKU BOXX組織診断AIメッセージ v2",

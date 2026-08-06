@@ -5,11 +5,9 @@ import Image from "next/image";
 import {
   type Answers,
   type AnswerValue,
-  type IndexId,
   type IndexScore,
   ANSWER_LABELS,
   ANSWER_SCALE_HINT,
-  elevatedRisks,
   QUESTIONS,
 } from "@/lib/ninkuboxx/diagnosis";
 
@@ -22,6 +20,8 @@ interface DiagnoseResponse {
   overallLabel: string;
   feedbackTitle: string;
   feedbackBody: string;
+  actionTitle: string;
+  actions: string[];
   feedback: string;
   source?: "ai" | "fallback";
   error?: string;
@@ -248,31 +248,6 @@ const TIERS: Tier[] = [
 function tierOf(health: number): Tier {
   return TIERS.find((t) => health >= t.min) ?? TIERS[TIERS.length - 1];
 }
-
-/** 各指標が高いときの「状況」と「その結果どうなるか」（解体業のリアル・緊急度順） */
-const RISK_TEXT: Record<IndexId, { cause: string; result: string }> = {
-  exhaustion: {
-    cause: "営業と現場がかみ合わず負担が現場に偏り、すれ違いと疲労が積み重なります。",
-    result: "現場が疲弊し、事故・ミスや突然の離職につながります。",
-  },
-  trust: {
-    cause: "社長が“鉛筆なめ”の感覚で給与を決め、判断基準が見えません。",
-    result:
-      "「何を見て評価されているのか」への不信が広がり、優秀な人ほど会社を見限ります。",
-  },
-  dissatisfaction: {
-    cause: "給料をもらっていても「なぜこの額なのか」の理由が分かりません。",
-    result: "金額に関係なく不満が静かに溜まり、やがて離職や職場の空気の悪化を招きます。",
-  },
-  ambiguity: {
-    cause: "「何を頑張れば評価・給料が上がるのか」が示されていません。",
-    result: "やる気のある人ほど答えを求めて他社へ流れ、伸びる人材から抜けていきます。",
-  },
-  dependency: {
-    cause: "会社の目標や方針が社長の頭の中だけにあります。",
-    result: "社員が向かう先を見失って“会社離れ”が進み、社長が動けないと現場が止まります。",
-  },
-};
 
 /** 点数に応じて表情・付帯（汗・絆創膏）が変わる病状フェイス */
 function HealthFace({ tier }: { tier: Tier }) {
@@ -1256,31 +1231,35 @@ function Modal({ onClose }: { onClose: () => void }) {
                   外側に広がるほど健全な状態です。
                 </p>
                 {(() => {
-                  // 緑帯（76点以上）では赤の危険カードは出さない。黄・赤帯のみ課題リストを表示。
-                  const risks =
-                    health >= 76 ? [] : elevatedRisks(result.scores, 3);
-                  if (risks.length === 0) {
-                    const keeps = [
-                      "評価基準の共有が「書いて終わり」にならないよう、現場で使える状態を保つ",
-                      "頑張りが等級・給与・役割に反映される運用を、感覚任せに戻さない",
-                      "育成ステップと将来像の言語化を、そのまま仕組みとして残す",
-                    ];
-                    return (
-                      <div className="ninku-fb ninku-fb--ok">
-                        <h3>
-                          {health >= 76
-                            ? "いまは運用確認の段階です"
-                            : "重大な課題は検出されませんでした"}
-                        </h3>
-                        <p className="ninku-fb-note">
-                          {health >= 76
-                            ? "総合は良好です。細かい指標の差はあっても、赤信号レベルの課題ではありません。"
-                            : "回答どおりなら今は土台が整っています。無理に不安を煽る必要はありません。"}
-                        </p>
-                        <ul className="ninku-keeps">
-                          {keeps.map((text, i) => (
+                  const actions =
+                    result.actions?.length >= 3
+                      ? result.actions.slice(0, 3)
+                      : [
+                          "評価の基準が社員に伝わっているか、現場で聞き取り確認する",
+                          "直近の昇給・役割変更で、評価が実際に使われたかを振り返る",
+                          "新人育成の進め方が教える人で差がないか、月次でそろえる",
+                        ];
+                  const actionTitle =
+                    result.actionTitle ||
+                    (health >= 76
+                      ? "次に確認すべき3つ"
+                      : "次に取り組むべき3つ");
+                  const isOk = health >= 76;
+                  return (
+                    <div
+                      className={`ninku-fb${isOk ? " ninku-fb--ok" : ""}`}
+                    >
+                      <h3>{actionTitle}</h3>
+                      <p className="ninku-fb-note">
+                        {isOk
+                          ? "総合は良好です。いまの仕組みを現場で使い続けるための確認ポイントです。"
+                          : "回答内容から優先度の高い順に、すぐ着手できる取り組みを示しています。"}
+                      </p>
+                      <ul className={isOk ? "ninku-keeps" : "ninku-risks"}>
+                        {actions.map((text, i) =>
+                          isOk ? (
                             <li
-                              key={text}
+                              key={`${i}-${text}`}
                               className="ninku-keep"
                               style={{ animationDelay: `${0.1 + i * 0.12}s` }}
                             >
@@ -1289,49 +1268,31 @@ function Modal({ onClose }: { onClose: () => void }) {
                               </span>
                               <p className="ninku-keep-text">{text}</p>
                             </li>
-                          ))}
-                        </ul>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div className="ninku-fb">
-                      <h3>このまま放置すると起きやすいこと</h3>
-                      <p className="ninku-fb-note">
-                        危険度が一定以上の指標だけを、高い順に表示しています。
-                      </p>
-                      <ul className="ninku-risks">
-                        {risks.map((s, i) => (
-                          <li
-                            key={s.id}
-                            className="ninku-risk"
-                            style={{ animationDelay: `${0.1 + i * 0.12}s` }}
-                          >
-                            <span
-                              className="ninku-risk-rank"
-                              style={{ background: s.color }}
+                          ) : (
+                            <li
+                              key={`${i}-${text}`}
+                              className="ninku-risk"
+                              style={{ animationDelay: `${0.1 + i * 0.12}s` }}
                             >
-                              {i + 1}
-                            </span>
-                            <div>
-                              <p className="ninku-risk-text">
-                                {RISK_TEXT[s.id].cause}
-                              </p>
-                              <p className="ninku-risk-result">
-                                <span aria-hidden className="ninku-risk-arrow">
-                                  ▶
-                                </span>
-                                {RISK_TEXT[s.id].result}
-                              </p>
                               <span
-                                className="ninku-risk-tag"
-                                style={{ color: s.color }}
+                                className="ninku-risk-rank"
+                                style={{
+                                  background:
+                                    i === 0
+                                      ? "#dc2626"
+                                      : i === 1
+                                        ? "#ea580c"
+                                        : "#d97706",
+                                }}
                               >
-                                {s.short}指数 {s.value}
+                                {i + 1}
                               </span>
-                            </div>
-                          </li>
-                        ))}
+                              <div>
+                                <p className="ninku-risk-text">{text}</p>
+                              </div>
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </div>
                   );
