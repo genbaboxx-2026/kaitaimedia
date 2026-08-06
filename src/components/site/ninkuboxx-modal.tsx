@@ -1266,7 +1266,9 @@ function Modal({ onClose }: { onClose: () => void }) {
                   外側に広がるほど健全な状態です。
                 </p>
                 {(() => {
-                  const risks = elevatedRisks(result.scores, 3);
+                  // 緑帯（76点以上）では赤の危険カードは出さない。黄・赤帯のみ課題リストを表示。
+                  const risks =
+                    health >= 76 ? [] : elevatedRisks(result.scores, 3);
                   if (risks.length === 0) {
                     const keeps = [
                       "評価基準の共有が「書いて終わり」にならないよう、現場で使える状態を保つ",
@@ -1275,9 +1277,15 @@ function Modal({ onClose }: { onClose: () => void }) {
                     ];
                     return (
                       <div className="ninku-fb ninku-fb--ok">
-                        <h3>重大な課題は検出されませんでした</h3>
+                        <h3>
+                          {health >= 76
+                            ? "いまは運用確認の段階です"
+                            : "重大な課題は検出されませんでした"}
+                        </h3>
                         <p className="ninku-fb-note">
-                          回答どおりなら今は土台が整っています。無理に不安を煽る必要はありません。
+                          {health >= 76
+                            ? "総合は良好です。細かい指標の差はあっても、赤信号レベルの課題ではありません。"
+                            : "回答どおりなら今は土台が整っています。無理に不安を煽る必要はありません。"}
                         </p>
                         <ul className="ninku-keeps">
                           {keeps.map((text, i) => (
