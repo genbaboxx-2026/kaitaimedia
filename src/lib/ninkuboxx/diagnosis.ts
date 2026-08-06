@@ -67,58 +67,59 @@ export const INDEX_DEFS: IndexDef[] = [
   },
 ];
 
-/** 回答スケール（全問共通） */
+/** 回答スケール（全問共通・1が悪い／5が良い） */
 export const ANSWER_LABELS: Record<AnswerValue, string> = {
-  1: "まったくできていない",
-  2: "あまりできていない",
+  1: "かなり問題がある",
+  2: "やや問題がある",
   3: "どちらともいえない",
-  4: "ある程度できている",
-  5: "十分できている",
+  4: "あまり問題がない",
+  5: "問題がない",
 };
 
-const SCALE_HELP = `1 = ${ANSWER_LABELS[1]} / 5 = ${ANSWER_LABELS[5]}`;
+/** 入力UI用の1行ガイド */
+export const ANSWER_SCALE_HINT = "1＝かなり問題がある　　5＝問題がない";
 
-/** 30秒チャット診断用（5問）。各指数に届くよう割り当て。 */
+/** 30秒チャット診断用（5問）。各指標に1問対応。5＝問題がない。 */
 export const QUESTIONS: DiagnosisQuestion[] = [
   {
-    id: "q_pay",
+    id: "q_retention",
     label:
-      "社員の給料や賞与を決めるとき、毎回「いくら上げるべきか」で悩んでいませんか？",
-    help: SCALE_HELP,
+      "社員が突然辞めたり、採用しても長続きしないことがありますか？",
+    help: ANSWER_SCALE_HINT,
     higherIsWorse: false,
-    affects: ["ambiguity", "dependency", "dissatisfaction"],
+    affects: ["trust"],
   },
   {
-    id: "q_criteria",
+    id: "q_satisfaction",
     label:
-      "頑張っている社員と、そうでない社員を、明確な基準で評価できていますか？",
-    help: SCALE_HELP,
+      "給料や評価について、社員から不満や不公平感が出ていますか？",
+    help: ANSWER_SCALE_HINT,
     higherIsWorse: false,
-    affects: ["ambiguity", "trust", "dissatisfaction"],
+    affects: ["dissatisfaction"],
   },
   {
-    id: "q_boss",
+    id: "q_burden",
     label:
-      "社長がいなくても、評価・昇給・昇格を決められる仕組みがありますか？",
-    help: SCALE_HELP,
+      "社員の評価や給料を決めることが、社長の負担になっていますか？",
+    help: ANSWER_SCALE_HINT,
     higherIsWorse: false,
-    affects: ["dependency", "ambiguity", "trust"],
+    affects: ["exhaustion"],
   },
   {
     id: "q_growth",
     label:
-      "新人や若手を、誰が教えても一定レベルまで育てられる仕組みがありますか？",
-    help: SCALE_HELP,
+      "新人や若手が、教える人によって育ち方に差が出ていますか？",
+    help: ANSWER_SCALE_HINT,
     higherIsWorse: false,
-    affects: ["exhaustion", "dependency", "dissatisfaction"],
+    affects: ["ambiguity"],
   },
   {
-    id: "q_career",
+    id: "q_future",
     label:
-      "社員に「何を頑張れば、給料や役職が上がるのか」を説明できますか？",
-    help: SCALE_HELP,
+      "社員に「何を頑張れば給料や役職が上がるか」を説明できていますか？",
+    help: ANSWER_SCALE_HINT,
     higherIsWorse: false,
-    affects: ["ambiguity", "dissatisfaction", "trust", "exhaustion"],
+    affects: ["dependency"],
   },
 ];
 

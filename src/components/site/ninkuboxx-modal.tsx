@@ -8,6 +8,7 @@ import {
   type IndexId,
   type IndexScore,
   ANSWER_LABELS,
+  ANSWER_SCALE_HINT,
   elevatedRisks,
   QUESTIONS,
 } from "@/lib/ninkuboxx/diagnosis";
@@ -627,25 +628,14 @@ function ModalStyles() {
         opacity: 0.45;
         cursor: not-allowed;
       }
-      .ninku-scale-legend {
+      .ninku-scale-hint {
         margin: 8px 0 0;
-        padding: 0;
-        list-style: none;
-        display: grid;
-        gap: 3px;
-        font-size: 12px;
-        font-weight: 700;
+        text-align: center;
+        font-size: 12.5px;
+        font-weight: 800;
         color: #64748b;
-        line-height: 1.35;
-      }
-      .ninku-scale-legend li {
-        display: flex;
-        gap: 6px;
-      }
-      .ninku-scale-legend b {
-        flex-shrink: 0;
-        width: 1.2em;
-        color: #0f766e;
+        line-height: 1.4;
+        white-space: pre-wrap;
       }
       .ninku-composer-tip {
         margin: 8px 0 0;
@@ -1386,14 +1376,9 @@ function Modal({ onClose }: { onClose: () => void }) {
                   </button>
                 ))}
               </div>
-              <ul className="ninku-scale-legend" aria-label="回答の意味">
-                {([1, 2, 3, 4, 5] as AnswerValue[]).map((n) => (
-                  <li key={n}>
-                    <b>{n}</b>
-                    <span>{ANSWER_LABELS[n]}</span>
-                  </li>
-                ))}
-              </ul>
+              <p className="ninku-scale-hint" aria-label="回答の意味">
+                {ANSWER_SCALE_HINT}
+              </p>
             </div>
             <p className="ninku-composer-tip">数字を押すと、すぐチャットに送信されます</p>
           </div>
